@@ -6,6 +6,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 __copyright__ = "Copyright (C) 2014 The OctoPrint Project - Released under terms of the AGPLv3 License"
 
 import uuid
+import os
 from sockjs.tornado import SockJSRouter
 from flask import Flask, render_template, send_from_directory, g, request, make_response, session
 from flask.ext.login import LoginManager
@@ -107,12 +108,17 @@ def index():
 
 	template_plugins = pluginManager.get_implementations(octoprint.plugin.TemplatePlugin)
 	template_plugin_names = list()
+
+	root_template = "index.jinja2"
+
 	for name in template_plugins.items():
 		template_plugin_names.append(name[0])
-
+		plugin_main_template = name[1].get_template_folder() + "/override_index.jinja2"
+		if (os.path.isfile(plugin_main_template)):
+			root_template = "override_index.jinja2"
 
 	return render_template(
-		"index.jinja2",
+		root_template,
 		webcamStream=settings().get(["webcam", "stream"]),
 		enableTimelapse=(settings().get(["webcam", "snapshot"]) is not None and settings().get(["webcam", "ffmpeg"]) is not None),
 		enableGCodeVisualizer=settings().get(["gcodeViewer", "enabled"]),
