@@ -11,4 +11,4 @@ watchdog
 sarge
 netifaces
 pylru
--e ../tornado
+tornado
