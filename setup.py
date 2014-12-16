@@ -268,9 +268,6 @@ def params():
 	include_package_data = True
 	zip_safe = False
 	install_requires = open("requirements.txt").read().split("\n")
-	dependency_links = [
-		'https://github.com/nosyjoe/tornado/archive/master.tar.gz',
-	]
 
 	entry_points = {
 		"console_scripts": [
