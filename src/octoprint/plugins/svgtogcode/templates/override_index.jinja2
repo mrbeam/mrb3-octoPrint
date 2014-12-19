@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title data-bind="text: title">Mr Beam Print</title>
+        <title data-bind="text: title">Mr Beam</title>
 
         <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.png') }}">
         <link rel="apple-touch-icon" sizes="114x114" href="{{ url_for('static', filename='img/apple-touch-icon-114x114.png') }}">
@@ -15,62 +15,372 @@
         <link href="{{ url_for('static', filename='css/pnotify.min.css') }}" rel="stylesheet" media="screen">
 
         {% if stylesheet == "less" %}
-            <link href="{{ url_for('static', filename='less/octoprint.less') }}" rel="stylesheet/less" type="text/css" media="screen">
+		<link href="{{ url_for('static', filename='less/octoprint.less') }}" rel="stylesheet/less" type="text/css" media="screen">
 
-            <!-- Plugin files -->
-            {% for name, assets in assetPlugins.items() %}
-                {% if "less" in assets %}
-                    {% for asset in assets["less"] %}
-                        <link href="{{ url_for('plugin_assets', name=name, filename=asset) }}" rel="stylesheet/less" type="text/css" media="screen">
-                    {% endfor %}
-                {% endif %}
-            {% endfor %}
-            <!-- /Plugin files -->
+		<!-- Plugin files -->
+		{% for name, assets in assetPlugins.items() %}
+		{% if "less" in assets %}
+		{% for asset in assets["less"] %}
+		<link href="{{ url_for('plugin_assets', name=name, filename=asset) }}" rel="stylesheet/less" type="text/css" media="screen">
+		{% endfor %}
+		{% endif %}
+		{% endfor %}
+		<!-- /Plugin files -->
 
-            <script src="{{ url_for('static', filename='js/lib/less.min.js') }}" type="text/javascript"></script>
+		<script src="{{ url_for('static', filename='js/lib/less.min.js') }}" type="text/javascript"></script>
         {% else %}
-            <link href="{{ url_for('static', filename='css/octoprint.css') }}" rel="stylesheet" type="text/css" media="screen">
-            <!-- Plugin files -->
-            {% for name, assets in assetPlugins.items() %}
-                {% if "css" in assets %}
-                    {% for asset in assets["css"] %}
-                        <link href="{{ url_for('plugin_assets', name=name, filename=asset) }}" rel="stylesheet" type="text/css" media="screen">
-                    {% endfor %}
-                {% endif %}
-            {% endfor %}
-            <!-- /Plugin files -->
+		<link href="{{ url_for('static', filename='css/octoprint.css') }}" rel="stylesheet" type="text/css" media="screen">
+		<!-- Plugin files -->
+		{% for name, assets in assetPlugins.items() %}
+		{% if "css" in assets %}
+		{% for asset in assets["css"] %}
+		<link href="{{ url_for('plugin_assets', name=name, filename=asset) }}" rel="stylesheet" type="text/css" media="screen">
+		{% endfor %}
+		{% endif %}
+		{% endfor %}
+		<!-- /Plugin files -->
         {% endif %}
         <link href="{{ url_for('static', filename='css/mrbeam.css') }}" rel="stylesheet" media="screen">
 
-        <script lang="javascript">
-            var BASEURL = "{{ url_for('index') }}";
-            var API_BASEURL = BASEURL + "api/";
-            var GCODE_WORKER = "{{ url_for('static', filename='gcodeviewer/js/Worker.js') }}";
+        <script type="text/javascript" >
+			var BASEURL = "{{ url_for('index') }}";
+			var API_BASEURL = BASEURL + "api/";
+			var GCODE_WORKER = "{{ url_for('static', filename='gcodeviewer/js/Worker.js') }}";
+			var CONFIG_GCODEFILESPERPAGE = 5000;
+			var CONFIG_TIMELAPSEFILESPERPAGE = 10;
+			var CONFIG_LOGFILESPERPAGE = 10;
+			var CONFIG_USERSPERPAGE = 10;
+			var CONFIG_WEBCAM_STREAM = "{{ webcamStream }}";
+			var CONFIG_ACCESS_CONTROL = {% if enableAccessControl -%} true; {% else %} false; {%- endif %}
+			var CONFIG_SD_SUPPORT = {% if enableSdSupport -%} true; {% else %} false; {%- endif %}
+			var CONFIG_FIRST_RUN = {% if firstRun -%} true; {% else %} false; {%- endif %}
+			var CONFIG_TEMPERATURE_GRAPH = {% if enableTemperatureGraph -%} true; {% else %} false; {%- endif %}
+			var CONFIG_GCODE_SIZE_THRESHOLD = {{ gcodeThreshold }};
+			var CONFIG_GCODE_MOBILE_SIZE_THRESHOLD = {{ gcodeMobileThreshold }};
+			var SOCKJS_URI = window.location.protocol.slice(0, - 1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + BASEURL + "sockjs";
+			var SOCKJS_DEBUG = {% if debug -%} true; {% else %} false; {%- endif %}
 
-            var CONFIG_GCODEFILESPERPAGE = 5000;
-            var CONFIG_TIMELAPSEFILESPERPAGE = 10;
-            var CONFIG_LOGFILESPERPAGE = 10;
-            var CONFIG_USERSPERPAGE = 10;
-            var CONFIG_WEBCAM_STREAM = "{{ webcamStream }}";
-            var CONFIG_ACCESS_CONTROL = {% if enableAccessControl -%} true; {% else %} false; {%- endif %}
-            var CONFIG_SD_SUPPORT = {% if enableSdSupport -%} true; {% else %} false; {%- endif %}
-            var CONFIG_FIRST_RUN = {%  if firstRun -%} true; {% else %} false; {%- endif %}
-            var CONFIG_TEMPERATURE_GRAPH = {%  if enableTemperatureGraph -%} true; {% else %} false; {%- endif %}
-            var CONFIG_GCODE_SIZE_THRESHOLD = {{ gcodeThreshold }};
-            var CONFIG_GCODE_MOBILE_SIZE_THRESHOLD = {{ gcodeMobileThreshold }};
-
-            var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + BASEURL + "sockjs";
-            var SOCKJS_DEBUG = {%  if debug -%} true; {% else %} false; {%- endif %}
-
-            var UI_API_KEY = "{{ uiApiKey }}";
-            var VERSION = "{{ version }}";
-            var DISPLAY_VERSION = "{{ display_version }}";
-            var LOCALE = "{{ g.locale }}";
-
-            var ADDITIONAL_VIEWMODELS = [];
-        </script>
+			var UI_API_KEY = "{{ uiApiKey }}";
+			var VERSION = "{{ version }}";
+			var DISPLAY_VERSION = "{{ display_version }}";
+			var LOCALE = "{{ g.locale }}";
+			var ADDITIONAL_VIEWMODELS = [];   
+		</script>
     </head>
     <body>
-        <h1>Test</h1>
+		<nav class="navbar navbar-default" role="navigation">
+			<div class="container-fluid">
+				<div class="navbar-header brand">
+					<a class="navbar-brand" href="#">
+						<img alt="Mr Beam Logo" src="{{ url_for('static', filename='img/mr-typo-red_x120.png') }}">
+					</a>
+				</div>
+				<ul class="nav nav-pills">
+					<li class="active"><a href="#workingarea" data-toggle="tab">working area</a></li>
+					<li><a href="#designlib" data-toggle="tab">design library</a></li>
+					<li><a href="#focus" data-toggle="tab">focus</a></li>
+					<li style="display: none;" data-bind="visible: loginState.isAdmin">
+						<a id="navbar_show_settings" class="pull-right" href="#settings" data-toggle="tab">{{ _('settings') }}</a>
+					</li>
+				</ul>
+				<ul class="nav pull-right">
+					{% if enableSystemMenu %}
+					<li class="dropdown" style="display: none" data-bind="visible: loginState.isAdmin">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+							<i class="icon-off"></i> {{ _('System') }}
+							<b class="caret"></b>
+						</a>
+						<ul class="dropdown-menu" data-bind="foreach: systemActions">
+							<li><a href="#" data-bind="click: $root.triggerAction, text: name"></a></li>
+						</ul>
+					</li>
+					{% endif %}
+					{% if enableAccessControl %}
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+							<i class="icon-user"></i> <span data-bind="text: loginState.userMenuText">{{ _('Login') }}</span>
+							<b class="caret"></b>
+						</a>
+						<div id="login_dropdown_loggedout" style="padding: 15px" class="dropdown-menu" data-bind="css: {hide: loginState.loggedIn(), 'dropdown-menu': !loginState.loggedIn()}">
+							<label for="login_user">{{ _('Username') }}</label>
+							<input type="text" id="login_user" placeholder="{{ _('Username') }}" autocapitalize="none">
+							<label for="login_pass">{{ _('Password') }}</label>
+							<input type="password" id="login_pass" placeholder="{{ _('Password') }}">
+							<label class="checkbox">
+								<input type="checkbox" id="login_remember"> {{ _('Remember me') }}
+							</label>
+							<button class="btn btn-block btn-primary" id="login_button" data-bind="click: loginState.login">{{ _('Login') }}</button>
+						</div>
+						<ul id="login_dropdown_loggedin" class="hide" data-bind="css: {hide: !loginState.loggedIn(), 'dropdown-menu': loginState.loggedIn()}">
+							<li><a href="#" id="change_password_button" data-bind="click: function() { users.showChangePasswordDialog(loginState.currentUser()); }">{{ _('Change Password') }}</a></li>
+							<li><a href="#" id="logout_button" data-bind="click: loginState.logout">{{ _('Logout') }}</a></li>
+						</ul>
+					</li>
+					{% endif %}
+				</ul>
+			</div>
+		</nav>
+
+		<div class="span12 tabbable">
+			<div class="tab-content">
+				<div class="tab-pane active" id="workingarea">
+					<div class="container-fluid">
+						<div class="row-fluid">
+							<div class="span3">
+					
+								
+                    <div id="state_accordion"></div>								
+                    <div data-bind="visible: loginState.isUser" id="connection_accordion"></div>
+					
+					<div class="" id="files_accordion">
+                        <div class="">
+                            <a class="accordion-toggle" data-toggle="collapse" href="#files"><i class="icon-list"></i> {{ _('Files') }}</a>
+
+                            <div class="settings-trigger accordion-heading-button btn-group">
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                    <span class="icon-wrench"></span>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="#" data-bind="click: function() { $root.listHelper.changeSorting('name'); }"><i class="icon-ok" data-bind="style: {visibility: listHelper.currentSorting() == 'name' ? 'visible' : 'hidden'}"></i> {{ _('Sort by name') }} ({{ _('ascending') }})</a></li>
+                                    <li><a href="#" data-bind="click: function() { $root.listHelper.changeSorting('upload'); }"><i class="icon-ok" data-bind="style: {visibility: listHelper.currentSorting() == 'upload' ? 'visible' : 'hidden'}"></i> {{ _('Sort by upload date') }} ({{ _('descending') }})</a></li>
+                                    <li><a href="#" data-bind="click: function() { $root.listHelper.changeSorting('size'); }"><i class="icon-ok" data-bind="style: {visibility: listHelper.currentSorting() == 'size' ? 'visible' : 'hidden'}"></i> {{ _('Sort by file size') }} ({{ _('descending') }})</a></li>
+                                    <li class="divider"></li>
+                                    <li><a href="#" data-bind="click: function() { $root.listHelper.toggleFilter('machinecode'); }"><i class="icon-ok" data-bind="style: {visibility: _.contains(listHelper.currentFilters(), 'machinecode') ? 'visible' : 'hidden'}"></i> {{ _('Only show GCode files') }}</a></li>
+                                    <li><a href="#" data-bind="click: function() { $root.listHelper.toggleFilter('model'); }"><i class="icon-ok" data-bind="style: {visibility: _.contains(listHelper.currentFilters(), 'model') ? 'visible' : 'hidden'}"></i> {{ _('Only show STL files') }}</a></li>
+                                    <li class="divider"></li>
+                                </ul>
+                            </div>
+                      
+                        </div>
+                        <div class="accordion-body collapse in overflow_visible" id="files">
+                            <div class="accordion-inner">
+                                <form class="form-search">
+                                    <input type="text" class="input-block search-query" data-bind="value: searchQuery, valueUpdate: 'input'" placeholder="{{ _('Search...') }}">
+                                </form>
+                                <div class="gcode_files" data-bind="slimScrolledForeach: listHelper.paginatedItems">
+                                    <div class="entry" data-bind="attr: { id: $root.getEntryId($data) }, template: { name: $root.templateFor($data), data: $data }"></div>
+
+                                    <script type="text/html" id="files_template_machinecode">
+										<div class="file_list_entry">
+											<div class="title" data-bind="css: $root.getSuccessClass($data), style: { 'font-weight': $root.listHelper.isSelected($data) ? 'bold' : 'normal' }, text: name"></div>
+											<div class="uploaded">{{ _('Uploaded') }}: <span data-bind="text: formatTimeAgo(date)"></span></div>
+											<div class="size">{{ _('Size') }}: <span data-bind="text: formatSize(size)"></span></div>
+											<div class="additionalInfo hide" data-bind="html: $root.getAdditionalData($data)"></div>
+											<div class="btn-group action-buttons">
+												<!--<div class="btn btn-mini toggleAdditionalData" data-bind="click: function() { if ($root.enableAdditionalData($data)) { $root.toggleAdditionalData($data); } else { return; } }, css: { disabled: !$root.enableAdditionalData($data) }"><i class="icon-chevron-down"></i></div>-->
+												<a class="btn btn-mini" data-bind="attr: {href: $root.downloadLink($data), css: {disabled: !$root.downloadLink($data)}}"><i class="icon-download-alt" title="{{ _('Download') }}"></i></a>
+												<div class="btn btn-mini" data-bind="click: function() { if ($root.enableRemove($data)) { $root.removeFile($data); } else { return; } }, css: {disabled: !$root.enableRemove($data)}"><i class="icon-trash" title="{{ _('Remove') }}"></i></div>
+												<div class="btn btn-mini" data-bind="click: function() { if ($root.enableSelect($data)) { $root.loadFile($data, false); } else { return; } }, css: {disabled: !$root.enableSelect($data)}"><i class="icon-folder-open" title="{{ _('Load') }}"></i></div>
+												<div class="btn btn-mini"  data-bind="click: function() { if ($root.enableSelect($data)) { $root.loadFile($data, true); } else { return; } }, css: {disabled: !$root.enableSelect($data)}"><i class="icon-fire" title="{{ _('Load and Laser') }}"></i></div>
+											</div>
+                                        </div>
+                                    </script>
+
+                                    <script type="text/html" id="files_template_model_svg">
+										<div class="file_list_entry">
+											<div class="title muted" data-bind="text: name"></div>
+											<div class="uploaded">{{ _('Uploaded') }}: <span data-bind="text: formatTimeAgo(date)"></span></div>
+											<div class="size">{{ _('Size') }}: <span data-bind="text: formatSize(size)"></span></div>
+											<div class="btn-group action-buttons">
+												<div class="btn btn-mini" data-bind="click: function() { if ($root.enableRemove($data)) { $root.removeFile($data); } else { return; } }, css: {disabled: !$root.enableRemove($data)}"><i class="icon-trash" title="{{ _('Remove') }}"></i></div>
+												<div class="btn btn-mini"  data-bind="click: function() { $root.convertSVG($data); }, css: {disabled: !$root.enableSVGConversion($data)}"><i class="icon-fire" title="{{ _('Convert to Laserpath') }}"></i></div>
+											</div>
+										</div>
+                                    </script>
+
+                                    <script type="text/html" id="files_template_folder">
+                                        <div class="title" data-bind="text: name"></div>
+                                    </script>
+                                </div>
+                                <div class="muted text-right">
+                                    <small>{{ _('Free') }}: <span data-bind="text: freeSpaceString"></span></small>
+                                </div>
+                                <div style="display: none;" data-bind="visible: loginState.isUser">
+                                    <div class="row-fluid upload-buttons">
+
+                                        <span class="btn btn-primary fileinput-button span12" data-bind="css: {disabled: !$root.loginState.isUser()}" style="margin-bottom: 10px">
+                                            <i class="icon-upload-alt icon-white"></i>
+                                            <span>{{ _('Upload') }}</span>
+                                            <input id="gcode_upload" type="file" name="file" class="fileinput-button" data-bind="enable: loginState.isUser()">
+                                        </span>
+                                    </div>
+                                    <div id="gcode_upload_progress" class="progress" style="width: 100%;">
+                                        <div class="bar" style="width: 0%"></div>
+                                    </div>
+                                    <div>
+                                        <small>{{ _('Hint: You can also drag and drop files on this page to upload them.') }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+								
+								
+								
+							</div>
+							<div class="span9">
+								<div class="workingarea"  data-bind="click: move_laser">
+									<div class="laserpos" data-bind="text: laserPos">x,y</div>
+									<button class="laser_btn" data-bind="click: laser_start">Laser</button>
+									<div class="row-fluid print-control" style="display: none;" data-bind="visible: loginState.isUser">
+										<button class="btn btn-primary span4" data-bind="click: print, enable: isOperational() && isReady() && !isPrinting() && loginState.isUser(), css: {'btn-danger': isPaused()}, attr: {title: titlePrintButton}" id="job_print"><i class="icon-white" data-bind="css: {'icon-fire': !isPaused(), 'icon-undo': isPaused()}"></i> <span data-bind="text: (isPaused() ? '{{ _('Restart') }}' : '{{ _('Laser') }}')">{{ _('Laser') }}</span></button>
+										<button class="btn span4" id="job_pause" data-bind="click: pause, enable: isOperational() && (isPrinting() || isPaused()) && loginState.isUser(), css: {active: isPaused()}, attr: {title: titlePauseButton}"><i data-bind="css: {'icon-pause': !isPaused(), 'icon-play': isPaused()}"></i> <span data-bind="visible: !isPaused()">{{ _('Pause') }}</span><span data-bind="visible: isPaused()">{{ _('Resume') }}</span></button>
+										<button class="btn span4" id="job_cancel" data-bind="click: cancel, enable: isOperational() && (isPrinting() || isPaused()) && loginState.isUser()" title="{{ _('Cancels the job') }}"><i class="icon-stop"></i> {{ _('Cancel') }}</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="tab-pane" id="designlib">
+					<div class="container-fluid">
+						<div class="row-fluid">
+							<div class="span2">
+								<ul>
+									<li>item</li>
+									<li>item</li>
+									<li>item</li>
+									<li>item</li>
+								</ul>
+								<button>Use design</button>
+							</div>
+							<div class="span10">
+								<div class="designlib" > preview </div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="tab-pane" id="focus">
+					<div class="container-fluid">
+						<div class="row-fluid">
+							<div class="span2">
+								 <button id="btn_focus_on" class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: enable_focus">{{ _('Enable Focus') }}</button>
+								 <button id="btn_focus_off" class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: disable_focus">{{ _('Disable Focus') }}</button>
+								steps... 1,2,3
+							</div>
+							<div class="span10">
+								<div class="focus" > images describing the process </div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="tab-pane" id="settings">
+					<div class="container-fluid">
+						<div class="row-fluid">
+							<div class="span2">
+								setting menu
+							</div>
+							<div class="span10">
+								<div class="settings" > settings </div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+   
+
+		<!------->
+		
+		<!------>
+        <div class="container octoprint-container">
+            <div class="footer">
+                <ul class="pull-left muted">
+                    <li><small>{{ _('Version') }}: <span class="version">{{ display_version }}</span></small></li>
+                </ul>
+                <ul class="pull-right">
+                    <li><a href="http://www.mr-beam.org"><i class="icon-home"></i> {{ _('Homepage') }}</a></li>
+                    <li><a href="https://github.com/mrbeam/OctoPrint/"><i class="icon-download"></i> {{ _('Sourcecode') }}</a></li>
+                    <li><a href="https://wiki.mr-beam.org"><i class="icon-book"></i> {{ _('Documentation') }}</a></li>
+                    <li><a href="https://github.com/mrbeam/OctoPrint/issues"><i class="icon-flag"></i> {{ _('Bugs and Requests') }}</a></li>
+                </ul>
+            </div>
+        </div>
+		
+		{% include 'settings.jinja2' %}
+        {% include 'dialogs.jinja2' %}
+
+        <!-- Plugin template files -->
+        {%  if templatePlugins %}
+            {% for plugin_name in templatePlugins %}
+                {% include plugin_name+".jinja2" ignore missing %}
+            {% endfor %}
+        {% endif %}
+        <!-- End plugin template files -->
+
+		
+		<script type="text/javascript" src="{{ url_for('static', filename='js/lib/jquery/jquery.min.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/modernizr.custom.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/underscore-min.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/underscore.string.min.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/knockout.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/knockout.mapping-latest.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/babel.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/avltree.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/bootstrap/bootstrap.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/bootstrap/bootstrap-modalmanager.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/bootstrap/bootstrap-modal.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/bootstrap/bootstrap-slider.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/jquery/jquery.ui.core.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/jquery/jquery.ui.widget.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/jquery/jquery.ui.mouse.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/jquery/jquery.flot.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/jquery/jquery.iframe-transport.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/jquery/jquery.fileupload.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/jquery/jquery.slimscroll.min.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/sockjs-0.3.4.min.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/moment-with-locales.min.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/pusher.color.min.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/detectmobilebrowser.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/md5.min.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/pnotify.min.js') }}"></script>
+		
+		
+		<script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/appearance.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/connection.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/control.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/firstrun.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/gcode.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/files.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/loginstate.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/navigation.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/printerstate.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/settings.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/slicing.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/temperature.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/terminal.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/timelapse.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/users.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/log.js') }}"></script>
+
+		
+		{% for name, assets in assetPlugins.items() %}
+		{% if "js" in assets %}
+		{% for asset in assets["js"] %}
+		<script type="text/javascript" src="{{ url_for('plugin_assets', name=name, filename=asset) }}"></script>
+		{% endfor %}
+		{% endif %}
+		{% endfor %}
+		
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/dataupdater.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/helpers.js') }}"></script>
+
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/main.js') }}"></script>
+        <!-- /Include OctoPrint files -->
+
+        <!-- Include i18n language files -->
+        {% if g.locale != 'en' %}
+            <script type="text/javascript" src="{{ url_for('static', filename='js/i18n/%s.js' % g.locale) }}"></script>
+        {% endif %}
+        <!-- /Include i18n language files -->
+
+        <script type="text/javascript" src="{{ url_for('static', filename='gcodeviewer/js/ui.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='gcodeviewer/js/gCodeReader.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='gcodeviewer/js/renderer.js') }}"></script>
+		
+		
+		
+		
     </body>
 </html>

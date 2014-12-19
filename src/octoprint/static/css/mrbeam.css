@@ -440,6 +440,24 @@ input[type="submit"].btn.btn-mini {
   border-bottom-color: #636363;
   border-top-color: #636363;
 }
+
+.navbar .nav>.active>a,
+.navbar .nav>.active>a:hover,
+.navbar .nav>.active>a:focus {
+	box-shadow: none;
+	text-decoration: none;
+	font-weight: bold;
+	background: none;
+	text-shadow: none;
+}	
+	
+.navbar-brand img {
+	height: 40px;
+	width: auto;
+}
+.navbar .brand {
+	padding-top: 4px;
+}
 #navbar .navbar-inner .brand span {
   background-image: url(../img/mr-typo-red_x120.png);
 }
@@ -1493,9 +1511,11 @@ ul.dropdown-menu li a {
 
 .btn-group>.btn:first-child, 
 .btn-group>.btn:last-child,
+.nav-pills>li>a,
 select, 
 textarea, 
 input, 
+input.search-query,
 .uneditable-input,
 .input-append .add-on:last-child, 
 .input-append .btn:last-child, 
@@ -1507,3 +1527,39 @@ input,
 	-moz-border-radius: 0;
 	border-radius: 0;
 }
+
+
+.workingarea {
+	border:1px solid black;
+	height:297px;
+	width:210px; 
+	position:relative;
+}
+
+.workingarea .laserpos {
+	position: absolute;
+	right: 0.5em;
+	bottom: 0.3em;
+	color: #999;
+}
+
+.workingarea .laser_btn{
+	position: absolute;
+	right: 0.5em;
+	top: 0.3em;
+}
+
+
+/* TODO ... don't use :hover ... tablets! */
+.file_list_entry .action-buttons, 
+.file_list_entry .uploaded, 
+.file_list_entry .size {
+	display: none;
+}
+
+.file_list_entry:hover .action-buttons, 
+.file_list_entry:hover .uploaded, 
+.file_list_entry:hover .size  {
+	display: block;
+}
+

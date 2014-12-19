@@ -341,6 +341,7 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
     };
 
     self.onUpdatedFiles = function(payload) {
+		console.log(payload)
         if (payload.type == "gcode") {
             self.requestData();
         }

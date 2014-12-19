@@ -17,11 +17,11 @@ from .storage import LocalFileStorage
 extensions = dict(
 	# extensions for 3d model files
 	model=dict(
-		stl=["stl","svg"]
+		stl=["svg"]
 	),
 	# extensions for printable machine code
 	machinecode=dict(
-		gcode=["gcode", "gco", "g"]
+		gcode=["gcode", "gco", "g", "nc"]
 	)
 )
 

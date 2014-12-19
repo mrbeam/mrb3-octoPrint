@@ -82,6 +82,7 @@ $(function() {
         var gcodeViewModel = new GcodeViewModel(loginStateViewModel, settingsViewModel);
         var navigationViewModel = new NavigationViewModel(loginStateViewModel, appearanceViewModel, settingsViewModel, usersViewModel);
         var logViewModel = new LogViewModel(loginStateViewModel);
+		var workingAreaViewModel = new WorkingAreaViewModel(loginStateViewModel, settingsViewModel);
 
         var viewModelMap = {
             loginStateViewModel: loginStateViewModel,
@@ -99,7 +100,8 @@ $(function() {
             navigationViewModel: navigationViewModel,
             logViewModel: logViewModel,
             slicingViewModel: slicingViewModel,
-            vectorConversionViewModel: vectorConversionViewModel
+            vectorConversionViewModel: vectorConversionViewModel,
+            workingAreaViewModel: workingAreaViewModel
         };
 
         var allViewModels = _.values(viewModelMap);
@@ -416,6 +418,7 @@ $(function() {
 
             ko.applyBindings(slicingViewModel, document.getElementById("slicing_configuration_dialog"));
             ko.applyBindings(vectorConversionViewModel, document.getElementById("dialog_vector_graphics_conversion"));
+			ko.applyBindings(workingAreaViewModel, document.getElementById("working_area"));
 
             // apply bindings and signal startup
             _.each(additionalViewModels, function(additionalViewModel) {
