@@ -430,10 +430,10 @@
                             <div class="jog-panel" style="display: none;" data-bind="visible: loginState.isUser">
                                 <h1>{{ _('General') }}</h1>
                                 <div>
-                                    <button id="btn_focus_mode" class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M3S10'}) }">{{ _('Enable Focus') }}</button>
-                                    <button id="btn_motors_off" class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M18'}) }">{{ _('Motors off') }}</button>
-                                    <button id="btn_fan_on" class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M106'}) }">{{ _('Fans on') }}</button>
-                                    <button id="btn_fan_off" class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M106 S0'}) }">{{ _('Fans off') }}</button>
+                                    <button id="btn_focus_on" class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M3S10'}) }">{{ _('Enable Focus') }}</button>
+                                    <button id="btn_focus_off" class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M5'}) }">{{ _('Disable Focus') }}</button>
+                                    <button id="btn_fan_on" class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M8'}) }">{{ _('Fans on') }}</button>
+                                    <button id="btn_fan_off" class="btn btn-block control-box" data-bind="enable: isOperational() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M9'}) }">{{ _('Fans off') }}</button>
                                 </div>
                             </div>
 
