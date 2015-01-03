@@ -82,7 +82,8 @@ $(function() {
         var gcodeViewModel = new GcodeViewModel(loginStateViewModel, settingsViewModel);
         var navigationViewModel = new NavigationViewModel(loginStateViewModel, appearanceViewModel, settingsViewModel, usersViewModel);
         var logViewModel = new LogViewModel(loginStateViewModel);
-		var workingAreaViewModel = new WorkingAreaViewModel(loginStateViewModel, settingsViewModel);
+		var workingAreaViewModel = new WorkingAreaViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel);
+
 
         var viewModelMap = {
             loginStateViewModel: loginStateViewModel,
@@ -390,35 +391,38 @@ $(function() {
                 })
             }
         };
+			console.log("wavm", workingAreaViewModel);
 
         settingsViewModel.requestData(function() {
+			console.log("settingsViewModel.requestData");
             ko.applyBindings(settingsViewModel, document.getElementById("settings_dialog"));
 
             ko.applyBindings(connectionViewModel, document.getElementById("connection_accordion"));
             ko.applyBindings(printerStateViewModel, document.getElementById("state_accordion"));
             ko.applyBindings(gcodeFilesViewModel, document.getElementById("files_accordion"));
-            ko.applyBindings(temperatureViewModel, document.getElementById("temp"));
+            //ko.applyBindings(temperatureViewModel, document.getElementById("temp"));
             ko.applyBindings(controlViewModel, document.getElementById("control"));
             ko.applyBindings(terminalViewModel, document.getElementById("term"));
-            var gcode = document.getElementById("gcode");
-            if (gcode) {
-                gcodeViewModel.initialize();
-                ko.applyBindings(gcodeViewModel, gcode);
-            }
-            //ko.applyBindings(settingsViewModel, document.getElementById("settings_dialog"));
-            ko.applyBindings(navigationViewModel, document.getElementById("navbar"));
-            ko.applyBindings(appearanceViewModel, document.getElementsByTagName("head")[0]);
-            ko.applyBindings(printerStateViewModel, document.getElementById("drop_overlay"));
-            ko.applyBindings(logViewModel, document.getElementById("logs"));
+//            var gcode = document.getElementById("gcode");
+//            if (gcode) {
+//                gcodeViewModel.initialize();
+//                ko.applyBindings(gcodeViewModel, gcode);
+//            }
+            ko.applyBindings(settingsViewModel, document.getElementById("settings_dialog"));
+//            ko.applyBindings(navigationViewModel, document.getElementById("navbar"));
+//            ko.applyBindings(appearanceViewModel, document.getElementsByTagName("head")[0]);
+//            ko.applyBindings(printerStateViewModel, document.getElementById("drop_overlay"));
+//            ko.applyBindings(logViewModel, document.getElementById("logs"));
 
-            var timelapseElement = document.getElementById("timelapse");
-            if (timelapseElement) {
-                ko.applyBindings(timelapseViewModel, timelapseElement);
-            }
-
-            ko.applyBindings(slicingViewModel, document.getElementById("slicing_configuration_dialog"));
-            ko.applyBindings(vectorConversionViewModel, document.getElementById("dialog_vector_graphics_conversion"));
-			ko.applyBindings(workingAreaViewModel, document.getElementById("working_area"));
+//            var timelapseElement = document.getElementById("timelapse");
+//            if (timelapseElement) {
+//                ko.applyBindings(timelapseViewModel, timelapseElement);
+//            }
+//
+//            ko.applyBindings(slicingViewModel, document.getElementById("slicing_configuration_dialog"));
+//            ko.applyBindings(vectorConversionViewModel, document.getElementById("dialog_vector_graphics_conversion"));
+//			console.log("settingsViewModel.requestData wavm", document.getElementById("working_area"));
+			ko.applyBindings(workingAreaViewModel, document.getElementById("area_preview"));
 
             // apply bindings and signal startup
             _.each(additionalViewModels, function(additionalViewModel) {

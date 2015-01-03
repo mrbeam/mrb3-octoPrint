@@ -1563,3 +1563,8 @@ input.search-query,
 	display: block;
 }
 
+.jog-panel {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+}
