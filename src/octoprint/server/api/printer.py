@@ -326,6 +326,9 @@ def printerCommand():
 			commandToSend = command % parameters
 		commandsToSend.append(commandToSend)
 
+	if settings().getBoolean(["feature", "grbl"]):
+		commandsToSend.append("?")
+
 	printer.commands(commandsToSend)
 
 	return NO_CONTENT

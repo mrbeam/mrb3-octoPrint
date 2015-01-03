@@ -70,6 +70,7 @@ class PrinterStateConnection(sockjs.tornado.SockJSConnection):
 		pass
 
 	def sendCurrentData(self, data):
+		print("send_current_data", data)
 		# add current temperature, log and message backlogs to sent data
 		with self._temperatureBacklogMutex:
 			temperatures = self._temperatureBacklog
@@ -131,4 +132,5 @@ class PrinterStateConnection(sockjs.tornado.SockJSConnection):
 		self.sendEvent(event, payload)
 
 	def _emit(self, type, payload):
+		print("emit", type, payload)
 		self.send({type: payload})

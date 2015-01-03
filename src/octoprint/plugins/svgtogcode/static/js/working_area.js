@@ -16,18 +16,37 @@ function WorkingAreaViewModel(loginStateViewModel, settingsViewModel, printerSta
     self.isError = ko.observable(undefined);
     self.isReady = ko.observable(undefined);
     self.isLoading = ko.observable(undefined);
+	self.currentPos = ko.observable(undefined);
     self.laserPos = ko.computed(function(){
-		console.log("foo")
-		x = self.x === undefined ? '?' : self.x;
-		y = self.y === undefined ? '?' : self.y;
-		return "x"+ x + ", y"+ y;
+		var pos = self.currentPos();
+		if(!pos){
+			
+			return "(?, ?)";
+		} else {
+			return "("+ pos.x + ", "+ pos.y + ")";
+		}
 	}, this);
+	
+	self._processPos = function(posStr) {
+		// example posStr: "X: 73.0000 Y: 192.0000 Z: 0.0000"
+		var parts = posStr.split(" ");
+		var x = parseFloat(parts[1]).toFixed(2)
+		var y = parseFloat(parts[3]).toFixed(2)
+        self.currentPos({x:x, y:y});
+    };
+	
+	self._fromData = function(data) {
+		workPosition = data.workPosition;
+        self._processPos(workPosition);
+    };
+	
+	self.fromCurrentData = function(data) {
+        self._fromData(data);
+    };
 
 	self.move_laser = function(el){
-		console.log(event);
 		var x = event.offsetX;
 		var y = event.toElement.offsetHeight - event.offsetY;
-		console.log(x, y);
 		var command = "G0 X"+x+" Y"+y;
 		$.ajax({
 			url: API_BASEURL + "printer/command",
@@ -49,12 +68,8 @@ function WorkingAreaViewModel(loginStateViewModel, settingsViewModel, printerSta
 	self.pause = self.state.pause;
 	self.cancel = self.state.cancel;
 	
-//	self.enable_focus = function(){
-//		$root.sendCustomCommand({type:'command',command:'M3S5'}) 
-//	}
-//	self.disable_focus = function(){
-//		$root.sendCustomCommand({type:'command',command:'M5'}) 
-//	}
+	
+
 //	
 //	self.getLaserPos = function(){
 //		console.log("foo")

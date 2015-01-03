@@ -91,7 +91,7 @@ gcodeToEvent = {
 	"M300": Events.ALERT,
 
 	# home print head
-	"G28": Events.HOME,
+	"$H": Events.HOME,
 
 	# emergency stop
 	"M112": Events.E_STOP,
@@ -647,6 +647,8 @@ class MachineCom(object):
 		heatingUp = False
 		swallowOk = False
 		supportRepetierTargetTemp = settings().getBoolean(["feature", "repetierTargetTemp"])
+		grblMoving = True
+		grblLastStatus = ""
 
 		while True:
 			try:
@@ -724,6 +726,27 @@ class MachineCom(object):
 							self._callback.mcTempUpdate(self._temp, self._bedTemp)
 						except ValueError:
 							pass
+
+				# GRBL Position update
+				if self._grbl and 'MPos:' in line:
+
+					if grblLastStatus == line:
+						grblMoving = False
+					else:
+						grblMoving = True
+
+					grblLastStatus = line
+
+					parts = line.strip("\r\n").split(":")
+
+					pos = parts[1].split(",")
+					MPos = (float(pos[0]), float(pos[1]), float(pos[2]))
+
+					pos = parts[2].split(",")
+					WPos = (float(pos[0]), float(pos[1]), float( pos[2].strip(">") ))
+					
+					self._callback.mcPosUpdate(MPos, WPos)
+
 
 				##~~ SD Card handling
 				elif 'SD init fail' in line or 'volume.init failed' in line or 'openRoot failed' in line:
