@@ -760,6 +760,7 @@ class StateMonitor(object):
 		self._changeEvent.set()
 
 	def setState(self, state):
+		print("state", state)
 		with self._stateMutex:
 			self._state = state
 			self._changeEvent.set()

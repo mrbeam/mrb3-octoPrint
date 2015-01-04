@@ -55,15 +55,15 @@ $(function() {
                 }
             });
         });
-        $('#navbar_show_settings').click(function() {
-            settingsDialog.modal()
-                .css({
-                    width: 'auto',
-                    'margin-left': function() { return -($(this).width() /2); }
-                });
-
-            return false;
-        });
+//        $('#navbar_show_settings').click(function() {
+//            settingsDialog.modal()
+//                .css({
+//                    width: 'auto',
+//                    'margin-left': function() { return -($(this).width() /2); }
+//                });
+//
+//            return false;
+//        });
 
         //~~ Initialize view models
         var loginStateViewModel = new LoginStateViewModel();
@@ -391,14 +391,12 @@ $(function() {
                 })
             }
         };
-			console.log("wavm", workingAreaViewModel);
 
         settingsViewModel.requestData(function() {
-			console.log("settingsViewModel.requestData");
             ko.applyBindings(settingsViewModel, document.getElementById("settings_dialog"));
 
-            ko.applyBindings(connectionViewModel, document.getElementById("connection_accordion"));
-            ko.applyBindings(printerStateViewModel, document.getElementById("state_accordion"));
+            ko.applyBindings(connectionViewModel, document.getElementById("connection"));
+            ko.applyBindings(printerStateViewModel, document.getElementById("state"));
             ko.applyBindings(gcodeFilesViewModel, document.getElementById("files_accordion"));
             //ko.applyBindings(temperatureViewModel, document.getElementById("temp"));
             ko.applyBindings(controlViewModel, document.getElementById("control"));
@@ -421,7 +419,6 @@ $(function() {
 //
 //            ko.applyBindings(slicingViewModel, document.getElementById("slicing_configuration_dialog"));
 //            ko.applyBindings(vectorConversionViewModel, document.getElementById("dialog_vector_graphics_conversion"));
-//			console.log("settingsViewModel.requestData wavm", document.getElementById("working_area"));
 			ko.applyBindings(workingAreaViewModel, document.getElementById("area_preview"));
 
             // apply bindings and signal startup

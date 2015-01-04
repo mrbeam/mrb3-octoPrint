@@ -1504,7 +1504,6 @@ ul.dropdown-menu li a {
 #control #btn_motors_off, 
 #tab_temp,
 #temp, 
-#control_zaxis, 
 #gcode_command_slider, #gcode_layer_slider,
 #renderer_options,
 #control_extruder {display:none;}

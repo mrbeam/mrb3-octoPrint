@@ -120,6 +120,7 @@ def index():
 	return render_template(
 		root_template,
 		webcamStream=settings().get(["webcam", "stream"]),
+		hasZAxis=settings().get(["feature", "zaxis"]),
 		enableTimelapse=(settings().get(["webcam", "snapshot"]) is not None and settings().get(["webcam", "ffmpeg"]) is not None),
 		enableGCodeVisualizer=settings().get(["gcodeViewer", "enabled"]),
 		enableTemperatureGraph=settings().get(["feature", "temperatureGraph"]),

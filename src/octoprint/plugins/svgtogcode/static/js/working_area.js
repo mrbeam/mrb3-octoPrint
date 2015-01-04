@@ -36,8 +36,9 @@ function WorkingAreaViewModel(loginStateViewModel, settingsViewModel, printerSta
     };
 	
 	self._fromData = function(data) {
-		workPosition = data.workPosition;
-        self._processPos(workPosition);
+		if(data.workPosition){
+			self._processPos(data.workPosition);
+		}
     };
 	
 	self.fromCurrentData = function(data) {

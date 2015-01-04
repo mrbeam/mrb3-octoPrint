@@ -70,7 +70,8 @@ def getSettings():
 			"sdAlwaysAvailable": s.getBoolean(["feature", "sdAlwaysAvailable"]),
 			"swallowOkAfterResend": s.getBoolean(["feature", "swallowOkAfterResend"]),
 			"repetierTargetTemp": s.getBoolean(["feature", "repetierTargetTemp"]),
-			"grbl": s.getBoolean(["feature", "grbl"])
+			"grbl": s.getBoolean(["feature", "grbl"]),
+			"zaxis": s.getBoolean(["feature", "zaxis"])
 		},
 		"serial": {
 			"port": connectionOptions["portPreference"],
@@ -169,6 +170,7 @@ def setSettings():
 			if "swallowOkAfterResend" in data["feature"].keys(): s.setBoolean(["feature", "swallowOkAfterResend"], data["feature"]["swallowOkAfterResend"])
 			if "repetierTargetTemp" in data["feature"].keys(): s.setBoolean(["feature", "repetierTargetTemp"], data["feature"]["repetierTargetTemp"])
 			if "grbl" in data["feature"].keys(): s.setBoolean(["feature", "grbl"], data["feature"]["grbl"])
+			if "zaxis" in data["feature"].keys(): s.setBoolean(["feature", "zaxis"], data["feature"]["zaxis"])
 
 		if "serial" in data.keys():
 			if "autoconnect" in data["serial"].keys(): s.setBoolean(["serial", "autoconnect"], data["serial"]["autoconnect"])

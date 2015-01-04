@@ -138,6 +138,7 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
     self.feature_sdAlwaysAvailable = ko.observable(undefined);
     self.feature_swallowOkAfterResend = ko.observable(undefined);
     self.feature_repetierTargetTemp = ko.observable(undefined);
+    self.feature_zaxis = ko.observable(undefined);
 
     self.serial_port = ko.observable();
     self.serial_baudrate = ko.observable();
@@ -223,6 +224,7 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
     };
 
     self.fromResponse = function(response) {
+		console.log("settings resp", response)
         if (self.settings === undefined) {
             self.settings = ko.mapping.fromJS(response);
         } else {
@@ -262,6 +264,7 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
         self.feature_sdAlwaysAvailable(response.feature.sdAlwaysAvailable);
         self.feature_swallowOkAfterResend(response.feature.swallowOkAfterResend);
         self.feature_repetierTargetTemp(response.feature.repetierTargetTemp);
+        self.feature_zaxis(response.feature.zaxis);
 
         self.serial_port(response.serial.port);
         self.serial_baudrate(response.serial.baudrate);
@@ -294,7 +297,7 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
 
     self.saveData = function() {
         var data = ko.mapping.toJS(self.settings);
-
+		console.log("settings save", data)
         data = _.extend(data, {
             "api" : {
                 "enabled": self.api_enabled(),
@@ -333,7 +336,8 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
                 "sdSupport": self.feature_sdSupport(),
                 "sdAlwaysAvailable": self.feature_sdAlwaysAvailable(),
                 "swallowOkAfterResend": self.feature_swallowOkAfterResend(),
-                "repetierTargetTemp": self.feature_repetierTargetTemp()
+                "repetierTargetTemp": self.feature_repetierTargetTemp(),
+                "zaxis": self.feature_zaxis()
             },
             "serial": {
                 "port": self.serial_port(),
@@ -375,7 +379,8 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
             data: JSON.stringify(data),
             success: function(response) {
                 self.fromResponse(response);
-                $("#settings_dialog").modal("hide");
+//                $("#settings_dialog").modal("hide");
+                $("#settings_save_btn").attr("disabled", "disabled");
             }
         });
     };

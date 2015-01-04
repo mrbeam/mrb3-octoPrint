@@ -85,7 +85,8 @@ default_settings = {
 		"sdAlwaysAvailable": False,
 		"swallowOkAfterResend": True,
 		"repetierTargetTemp": False,
-		"grbl": True
+		"grbl": True,
+		"zaxis": False
 	},
 	"folder": {
 		"uploads": None,
