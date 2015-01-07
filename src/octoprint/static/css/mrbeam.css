@@ -1123,8 +1123,7 @@ ul.dropdown-menu li a {
   overflow: hidden;
 }
 #control .jog-panel {
-  float: left;
-  margin-right: 19px;
+  margin: 1em 1em 0;
 }
 #control h1 {
   text-align: left;
@@ -1562,8 +1561,13 @@ input.search-query,
 	display: block;
 }
 
-.jog-panel {
-	position: absolute;
-	right: 0;
-	bottom: 0;
+#area_preview {
+	background-image: url(../img/crosshair.png); 
+	background-repeat: no-repeat;
+	background-size: 30px auto;
+}
+
+
+.footer>* {
+	padding-top: 1em;
 }

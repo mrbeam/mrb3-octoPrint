@@ -74,7 +74,7 @@ $(function() {
         var printerStateViewModel = new PrinterStateViewModel(loginStateViewModel, timelapseViewModel);
         var appearanceViewModel = new AppearanceViewModel(settingsViewModel);
         var temperatureViewModel = new TemperatureViewModel(loginStateViewModel, settingsViewModel);
-        var controlViewModel = new ControlViewModel(loginStateViewModel, settingsViewModel);
+        var controlViewModel = new ControlViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel);
         var terminalViewModel = new TerminalViewModel(loginStateViewModel, settingsViewModel);
         var slicingViewModel = new SlicingViewModel(loginStateViewModel);
         var vectorConversionViewModel = new VectorConversionViewModel(loginStateViewModel);

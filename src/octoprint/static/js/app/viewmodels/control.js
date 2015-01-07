@@ -1,8 +1,9 @@
-function ControlViewModel(loginStateViewModel, settingsViewModel) {
+function ControlViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel) {
     var self = this;
 
     self.loginState = loginStateViewModel;
     self.settings = settingsViewModel;
+    self.printerState = printerStateViewModel;
 
     self._createToolEntry = function() {
         return {
@@ -106,6 +107,18 @@ function ControlViewModel(loginStateViewModel, settingsViewModel) {
         }
         return control;
     };
+	
+	self.laserPos = ko.computed(function(){
+		var pos = self.printerState.currentPos();
+		console.log(pos)
+		if(!pos){
+			console.log("foo");
+			return "(?, ?)";
+		} else {
+			console.log("bar")
+			return "("+ pos.x + ", "+ pos.y + ")";
+		}
+	}, this);
 
     self.sendJogCommand = function(axis, multiplier, distance) {
         if (typeof distance === "undefined")
