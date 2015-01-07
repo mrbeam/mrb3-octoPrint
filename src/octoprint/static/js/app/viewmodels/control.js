@@ -110,12 +110,9 @@ function ControlViewModel(loginStateViewModel, settingsViewModel, printerStateVi
 	
 	self.laserPos = ko.computed(function(){
 		var pos = self.printerState.currentPos();
-		console.log(pos)
 		if(!pos){
-			console.log("foo");
 			return "(?, ?)";
 		} else {
-			console.log("bar")
 			return "("+ pos.x + ", "+ pos.y + ")";
 		}
 	}, this);

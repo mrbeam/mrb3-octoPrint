@@ -1529,8 +1529,8 @@ input.search-query,
 
 .workingarea {
 	border:1px solid black;
-	height:297px;
-	width:210px; 
+	height:80vh;
+	width:auto; 
 	position:relative;
 }
 

@@ -322,7 +322,13 @@ var UI_API_KEY = "{{ uiApiKey }}";
 
 										</div>
 										<div class="span8">
-											<div id="area_preview" class="workingarea"  data-bind="click: move_laser, style: {backgroundPosition: crosshairX()+'px'+' '+crosshairY()+'px'}">
+											<div id="area_preview" class="workingarea" 
+												 data-bind="click: move_laser, 
+													style: {
+														backgroundPosition: crosshairX()+'px'+' '+crosshairY()+'px',
+														width: workingAreaWidth()+'px',
+														height: workingAreaHeight()+'px'
+													}">
 											</div>
 										</div>
 									</div>
