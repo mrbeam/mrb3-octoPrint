@@ -284,6 +284,12 @@ $(function() {
                 disable_sd_dropzone();
             }
         }
+		
+		// change working area when window size is changed
+		$(window).resize(function(){
+			workingAreaViewModel.trigger_resize();
+		});
+		workingAreaViewModel.trigger_resize(); // initialize
 
         $(document).bind("dragover", function (e) {
             var dropOverlay = $("#drop_overlay");

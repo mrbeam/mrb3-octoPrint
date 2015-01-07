@@ -224,7 +224,6 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
     };
 
     self.fromResponse = function(response) {
-		console.log("settings resp", response)
         if (self.settings === undefined) {
             self.settings = ko.mapping.fromJS(response);
         } else {
@@ -297,7 +296,6 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
 
     self.saveData = function() {
         var data = ko.mapping.toJS(self.settings);
-		console.log("settings save", data)
         data = _.extend(data, {
             "api" : {
                 "enabled": self.api_enabled(),

@@ -17,8 +17,49 @@ function WorkingAreaViewModel(loginStateViewModel, settingsViewModel, printerSta
     self.isReady = ko.observable(undefined);
     self.isLoading = ko.observable(undefined);
 	
-	self.px2mm_factor = 1;
+	self.availableHeight = ko.observable(undefined);
+	self.availableWidth = ko.observable(undefined);
+	self.px2mm_factor = 1; // initial value
+	self.hwRatio = ko.computed(function(){
+		// y/x = 297/216 respectively 594/432
+		var ratio = self.settings.printer_bedDimensionY() / self.settings.printer_bedDimensionX();
+		return ratio;
+	}, self);
+	self.workingAreaDim = ko.computed(function(){
+		var maxH = self.availableHeight();
+		var maxW = self.availableWidth();
+		var hwRatio = self.hwRatio(); 
+		if( hwRatio > 0, maxH > 0, maxW > 0){
+			var w = 0;
+			var h = 0;
+			if( maxH/maxW > hwRatio) { 
+				w = maxW;
+				h = maxW * hwRatio;
+			} else {
+				w = maxH / hwRatio;
+				h = maxH;
+			console.log(w,h, hwRatio);
+			}
+			var dim = [w,h];
+			return dim;
+		}
+	});
+	self.workingAreaWidth = ko.computed(function(){
+		var dim = self.workingAreaDim();
+		return dim ? dim[0] : 1;
+	}, self);
+	self.workingAreaHeight = ko.computed(function(){
+		var dim = self.workingAreaDim();
+		return dim ? dim[1] : 1;
+	}, self);
+	self.px2mm_factor = ko.computed(function(){
+		return self.settings.printer_bedDimensionX() / self.workingAreaWidth();
+	});
 	
+	self.trigger_resize = function(){
+		self.availableHeight(document.documentElement.clientHeight - $('body>nav').height() - $('footer>*').outerHeight());
+		self.availableWidth($('#workingarea div.span8').innerWidth());
+	};
 
 	self.move_laser = function(el){
 		var x = self.px2mm(event.offsetX);
@@ -45,43 +86,16 @@ function WorkingAreaViewModel(loginStateViewModel, settingsViewModel, printerSta
 		var pos = self.state.currentPos();
 		return pos !== undefined ? (h - self.mm2px(pos.y)  - 15) : -100; // subtract height/2;
 	};
-
-	
-	self.workingAreaWidth = function(){
-		return self.getDivDimensions()[0];
-	};
-	
-	self.workingAreaHeight = function(){
-		return self.getDivDimensions()[1];
-	};
-	
-	self.getDivDimensions = function(){
-		var maxH = document.documentElement.clientHeight - $('body>nav').height() - $('footer>*').outerHeight();
-		var maxW = $('#workingarea div.span8').innerWidth();
 		
-		// y/x = 297/216 respectively 594/432
-		var hwRatio = self.settings.printer_bedDimensionY() / self.settings.printer_bedDimensionX();
-		var w = 0;
-		var h = 0;
-		if( maxH/maxW > hwRatio) { 
-			w = maxW;
-			h = maxW * hwRatio;
-		} else {
-			w = maxH / hwRatio;
-			h = maxH;
-		}
-		var dim = [w,h];
-		self.px2mm_factor = self.settings.printer_bedDimensionX() / dim[0];
-		return dim;
-	};
-	
 	self.px2mm = function(val){
-		return val * self.px2mm_factor;
+		return val * self.px2mm_factor();
 	};
 	
 	self.mm2px = function(val){
-		return val / self.px2mm_factor;
+		return val / self.px2mm_factor();
 	};
+	
+	//self.getDivDimensions(); // init
 }
 
 
