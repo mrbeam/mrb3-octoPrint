@@ -177,15 +177,15 @@ var UI_API_KEY = "{{ uiApiKey }}";
 											{% endif %}
 
 											<div class="clearfix"></div>
-											Jog distance 
+											Jog distance: <span data-bind="text: jogDistanceInMM">10</span>mm
 											<div class="distance">
-												<!--<input type="range" min="0" max="50" value="0" step="10" onchange="" />-->
-												<div class="btn-group" data-toggle="buttons-radio" id="jog_distance">
+												<input type="text" id="jogDistance" />
+<!--												<div class="btn-group" data-toggle="buttons-radio" id="jog_distance">
 													<button type="button" class="btn distance" data-distance="0.1" data-bind="enable: loginState.isUser()">0.1</button>
 													<button type="button" class="btn distance" data-distance="1" data-bind="enable: loginState.isUser()">1</button>
 													<button type="button" class="btn distance active" data-distance="10" data-bind="enable: loginState.isUser()">10</button>
 													<button type="button" class="btn distance" data-distance="100" data-bind="enable: loginState.isUser()">100</button>
-												</div>
+												</div>-->
 											</div>
 										</div>
 									</div>
@@ -425,10 +425,10 @@ var UI_API_KEY = "{{ uiApiKey }}";
 								<li><small>{{ _('Version') }}: <span class="version">{{ display_version }}</span></small></li>
 							</ul>
 							<ul class="pull-right">
-								<li><a href="http://www.mr-beam.org"><i class="icon-home"></i> {{ _('Homepage') }}</a></li>
-								<li><a href="https://github.com/mrbeam/OctoPrint/"><i class="icon-download"></i> {{ _('Sourcecode') }}</a></li>
-								<li><a href="https://wiki.mr-beam.org"><i class="icon-book"></i> {{ _('Documentation') }}</a></li>
-								<li><a href="https://github.com/mrbeam/OctoPrint/issues"><i class="icon-flag"></i> {{ _('Bugs and Requests') }}</a></li>
+								<li><a href="http://www.mr-beam.org" target="_blank"><i class="icon-home"></i> {{ _('Homepage') }}</a></li>
+								<li><a href="https://github.com/mrbeam/OctoPrint/" target="_blank"><i class="icon-download"></i> {{ _('Sourcecode') }}</a></li>
+								<li><a href="https://wiki.mr-beam.org" target="_blank"><i class="icon-book"></i> {{ _('Documentation') }}</a></li>
+								<li><a href="https://github.com/mrbeam/OctoPrint/issues" target="_blank"><i class="icon-flag"></i> {{ _('Bugs and Requests') }}</a></li>
 							</ul>
 						</footer>
 					</div>

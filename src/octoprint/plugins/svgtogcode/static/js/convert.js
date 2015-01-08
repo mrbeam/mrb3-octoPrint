@@ -1,4 +1,4 @@
-function VectorConversionViewModel(loginStateViewModel) {
+function VectorConversionViewModel(loginStateViewModel, settingsViewModel) {
     var self = this;
 
     self.loginState = loginStateViewModel;
@@ -11,10 +11,10 @@ function VectorConversionViewModel(loginStateViewModel) {
     self.defaultProfile = undefined;
 
     self.gcodeFilename = ko.observable();
-    self.laserIntensity = ko.observable();
-    self.laserSpeed = ko.observable();
+    self.laserIntensity = ko.observable("800"); // TODO fetch from settings
+    self.laserSpeed = ko.observable("300");
 
-    self.title = ko.observable();
+    self.title = ko.observable(undefined);
     self.slicer = ko.observable();
     self.slicers = ko.observableArray();
     self.profile = ko.observable();
@@ -55,6 +55,7 @@ function VectorConversionViewModel(loginStateViewModel) {
     };
 
     self.fromResponse = function(data) {
+		console.log("convert.js", data);
         self.data = data;
 
         var selectedSlicer = undefined;
@@ -154,4 +155,39 @@ function VectorConversionViewModel(loginStateViewModel) {
     self.onStartup = function() {
         self.requestData();
     };
+	
+	self._configureIntensitySlider = function() {
+        self.layerSlider = $("#svgtogcode_intensity").slider({
+            id: "svgtogcode_intensity_slider",
+            reversed: false,
+            selection: "after",
+            orientation: "horizontal",
+            min: 1,
+            max: 1000,
+            step: 1,
+            value: 500,
+            enabled: true,
+            formatter: function(value) { return "" + (value/10) +"%"; }
+        }).on("slideStop", self.changeIntensity);
+    };
+
+	self._configureFeedrateSlider = function() {
+        self.layerSlider = $("#svgtogcode_feedrate").slider({
+            id: "svgtogcode_feedrate_slider",
+            reversed: false,
+            selection: "after",
+            orientation: "horizontal",
+            min: 20,
+            max: 3000,
+            step: 10,
+            value: 300,
+            enabled: true,
+            formatter: function(value) { return "" + (value) +"mm/min"; }
+        }).on("slideStop", self.changeFeedrate);
+    };
+	
+	self.init = function(){
+		self._configureIntensitySlider();
+		self._configureFeedrateSlider();
+	};
 }

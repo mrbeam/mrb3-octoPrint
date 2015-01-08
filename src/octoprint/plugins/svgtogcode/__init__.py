@@ -9,6 +9,8 @@ import logging
 import logging.handlers
 import os
 import flask
+import socket
+
 
 import octoprint.plugin
 import octoprint.util
@@ -247,17 +249,24 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 
 		engine_settings = self._convert_to_engine(profile_path)
 
+		from os.path import expanduser
+		homedir = expanduser("~")
+		executable = homedir + "/mrbeam-inkscape-ext/mrbeam.py"
+		log_path = homedir + "/.octoprint/logs/svgtogcode.log"
+		
+		# debugging stuff. TODO remove
+		hostname = socket.gethostname()
+		if("Bucanero" in hostname):
+			executable = homedir + "/workspace/mrbeam-inkscape-ext/mrbeam.py"
+		
 		# executable = s.get(["svgtogcode_engine"])
-		# executable = "/Users/philipp/Documents/dev/MrBeam/mrbeam-inkscape-ext/standalone.py"
-		executable = "/home/pi/mrbeam-inkscape-ext/standalone.py"
-		log_path = "/home/pi/svgtogcode.log"
-		# log_path = "/Users/philipp/svgtogcode.log"
+		
 		if not executable:
 			return False, "Path to SVG converter is not configured "
 
 		dest_dir, dest_file = os.path.split(machinecode_path)
 		working_dir, _ = os.path.split(executable)
-		args = ['"%s"' % executable, '-f "%s"' % dest_file, '-d "%s"' % dest_dir]
+		args = ['python "%s"' % executable, '-f "%s"' % dest_file, '-d "%s"' % dest_dir]
 		for k, v in engine_settings.items():
 			args += ['"%s=%s"' % (k, str(v))]
 		args += ['--create-log=false', '"--log-filename=%s"' % log_path,'"%s"' % model_path]

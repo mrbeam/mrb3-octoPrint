@@ -68,7 +68,7 @@ $(function() {
         var controlViewModel = new ControlViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel);
         var terminalViewModel = new TerminalViewModel(loginStateViewModel, settingsViewModel);
         var slicingViewModel = new SlicingViewModel(loginStateViewModel);
-        var vectorConversionViewModel = new VectorConversionViewModel(loginStateViewModel);
+        var vectorConversionViewModel = new VectorConversionViewModel(loginStateViewModel, settingsViewModel);
         var gcodeFilesViewModel = new GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicingViewModel, vectorConversionViewModel);
         var gcodeViewModel = new GcodeViewModel(loginStateViewModel, settingsViewModel);
         var navigationViewModel = new NavigationViewModel(loginStateViewModel, appearanceViewModel, settingsViewModel, usersViewModel);
@@ -415,7 +415,8 @@ $(function() {
 //            }
 //
 //            ko.applyBindings(slicingViewModel, document.getElementById("slicing_configuration_dialog"));
-//            ko.applyBindings(vectorConversionViewModel, document.getElementById("dialog_vector_graphics_conversion"));
+            vectorConversionViewModel.init();
+			ko.applyBindings(vectorConversionViewModel, document.getElementById("dialog_vector_graphics_conversion"));
 			ko.applyBindings(workingAreaViewModel, document.getElementById("area_preview"));
 
             // apply bindings and signal startup

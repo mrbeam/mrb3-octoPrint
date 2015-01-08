@@ -21,6 +21,7 @@ function ControlViewModel(loginStateViewModel, settingsViewModel, printerStateVi
     self.isLoading = ko.observable(undefined);
 
     self.extrusionAmount = ko.observable(undefined);
+	self.jogDistanceInMM = ko.observable(undefined)
     self.controls = ko.observableArray([]);
 
     self.tools = ko.observableArray([]);
@@ -119,7 +120,8 @@ function ControlViewModel(loginStateViewModel, settingsViewModel, printerStateVi
 
     self.sendJogCommand = function(axis, multiplier, distance) {
         if (typeof distance === "undefined")
-            distance = $('#jog_distance button.active').data('distance');
+//            distance = $('#jog_distance button.active').data('distance');
+            distance = self.jogDistanceInMM();
         if (self.settings.getPrinterInvertAxis(axis)) {
             multiplier *= -1;
         }
@@ -268,5 +270,30 @@ function ControlViewModel(loginStateViewModel, settingsViewModel, printerStateVi
 
     self.onStartup = function() {
         self.requestData();
+		self._configureJogDistanceSlider();
     };
+	
+	self._jogDistanceMapping = [0.1, 1, 5, 10, 50, 100];
+	self._configureJogDistanceSlider = function() {
+        self.layerSlider = $("#jogDistance").slider({
+            id: "jogDistanceSlider",
+            reversed: false,
+            selection: "after",
+            orientation: "horizontal",
+            min: 0,
+            max: self._jogDistanceMapping.length-1,
+            step: 1,
+            value: 3,
+            enabled: true,
+            formatter: function(value) { return self._jogDistanceMapping[value] +"mm"; }
+        }).on("slideStop", self.updateJogDistance);
+		self.updateJogDistance();
+		
+    };
+	
+	self.updateJogDistance = function(){
+		var val = self._jogDistanceMapping[$("#jogDistance").slider('getValue')];
+		self.jogDistanceInMM(val);
+	};
+	
 }

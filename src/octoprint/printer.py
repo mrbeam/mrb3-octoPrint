@@ -280,7 +280,7 @@ class Printer():
 		if self._selectedFile is None:
 			return
 
-		self._addPositionData(None)
+		self._addPositionData(None, None)
 		self._setCurrentZ(None)
 		self._comm.startPrint()
 
