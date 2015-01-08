@@ -25,6 +25,7 @@ function WorkingAreaViewModel(loginStateViewModel, settingsViewModel, printerSta
 		var ratio = self.settings.printer_bedDimensionY() / self.settings.printer_bedDimensionX();
 		return ratio;
 	}, self);
+	
 	self.workingAreaDim = ko.computed(function(){
 		var maxH = self.availableHeight();
 		var maxW = self.availableWidth();
@@ -38,26 +39,28 @@ function WorkingAreaViewModel(loginStateViewModel, settingsViewModel, printerSta
 			} else {
 				w = maxH / hwRatio;
 				h = maxH;
-			console.log(w,h, hwRatio);
 			}
 			var dim = [w,h];
 			return dim;
 		}
 	});
+	
 	self.workingAreaWidth = ko.computed(function(){
 		var dim = self.workingAreaDim();
 		return dim ? dim[0] : 1;
 	}, self);
+	
 	self.workingAreaHeight = ko.computed(function(){
 		var dim = self.workingAreaDim();
 		return dim ? dim[1] : 1;
 	}, self);
+	
 	self.px2mm_factor = ko.computed(function(){
 		return self.settings.printer_bedDimensionX() / self.workingAreaWidth();
 	});
 	
 	self.trigger_resize = function(){
-		self.availableHeight(document.documentElement.clientHeight - $('body>nav').height() - $('footer>*').outerHeight());
+		self.availableHeight(document.documentElement.clientHeight - $('body>nav').outerHeight()  - $('footer>*').outerHeight() - 39); // magic number
 		self.availableWidth($('#workingarea div.span8').innerWidth());
 	};
 

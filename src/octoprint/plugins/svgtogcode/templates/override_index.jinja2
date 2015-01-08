@@ -15,32 +15,33 @@
         <link href="{{ url_for('static', filename='css/pnotify.min.css') }}" rel="stylesheet" media="screen">
 
         {% if stylesheet == "less" %}
-		<link href="{{ url_for('static', filename='less/octoprint.less') }}" rel="stylesheet/less" type="text/css" media="screen">
+			<!--<link href="{{ url_for('static', filename='less/octoprint.less') }}" rel="stylesheet/less" type="text/css" media="screen">-->
+			<link href="{{ url_for('static', filename='less/mrbeam.less') }}" rel="stylesheet/less" type="text/css" media="screen">
 
-		<!-- Plugin files -->
-		{% for name, assets in assetPlugins.items() %}
-		{% if "less" in assets %}
-		{% for asset in assets["less"] %}
-		<link href="{{ url_for('plugin_assets', name=name, filename=asset) }}" rel="stylesheet/less" type="text/css" media="screen">
-		{% endfor %}
-		{% endif %}
-		{% endfor %}
-		<!-- /Plugin files -->
+			<!-- Plugin files -->
+			{% for name, assets in assetPlugins.items() %}
+				{% if "less" in assets %}
+					{% for asset in assets["less"] %}
+					<link href="{{ url_for('plugin_assets', name=name, filename=asset) }}" rel="stylesheet/less" type="text/css" media="screen">
+					{% endfor %}
+				{% endif %}
+			{% endfor %}
+			<!-- /Plugin files -->
 
-		<script src="{{ url_for('static', filename='js/lib/less.min.js') }}" type="text/javascript"></script>
+			<script src="{{ url_for('static', filename='js/lib/less.min.js') }}" type="text/javascript"></script>
         {% else %}
-		<link href="{{ url_for('static', filename='css/octoprint.css') }}" rel="stylesheet" type="text/css" media="screen">
-		<!-- Plugin files -->
-		{% for name, assets in assetPlugins.items() %}
-		{% if "css" in assets %}
-		{% for asset in assets["css"] %}
-		<link href="{{ url_for('plugin_assets', name=name, filename=asset) }}" rel="stylesheet" type="text/css" media="screen">
-		{% endfor %}
-		{% endif %}
-		{% endfor %}
-		<!-- /Plugin files -->
+			<!--<link href="{{ url_for('static', filename='css/octoprint.css') }}" rel="stylesheet" type="text/css" media="screen">-->
+			<link href="{{ url_for('static', filename='css/mrbeam.css') }}" rel="stylesheet" media="screen">
+			<!-- Plugin files -->
+			{% for name, assets in assetPlugins.items() %}
+				{% if "css" in assets %}
+					{% for asset in assets["css"] %}
+					<link href="{{ url_for('plugin_assets', name=name, filename=asset) }}" rel="stylesheet" type="text/css" media="screen">
+					{% endfor %}
+				{% endif %}
+			{% endfor %}
+			<!-- /Plugin files -->
         {% endif %}
-        <link href="{{ url_for('static', filename='css/mrbeam.css') }}" rel="stylesheet" media="screen">
 
         <script type="text/javascript" >
 		var BASEURL = "{{ url_for('index') }}";
@@ -67,9 +68,10 @@ var UI_API_KEY = "{{ uiApiKey }}";
 		var ADDITIONAL_VIEWMODELS = [];		</script>
     </head>
     <body>
+		<div class="container octoprint-container">
 		<nav class="navbar navbar-default" role="navigation">
 			<div class="container-fluid">
-				<div class="navbar-header brand">
+				<div class="navbar-header brand" style="min-width: 272px;">
 					<a class="navbar-brand" href="#">
 						<img alt="Mr Beam Logo" src="{{ url_for('static', filename='img/mr-typo-red_x120.png') }}">
 					</a>
@@ -121,73 +123,72 @@ var UI_API_KEY = "{{ uiApiKey }}";
 			</div>
 		</nav>
 
-		<div class="span12 tabbable">
+		<div class="span12 tabbable" id="mrbeam-tabs">
 			<div class="tab-content">
 				<div class="tab-pane active" id="workingarea">
 					<div class="container-fluid">
 						<div class="row-fluid">
 							<div class="span4 accordion">
 
-								<!--                    <div class="accordion-group" data-bind="visible: loginState.isUser" id="connection_accordion">
-														<div class="accordion-heading">
-															<a class="accordion-toggle" data-toggle="collapse" href="#connection"><i class="icon-signal"></i> {{ _('Connection') }}</a>
-														</div>
-													</div>-->
-
 								<div class="accordion-group" id="state_accordion">
 									<div class="accordion-heading">
-										<a class="accordion-toggle" data-toggle="collapse" href="#state"><i class="icon-info-sign"></i> {{ _('State') }}</a>
+										<a class="accordion-toggle" data-toggle="collapse" href="#statusbox"><i class="icon-info-sign"></i> {{ _('State') }}</a>
 									</div>
-												<div id="control" class="accordion-inner" >
-													{{ _('Position') }}: <strong data-bind="text: laserPos"></strong>
-													<a href="#control_btns" class="btn btn-xs pull-right"  data-toggle="collapse" aria-expanded="false">
-														<i class="icon-move sr-only"></i>
-														<span class="caret"></span>
-													</a>
-													
-													<div class="xxaccordion-inner collapse" id="control_btns">
-														<div class="jog-panel" >
-															<div>
-																<button class="btn box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('y',1) }"><i class="icon-arrow-up"></i></button>
-															</div>
-															<div>
-																<button class="btn box pull-left" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('x',-1) }"><i class="icon-arrow-left"></i></button>
-																<button class="btn box pull-left" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendHomeCommand(['x', 'y']) }"><i class="icon-home"></i></button>
-																<button class="btn box pull-left" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('x',1) }"><i class="icon-arrow-right"></i></button>
-															</div>
-															<div>
-																<button class="btn box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('y',-1) }"><i class="icon-arrow-down"></i></button>
-															</div>
-														</div>
-														{% if hasZAxis %}
-														Z jogging control panel 
-													   <div class="jog-panel" id="control_zaxis">
-														   <div>
-															   <button class="btn box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('z',1) }"><i class="icon-arrow-up"></i></button>
-														   </div>
-														   <div>
-															   <button class="btn box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendHomeCommand(['z']) }"><i class="icon-home"></i></button>
-														   </div>
-														   <div>
-															   <button class="btn box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('z',-1) }"><i class="icon-arrow-down"></i></button>
-														   </div>
-													   </div>
-														{% endif %}
-														
-														<div class="clearfix"></div>
-														Jog distance 
-														<div class="distance">
-															<!--<input type="range" min="0" max="50" value="0" step="10" onchange="" />-->
-															<div class="btn-group" data-toggle="buttons-radio" id="jog_distance">
-																<button type="button" class="btn distance" data-distance="0.1" data-bind="enable: loginState.isUser()">0.1</button>
-																<button type="button" class="btn distance" data-distance="1" data-bind="enable: loginState.isUser()">1</button>
-																<button type="button" class="btn distance active" data-distance="10" data-bind="enable: loginState.isUser()">10</button>
-																<button type="button" class="btn distance" data-distance="100" data-bind="enable: loginState.isUser()">100</button>
-															</div>
-														</div>
-													</div>
-												</div>
+									<div id="statusbox">
+										
+									<div id="control" class="accordion-inner" >
+										{{ _('Position') }}: <strong data-bind="text: laserPos"></strong>
+										<a href="#control_btns" style="margin-top: -5px;"
+										   class="btn btn-xs pull-right"  
+										   data-toggle="collapse" aria-expanded="false">
+											<i class="icon-move sr-only"></i>
+											<span class="caret"></span>
+										</a>
 
+										<div class="clearfix"></div>
+										<div class="collapse" id="control_btns">
+											<div class="jog-panel" id="control_xyaxis">
+												XY-Axes
+												<div>
+													<button class="btn box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('y',1) }"><i class="icon-arrow-up"></i></button>
+												</div>
+												<div>
+													<button class="btn box pull-left" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('x',-1) }"><i class="icon-arrow-left"></i></button>
+													<button class="btn box pull-left" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendHomeCommand(['x', 'y']) }"><i class="icon-home"></i></button>
+													<button class="btn box pull-left" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('x',1) }"><i class="icon-arrow-right"></i></button>
+												</div>
+												<div>
+													<button class="btn box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('y',-1) }"><i class="icon-arrow-down"></i></button>
+												</div>
+											</div>
+											{% if hasZAxis %}
+										   <div class="jog-panel" id="control_zaxis">
+											   Z-Axis
+											   <div>
+												   <button class="btn box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('z',1) }"><i class="icon-arrow-up"></i></button>
+											   </div>
+											   <div>
+												   <button class="btn box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendHomeCommand(['z']) }"><i class="icon-home"></i></button>
+											   </div>
+											   <div>
+												   <button class="btn box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('z',-1) }"><i class="icon-arrow-down"></i></button>
+											   </div>
+										   </div>
+											{% endif %}
+
+											<div class="clearfix"></div>
+											Jog distance 
+											<div class="distance">
+												<!--<input type="range" min="0" max="50" value="0" step="10" onchange="" />-->
+												<div class="btn-group" data-toggle="buttons-radio" id="jog_distance">
+													<button type="button" class="btn distance" data-distance="0.1" data-bind="enable: loginState.isUser()">0.1</button>
+													<button type="button" class="btn distance" data-distance="1" data-bind="enable: loginState.isUser()">1</button>
+													<button type="button" class="btn distance active" data-distance="10" data-bind="enable: loginState.isUser()">10</button>
+													<button type="button" class="btn distance" data-distance="100" data-bind="enable: loginState.isUser()">100</button>
+												</div>
+											</div>
+										</div>
+									</div>
 									
 									<div class="accordion-body collapse in" id="connection" data-bind="visible: isErrorOrClosed() && loginState.isUser()">
 										<div class="accordion-inner">
@@ -228,18 +229,21 @@ var UI_API_KEY = "{{ uiApiKey }}";
 											</div>
 										</div>
 									</div>
-												
+									</div>
+			
 								</div>
 
 
-								<div id="state_accordion"></div>								
+																
 								<div data-bind="visible: loginState.isUser" id="connection_accordion"></div>
 
-								<div class="" id="files_accordion">
+								<div class="accordion-group" id="files_accordion">
 									<div class="">
-										<a class="accordion-toggle" data-toggle="collapse" href="#files"><i class="icon-list"></i> {{ _('Files') }}</a>
-
-										<div class="settings-trigger accordion-heading-button btn-group">
+										<div class="accordion-heading">
+											<a class="accordion-toggle" data-toggle="collapse" href="#files"><i class="icon-list"></i> {{ _('Files') }}</a>
+										</div>
+										
+										<div class="settings-trigger accordion-heading-button btn-group" style="display: none;">
 											<a class="dropdown-toggle" data-toggle="dropdown" href="#">
 												<span class="icon-wrench"></span>
 											</a>
@@ -415,7 +419,7 @@ var UI_API_KEY = "{{ uiApiKey }}";
 					<!------->
 
 					<!------>
-					<div class="container octoprint-container">
+					
 						<footer class="footer">
 							<ul class="pull-left muted">
 								<li><small>{{ _('Version') }}: <span class="version">{{ display_version }}</span></small></li>

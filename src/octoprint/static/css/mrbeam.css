@@ -457,6 +457,7 @@ input[type="submit"].btn.btn-mini {
 }
 .navbar .brand {
 	padding-top: 4px;
+	padding-bottom: 0px;
 }
 #navbar .navbar-inner .brand span {
   background-image: url(../img/mr-typo-red_x120.png);
@@ -822,22 +823,32 @@ input[type="submit"].btn.btn-mini {
 	padding: 14px 15px 14px;
 }
 
+.navbar {
+	margin-bottom: 0px;
+	margin-top: 6px;
+}
+
+body {
+	background-color:whitesmoke;
+}
+
 .octoprint-container {
-  margin-top: 20px;
+  margin-top: 0px;
+  background-color:white;
   /** OctoPrint application tabs */
   /** Accordions */
 }
 .octoprint-container .tab-content {
   padding: 9px 15px;
-  border-left: 1px solid #DDD;
-  border-right: 1px solid #DDD;
-  border-bottom: 1px solid #DDD;
-  -webkit-border-bottom-right-radius: 4px;
-  -moz-border-radius-bottomright: 4px;
-  border-bottom-right-radius: 4px;
-  -webkit-border-bottom-left-radius: 4px;
-  -moz-border-radius-bottomleft: 4px;
-  border-bottom-left-radius: 4px;
+  border-left: 0px solid #DDD;
+  border-right: 0px solid #DDD;
+  border-bottom: 0px solid #DDD;
+  -webkit-border-bottom-right-radius: 0px;
+  -moz-border-radius-bottomright: 0px;
+  border-bottom-right-radius: 0px;
+  -webkit-border-bottom-left-radius: 0px;
+  -moz-border-radius-bottomleft: 0px;
+  border-bottom-left-radius: 0px;
 }
 .octoprint-container .nav {
   margin-bottom: 0px;
@@ -1122,8 +1133,17 @@ ul.dropdown-menu li a {
 #control {
   overflow: hidden;
 }
-#control .jog-panel {
-  margin: 1em 1em 0;
+#control_btns {
+	text-align:center;
+}
+#control_zaxis {
+	display:inline-block;
+	width: 80px;
+}
+#control_xyaxis {
+	display:inline-block;
+	margin: 1em auto 0;
+	width: 120px;
 }
 #control h1 {
   text-align: left;
@@ -1187,7 +1207,7 @@ ul.dropdown-menu li a {
 /** Settings dialog */
 /** Footer */
 .footer ul {
-  margin: 0;
+  margin: 0 1em;
 }
 .footer ul li {
   display: inline;
@@ -1570,4 +1590,29 @@ input.search-query,
 
 .footer>* {
 	padding-top: 1em;
+}
+
+#mrbeam-tabs {
+	margin:0;
+}
+
+#mrbeam-tabs .container-fluid {
+	padding-right: 0px;
+	padding-left: 0px;
+}
+
+#mrbeam-tabs .accordion-inner {
+	padding: 9px 15px;
+	border-top: none;
+}
+
+#mrbeam-tabs .accordion-group {
+	border-top:1px solid grey;
+	border-left:none;
+	border-right:none;
+	border-bottom:none;
+	
+	-webkit-border-radius: 0;
+	-moz-border-radius: 0;
+	border-radius: 0;
 }
