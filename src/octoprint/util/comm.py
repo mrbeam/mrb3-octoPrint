@@ -1455,7 +1455,8 @@ class PrintingGcodeFileInformation(PrintingFileInformation):
 
 		if self._lineCount is None:
 			self._lineCount = 0
-			return "M110 N0"
+			#return "M110 N0"
+			return ""
 
 		try:
 			processedLine = None
