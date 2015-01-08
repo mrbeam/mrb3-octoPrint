@@ -53,10 +53,10 @@
 		var CONFIG_USERSPERPAGE = 10;
 		var CONFIG_WEBCAM_STREAM = "{{ webcamStream }}";
 		var CONFIG_ACCESS_CONTROL = {% if enableAccessControl -%} true; {% else %} false; {%- endif %}
-var CONFIG_SD_SUPPORT = {% if enableSdSupport -%} true; {% else %} false; {%- endif %}
-var CONFIG_FIRST_RUN = {% if firstRun -%} true; {% else %} false; {%- endif %}
-var CONFIG_TEMPERATURE_GRAPH = {% if enableTemperatureGraph -%} true; {% else %} false; {%- endif %}
-var CONFIG_GCODE_SIZE_THRESHOLD = {{ gcodeThreshold }};
+		var CONFIG_SD_SUPPORT = {% if enableSdSupport -%} true; {% else %} false; {%- endif %}
+		var CONFIG_FIRST_RUN = {% if firstRun -%} true; {% else %} false; {%- endif %}
+		var CONFIG_TEMPERATURE_GRAPH = {% if enableTemperatureGraph -%} true; {% else %} false; {%- endif %}
+		var CONFIG_GCODE_SIZE_THRESHOLD = {{ gcodeThreshold }};
 		var CONFIG_GCODE_MOBILE_SIZE_THRESHOLD = {{ gcodeMobileThreshold }};
 		var SOCKJS_URI = window.location.protocol.slice(0, - 1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + BASEURL + "sockjs";
 		var SOCKJS_DEBUG = {% if debug -%} true; {% else %} false; {%- endif %}
@@ -164,14 +164,10 @@ var UI_API_KEY = "{{ uiApiKey }}";
 											{% if hasZAxis %}
 										   <div class="jog-panel" id="control_zaxis">
 											   Z-Axis
-											   <div>
-												   <button class="btn box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('z',1) }"><i class="icon-arrow-up"></i></button>
-											   </div>
-											   <div>
-												   <button class="btn box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendHomeCommand(['z']) }"><i class="icon-home"></i></button>
-											   </div>
-											   <div>
-												   <button class="btn box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('z',-1) }"><i class="icon-arrow-down"></i></button>
+											   <div class="btn-group-vertical" role="group" aria-label="z-axis control">
+												  <button class="btn xbox" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('z',1) }"><i class="icon-arrow-up"></i></button>
+											      <!--<button class="btn box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendHomeCommand(['z']) }"><i class="icon-home"></i></button>-->
+											      <button class="btn xbox" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('z',-1) }"><i class="icon-arrow-down"></i></button>
 											   </div>
 										   </div>
 											{% endif %}
@@ -180,12 +176,6 @@ var UI_API_KEY = "{{ uiApiKey }}";
 											Jog distance: <span data-bind="text: jogDistanceInMM">10</span>mm
 											<div class="distance">
 												<input type="text" id="jogDistance" />
-<!--												<div class="btn-group" data-toggle="buttons-radio" id="jog_distance">
-													<button type="button" class="btn distance" data-distance="0.1" data-bind="enable: loginState.isUser()">0.1</button>
-													<button type="button" class="btn distance" data-distance="1" data-bind="enable: loginState.isUser()">1</button>
-													<button type="button" class="btn distance active" data-distance="10" data-bind="enable: loginState.isUser()">10</button>
-													<button type="button" class="btn distance" data-distance="100" data-bind="enable: loginState.isUser()">100</button>
-												</div>-->
 											</div>
 										</div>
 									</div>
@@ -229,7 +219,7 @@ var UI_API_KEY = "{{ uiApiKey }}";
 											</div>
 										</div>
 									</div>
-									</div>
+								</div>
 			
 								</div>
 
@@ -281,63 +271,61 @@ var UI_API_KEY = "{{ uiApiKey }}";
 															<div class="btn btn-mini"  data-bind="click: function() { if ($root.enableSelect($data)) { $root.loadFile($data, true); } else { return; } }, css: {disabled: !$root.enableSelect($data)}"><i class="icon-fire" title="{{ _('Load and Laser') }}"></i></div>
 														</div>
 													</div>
-													</script>
+												</script>
 
-													<script type="text/html" id="files_template_model_svg">
-														<div class="file_list_entry">
-															<div class="title muted" data-bind="text: name"></div>
-															<div class="uploaded">{{ _('Uploaded') }}: <span data-bind="text: formatTimeAgo(date)"></span></div>
-															<div class="size">{{ _('Size') }}: <span data-bind="text: formatSize(size)"></span></div>
-															<div class="btn-group action-buttons">
-																<div class="btn btn-mini" data-bind="click: function() { if ($root.enableRemove($data)) { $root.removeFile($data); } else { return; } }, css: {disabled: !$root.enableRemove($data)}"><i class="icon-trash" title="{{ _('Remove') }}"></i></div>
-																<div class="btn btn-mini"  data-bind="click: function() { $root.convertSVG($data); }, css: {disabled: !$root.enableSVGConversion($data)}"><i class="icon-fire" title="{{ _('Convert to Laserpath') }}"></i></div>
-															</div>
-														</div>
-														</script>
-
-														<script type="text/html" id="files_template_folder">
-															<div class="title" data-bind="text: name"></div>
-															</script>
-														</div>
-														<div class="muted text-right">
-															<small>{{ _('Free') }}: <span data-bind="text: freeSpaceString"></span></small>
-														</div>
-														<div style="display: none;" data-bind="visible: loginState.isUser">
-															<div class="row-fluid upload-buttons">
-
-																<span class="btn btn-primary fileinput-button span12" data-bind="css: {disabled: !$root.loginState.isUser()}" style="margin-bottom: 10px">
-																	<i class="icon-upload-alt icon-white"></i>
-																	<span>{{ _('Upload') }}</span>
-																	<input id="gcode_upload" type="file" name="file" class="fileinput-button" data-bind="enable: loginState.isUser()">
-																</span>
-															</div>
-															<div id="gcode_upload_progress" class="progress" style="width: 100%;">
-																<div class="bar" style="width: 0%"></div>
-															</div>
-															<div>
-																<small>{{ _('Hint: You can also drag and drop files on this page to upload them.') }}</small>
-															</div>
+												<script type="text/html" id="files_template_model_svg">
+													<div class="file_list_entry">
+														<div class="title muted" data-bind="text: name"></div>
+														<div class="uploaded">{{ _('Uploaded') }}: <span data-bind="text: formatTimeAgo(date)"></span></div>
+														<div class="size">{{ _('Size') }}: <span data-bind="text: formatSize(size)"></span></div>
+														<div class="btn-group action-buttons">
+															<div class="btn btn-mini" data-bind="click: function() { if ($root.enableRemove($data)) { $root.removeFile($data); } else { return; } }, css: {disabled: !$root.enableRemove($data)}"><i class="icon-trash" title="{{ _('Remove') }}"></i></div>
+															<div class="btn btn-mini"  data-bind="click: function() { $root.convertSVG($data); }, css: {disabled: !$root.enableSVGConversion($data)}"><i class="icon-fire" title="{{ _('Convert to Laserpath') }}"></i></div>
 														</div>
 													</div>
-												</div>
+												</script>
+
+												<script type="text/html" id="files_template_folder">
+													<div class="title" data-bind="text: name"></div>
+												</script>
 											</div>
+											<div class="muted text-right">
+												<small>{{ _('Free') }}: <span data-bind="text: freeSpaceString"></span></small>
+											</div>
+											<div style="display: none;" data-bind="visible: loginState.isUser">
+												<div class="row-fluid upload-buttons">
 
-
-
-										</div>
-										<div class="span8">
-											<div id="area_preview" class="workingarea" 
-												 data-bind="click: move_laser, 
-													style: {
-														backgroundPosition: crosshairX()+'px'+' '+crosshairY()+'px',
-														width: workingAreaWidth()+'px',
-														height: workingAreaHeight()+'px'
-													}">
+													<span class="btn btn-primary fileinput-button span12" data-bind="css: {disabled: !$root.loginState.isUser()}" style="margin-bottom: 10px">
+														<i class="icon-upload-alt icon-white"></i>
+														<span>{{ _('Upload') }}</span>
+														<input id="gcode_upload" type="file" name="file" class="fileinput-button" data-bind="enable: loginState.isUser()">
+													</span>
+												</div>
+												<div id="gcode_upload_progress" class="progress" style="width: 100%;">
+													<div class="bar" style="width: 0%"></div>
+												</div>
+												<div>
+													<small>{{ _('Hint: You can also drag and drop files on this page to upload them.') }}</small>
+												</div>
 											</div>
 										</div>
 									</div>
 								</div>
 							</div>
+
+							<div class="span8">
+								<div id="area_preview" class="workingarea" 
+									 data-bind="click: move_laser, 
+										style: {
+											backgroundPosition: crosshairX()+'px'+' '+crosshairY()+'px',
+											width: workingAreaWidth()+'px',
+											height: workingAreaHeight()+'px'
+										}">
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 				<div class="tab-pane" id="term">
 					
 					<div class="container-fluid">
@@ -388,12 +376,36 @@ var UI_API_KEY = "{{ uiApiKey }}";
 				<div class="tab-pane" id="focus">
 					<div class="container-fluid">
 						<div class="row-fluid">
-							<div class="span2">
-								<button id="btn_focus_on" class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: enable_focus">{{ _('Enable Focus') }}</button>
-								<button id="btn_focus_off" class="btn btn-block control-box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: disable_focus">{{ _('Disable Focus') }}</button>
-								steps... 1,2,3
+							<div class="span4">
+								<ul>
+									<li>Place your material on the working area</li>
+									<li>Move the laser over the material</li>
+									<li>Put on your safety glasses</li>
+									<li>Enable the focus mode</li>
+									<li>Adjust the focus until the laser beam is as small as possible</li>
+									<li>Disable the focus mode. You can take off the safety glasses afterwards</li>
+								</ul>
+								<div style="text-align:center">
+								<div class="btn-group" role="group" aria-label="focus mode control" style="">
+									<button id="btn_focus_on" class="btn btn-danger" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M3S10'}) }">{{ _('Enable Focus') }}</button>
+									<button id="btn_focus_off" class="btn btn-default" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M5'}) }">{{ _('Disable Focus') }}</button>
+								</div>
+								</div>
+								{% if hasZAxis %}
+								<div style="text-align:center">
+								<div class="jog-panel" id="control_zaxis">
+									
+									Z-Axis
+									<div class="btn-group-vertical" role="group" aria-label="z-axis control">
+										<button class="btn box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('z',1) }"><i class="icon-arrow-up"></i></button>
+										<button class="btn box" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('z',-1) }"><i class="icon-arrow-down"></i></button>
+									</div>
+								</div>
+								</div>
+								{% endif %}
+
 							</div>
-							<div class="span10">
+							<div class="span8">
 								<div class="focus" > images describing the process </div>
 							</div>
 						</div>

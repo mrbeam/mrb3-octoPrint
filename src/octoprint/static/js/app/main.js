@@ -397,6 +397,7 @@ $(function() {
             ko.applyBindings(gcodeFilesViewModel, document.getElementById("files_accordion"));
             //ko.applyBindings(temperatureViewModel, document.getElementById("temp"));
             ko.applyBindings(controlViewModel, document.getElementById("control"));
+            ko.applyBindings(controlViewModel, document.getElementById("focus"));
             ko.applyBindings(terminalViewModel, document.getElementById("term"));
 //            var gcode = document.getElementById("gcode");
 //            if (gcode) {
