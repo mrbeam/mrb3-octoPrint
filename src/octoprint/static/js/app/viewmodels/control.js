@@ -286,7 +286,7 @@ function ControlViewModel(loginStateViewModel, settingsViewModel, printerStateVi
             value: 3,
             enabled: true,
             formatter: function(value) { return self._jogDistanceMapping[value] +"mm"; }
-        }).on("slideStop", self.updateJogDistance);
+        }).on("slide", self.updateJogDistance);
 		self.updateJogDistance();
 		
     };

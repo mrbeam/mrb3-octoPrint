@@ -1616,3 +1616,7 @@ input.search-query,
 	-moz-border-radius: 0;
 	border-radius: 0;
 }
+
+#control_btns .distance {
+	min-height:24px;
+}
