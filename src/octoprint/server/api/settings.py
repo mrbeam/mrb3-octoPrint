@@ -105,10 +105,17 @@ def getSettings():
 			"enabled": s.getBoolean(["cura", "enabled"]),
 			"path": s.get(["cura", "path"]),
 			"config": s.get(["cura", "config"])
-		}
+		},
+		#"plugins": {
+		#	"svgtogcode": {
+		#		"defaultIntensity": s.get(["plugins","svgtogcode","defaultIntensity"]),
+		#		"defaultFeedrate": s.get(["plugins","svgtogcode","defaultFeedrate"])
+		#	}
+		#}
 	}
 
 	def process_plugin_result(name, plugin, result):
+		#print("process_plugin_result", result)
 		if result:
 			if not "plugins" in data:
 				data["plugins"] = dict()
@@ -120,6 +127,7 @@ def getSettings():
 	                             "on_settings_load",
 	                             callback=process_plugin_result)
 
+	#print("settings.py getSettings: data", data["plugins"])
 	return jsonify(data)
 
 
@@ -229,7 +237,7 @@ def setSettings():
 				if name in data["plugins"]:
 					plugin.on_settings_save(data["plugins"][name])
 
-
+		
 		s.save()
 
 	return getSettings()

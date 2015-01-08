@@ -55,15 +55,6 @@ $(function() {
                 }
             });
         });
-//        $('#navbar_show_settings').click(function() {
-//            settingsDialog.modal()
-//                .css({
-//                    width: 'auto',
-//                    'margin-left': function() { return -($(this).width() /2); }
-//                });
-//
-//            return false;
-//        });
 
         //~~ Initialize view models
         var loginStateViewModel = new LoginStateViewModel();

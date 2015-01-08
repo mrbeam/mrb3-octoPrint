@@ -162,6 +162,9 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
     self.cura_path = ko.observable(undefined);
     self.cura_config = ko.observable(undefined);
 
+	self.svgtogcode_defaultIntensity = ko.observable(undefined);
+	self.svgtogcode_defaultFeedrate = ko.observable(undefined);
+
     self.temperature_profiles = ko.observableArray(undefined);
 
     self.system_actions = ko.observableArray([]);
@@ -229,7 +232,7 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
         } else {
             ko.mapping.fromJS(response, self.settings);
         }
-
+		
         self.api_enabled(response.api.enabled);
         self.api_key(response.api.key);
         self.api_allowCrossOrigin(response.api.allowCrossOrigin);

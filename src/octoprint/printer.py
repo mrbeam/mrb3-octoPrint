@@ -484,7 +484,6 @@ class Printer():
 		self._addTemperatureData(temp, bedTemp)
 
 	def mcPosUpdate(self, MPos, WPos):
-		print WPos
 		self._addPositionData(MPos, WPos)
 
 	def mcStateChange(self, state):
@@ -760,7 +759,6 @@ class StateMonitor(object):
 		self._changeEvent.set()
 
 	def setState(self, state):
-		print("state", state)
 		with self._stateMutex:
 			self._state = state
 			self._changeEvent.set()

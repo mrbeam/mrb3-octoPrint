@@ -16,8 +16,8 @@ import octoprint.slicing
 import octoprint.settings
 
 default_settings = {
-	"svgtogcode_engine": None,
-	"default_profile": None,
+	"defaultIntensity": 500,
+	"defaultFeedrate": 300,
 	"debug_logging": False
 }
 s = octoprint.plugin.plugin_settings("svgtogcode", defaults=default_settings)
@@ -153,16 +153,16 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 
 	def on_settings_load(self):
 		return dict(
-			svgtogcode_engine=s.get(["svgtogcode_engine"]),
-			default_profile=s.get(["default_profile"]),
+			defaultIntensity=s.get(["defaultIntensity"]),
+			defaultFeedrate=s.get(["defaultFeedrate"]),
 			debug_logging=s.getBoolean(["debug_logging"])
 		)
 
 	def on_settings_save(self, data):
-		if "svgtogcode_engine" in data and data["svgtogcode_engine"]:
-			s.set(["svgtogcode_engine"], data["svgtogcode_engine"])
-		if "default_profile" in data and data["default_profile"]:
-			s.set(["default_profile"], data["default_profile"])
+		if "defaultIntensity" in data and data["defaultIntensity"]:
+			s.set(["defaultIntensity"], data["defaultIntensity"])
+		if "defaultFeedrate" in data and data["defaultFeedrate"]:
+			s.set(["defaultFeedrate"], data["defaultFeedrate"])
 		if "debug_logging" in data:
 			old_debug_logging = s.getBoolean(["debug_logging"])
 			new_debug_logging = data["debug_logging"] in octoprint.settings.valid_boolean_trues
@@ -177,7 +177,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 
 	def get_template_vars(self):
 		return dict(
-			_settings_menu_entry="SvgToGCode"
+			_settings_menu_entry="Svg GCode Converter"
 		)
 
 	def get_template_folder(self):
@@ -187,7 +187,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 	##~~ SlicerPlugin API
 
 	def is_slicer_configured(self):
-		svgtogcode_engine = s.get(["svgtogcode_engine"])
+		# svgtogcode_engine = s.get(["svgtogcode_engine"])
 		# return svgtogcode_engine is not None and os.path.exists(svgtogcode_engine)
 		return True
 

@@ -1,11 +1,17 @@
 <div id="settings_plugin_svgtogcode_dialog" data-bind="allowBindings: true">
-    <h4>{{ _('General') }}</h4>
+    <h4>{{ _('Default settings') }}</h4>
 
     <form class="form-horizontal">
         <div class="control-group">
-            <label class="control-label" for="settings-svgtogcode-path">{{ _('Path to CuraEngine') }}</label>
+            <label class="control-label" for="settings-svgtogcode-defaultIntensity">{{ _('laser intensity') }}</label>
             <div class="controls">
-                <input type="text" class="input-block-level" data-bind="value: settings.plugins.svgtogcode.svgtogcode_engine">
+                <input type="text" class="input-block-level" data-bind="value: settings.plugins.svgtogcode.defaultIntensity">
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="settings-svgtogcode-defaultFeedrate">{{ _('laser speed') }}</label>
+            <div class="controls">
+                <input type="text" class="input-block-level" data-bind="value: settings.plugins.svgtogcode.defaultFeedrate">
             </div>
         </div>
         <div class="control-group">
@@ -16,8 +22,8 @@
             </div>
         </div>
     </form>
-
-    <h4>{{ _('Profiles') }}</h4>
+<!--
+    <h4>{{ _('Presets') }}</h4>
 
     <div class="pull-right">
         <small>{{ _('Sort by') }}: <a href="#" data-bind="click: function() { profiles.changeSorting('id'); }">{{ _('Identifier') }} ({{ _('ascending') }})</a> | <a href="#" data-bind="click: function() { profiles.changeSorting('name'); }">{{ _('Name') }} ({{ _('ascending') }})</a></small>
@@ -241,6 +247,7 @@
             <button class="btn btn-primary" data-bind="click: function() { $root.confirmEditProfile() }">{{ _('Confirm') }}</button>
         </div>
     </div>
+-->
 
 
 
