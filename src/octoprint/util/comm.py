@@ -933,9 +933,13 @@ class MachineCom(object):
 						elif not self._commandQueue.empty():
 							self._sendCommand(self._commandQueue.get())
 						else:
-							if not self._grbl:
+							if self._grbl:
+								self._sendCommand("?")
+							else:
 								self._sendCommand("M105")
-						tempRequestTimeout = getNewTimeout("temperature")
+								
+						tempRequestTimeout = getNewTimeout("detection") if self._grbl else getNewTimeout("temperature")
+						
 					# resend -> start resend procedure from requested line
 					elif line.lower().startswith("resend") or line.lower().startswith("rs"):
 						if settings().get(["feature", "swallowOkAfterResend"]):
@@ -960,9 +964,12 @@ class MachineCom(object):
 					else:
 						# Even when printing request the temperature every 5 seconds.
 						if time.time() > tempRequestTimeout and not self.isStreaming():
-							if not self._grbl:
+							if self._grbl:
+								self._commandQueue.put("?")
+								tempRequestTimeout = getNewTimeout("detection")
+							else:
 								self._commandQueue.put("M105")
-							tempRequestTimeout = getNewTimeout("temperature")
+								tempRequestTimeout = getNewTimeout("temperature")
 
 						if "ok" in line and swallowOk:
 							swallowOk = False

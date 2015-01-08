@@ -179,7 +179,7 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
     };
 
     self.addTerminalFilter = function() {
-        self.terminalFilters.push({name: "New", regex: "(Send: M105)|(Recv: ok T:)"})
+        self.terminalFilters.push({name: "New", regex: "(Send: \?)|(Recv: ok)"})
     };
 
     self.removeTerminalFilter = function(filter) {
