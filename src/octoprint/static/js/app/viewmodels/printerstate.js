@@ -203,6 +203,18 @@ function PrinterStateViewModel(loginStateViewModel) {
         self.busyFiles(busyFiles);
     };
 
+	self.print_with_safety_glasses_warning = function(){
+		$("#confirmation_dialog .confirmation_dialog_message").text(gettext("The laser will now start. Protect yourself and everybody in the room appropriately before proceeding!"));
+            $("#confirmation_dialog .confirmation_dialog_acknowledge").unbind("click");
+            $("#confirmation_dialog .confirmation_dialog_acknowledge").click(
+					function(e) {
+						e.preventDefault(); 
+						$("#confirmation_dialog").modal("hide"); 
+						self.print(); 
+					});
+            $("#confirmation_dialog").modal("show");
+	};
+
     self.print = function() {
         var restartCommand = function() {
             self._jobCommand("restart");

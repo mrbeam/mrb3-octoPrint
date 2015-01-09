@@ -213,7 +213,7 @@ var UI_API_KEY = "{{ uiApiKey }}";
 											</div>
 
 											<div class="row-fluid print-control" style="display: none;" data-bind="visible: loginState.isUser">
-												<button class="btn btn-danger span4" data-bind="click: print, enable: isOperational() && isReady() && !isPrinting() && loginState.isUser(), attr: {title: titlePrintButton}" id="job_print">
+												<button class="btn btn-danger span4" data-bind="click: print_with_safety_glasses_warning, enable: isOperational() && isReady() && !isPrinting() && loginState.isUser(), attr: {title: titlePrintButton}" id="job_print">
 													<i class="icon-white" data-bind="css: {'icon-fire': !isPaused(), 'icon-undo': isPaused(), 'wobble': isPrinting()}"></i> <span data-bind="text: (isPaused() ? '{{ _('Restart') }}' : '{{ _('Laser') }}')">{{ _('Laser') }}</span>
 												</button>
 												<button class="btn span4" id="job_pause" data-bind="click: pause, enable: isOperational() && (isPrinting() || isPaused()) && loginState.isUser(), css: {active: isPaused()}, attr: {title: titlePauseButton}"><i data-bind="css: {'icon-pause': !isPaused(), 'icon-play': isPaused()}"></i> <span data-bind="visible: !isPaused()">{{ _('Pause') }}</span><span data-bind="visible: isPaused()">{{ _('Resume') }}</span></button>
@@ -389,8 +389,8 @@ var UI_API_KEY = "{{ uiApiKey }}";
 								</ul>
 								<div style="text-align:center">
 								<div class="btn-group" role="group" aria-label="focus mode control" style="">
-									<button id="btn_focus_on" class="btn btn-danger" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M3S10'}) }">{{ _('Enable Focus') }}</button>
-									<button id="btn_focus_off" class="btn btn-default" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendCustomCommand({type:'command',command:'M5'}) }">{{ _('Disable Focus') }}</button>
+									<button id="btn_focus_on" class="btn btn-danger" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: focus_on ">{{ _('Enable Focus') }}</button>
+									<button id="btn_focus_off" class="btn btn-default" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: focus_off ">{{ _('Disable Focus') }}</button>
 								</div>
 								</div>
 								{% if hasZAxis %}

@@ -118,6 +118,23 @@ function ControlViewModel(loginStateViewModel, settingsViewModel, printerStateVi
 		}
 	}, this);
 
+	self.focus_on = function(){
+		
+		$("#confirmation_dialog .confirmation_dialog_message").text(gettext("The laser will now be enabled. Protect yourself and everybody in the room appropriately before proceeding!"));
+		$("#confirmation_dialog .confirmation_dialog_acknowledge").unbind("click");
+		$("#confirmation_dialog .confirmation_dialog_acknowledge").click(
+				function(e) {
+					e.preventDefault(); 
+					$("#confirmation_dialog").modal("hide"); 
+					self.sendCustomCommand({type:'command',command:'M3S10'});
+				});
+		$("#confirmation_dialog").modal("show");
+	};
+	
+	self.focus_off = function(){
+		self.sendCustomCommand({type:'command',command:'M5'});
+	};
+
     self.sendJogCommand = function(axis, multiplier, distance) {
         if (typeof distance === "undefined")
 //            distance = $('#jog_distance button.active').data('distance');
