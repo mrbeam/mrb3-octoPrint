@@ -1,4 +1,4 @@
-<div id="settings_dialog" class="container" xtabindex="-1" role="xdialog" aria-labelledby="settings_dialog_label" aria-hidden="true">
+<div id="settings_dialog" class="container" role="" aria-labelledby="settings_dialog_label" aria-hidden="true">
 
     <div class="">
         <div class="tabbable">
@@ -28,7 +28,7 @@
                         <div class="control-group">
                             <label class="control-label" for="settings-serialPort">{{ _('Serial Port') }}</label>
                             <div class="controls">
-                                <select id="settings-serialPort" data-bind="options: serial_portOptions, optionsCaption: 'AUTO', value: serial_port"></select>
+                                <select id="settings-serialPort" data-bind="event: {change: saveall}, options: serial_portOptions, optionsCaption: 'AUTO', value: serial_port"></select>
                             </div>
                         </div>
 
@@ -36,7 +36,7 @@
                             <label class="control-label" for="settings-serialTimeoutCommunication">{{ _('Communication timeout') }}</label>
                             <div class="controls">
                                 <div class="input-append">
-                                    <input type="number" step="any" min="0" class="input-mini text-right" data-bind="value: serial_timeoutCommunication" id="settings-serialTimeoutCommunication">
+                                    <input type="number" step="any" min="0" class="input-mini text-right" data-bind="event: {change: saveall}, value: serial_timeoutCommunication" id="settings-serialTimeoutCommunication">
                                     <span class="add-on">s</span>
                                 </div>
                             </div>
@@ -46,7 +46,7 @@
                             <label class="control-label" for="settings-serialTimeoutConnection">{{ _('Connection timeout') }}</label>
                             <div class="controls">
                                 <div class="input-append">
-                                    <input type="number" step="any" min="0" class="input-mini text-right" data-bind="value: serial_timeoutConnection" id="settings-serialTimeoutConnection">
+                                    <input type="number" step="any" min="0" class="input-mini text-right" data-bind="event: {change: saveall}, value: serial_timeoutConnection" id="settings-serialTimeoutConnection">
                                     <span class="add-on">s</span>
                                 </div>
                             </div>
@@ -55,7 +55,7 @@
                             <label class="control-label" for="settings-serialTimeoutDetection">{{ _('Autodetection timeout') }}</label>
                             <div class="controls">
                                 <div class="input-append">
-                                    <input type="number" step="any" min="0" class="input-mini text-right" data-bind="value: serial_timeoutDetection" id="settings-serialTimeoutDetection">
+                                    <input type="number" step="any" min="0" class="input-mini text-right" data-bind="event: {change: saveall}, value: serial_timeoutDetection" id="settings-serialTimeoutDetection">
                                     <span class="add-on">s</span>
                                 </div>
                             </div>
@@ -63,13 +63,13 @@
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <input type="checkbox" data-bind="checked: serial_log" id="settings-serialLog"> {{ _('Log communication to serial.log (might negatively impact performance)') }} <span class="label label-important">{{ _('Warning') }}</span>
+                                    <input type="checkbox" data-bind="event: {change: saveall}, checked: serial_log" id="settings-serialLog"> {{ _('Log communication to serial.log (might negatively impact performance)') }} <span class="label label-important">{{ _('Warning') }}</span>
                                 </label>
                             </div>
                         </div>
                     </form>
                 </div>
-  
+
 				<div class="tab-pane" id="settings_printerParameters">
                     <form class="form-horizontal">
 
@@ -79,12 +79,12 @@
                             <div class="controls form-inline">
                                 <label>{{ _('X') }}:</label>
                                 <div class="input-append">
-                                    <input type="number" step="0.01" class="input-mini text-right" data-bind="value: printer_bedDimensionX" id="settings-bedX">
+                                    <input type="number" step="1" class="input-mini text-right" data-bind="event: {change: saveall}, value: printer_bedDimensionX" id="settings-bedX">
                                     <span class="add-on">mm</span>
                                 </div>
                                 <label>{{ _('Y') }}:</label>
                                 <div class="input-append">
-                                    <input type="number" step="0.01" class="input-mini text-right" data-bind="value: printer_bedDimensionY" id="settings-bedY">
+                                    <input type="number" step="1" class="input-mini text-right" data-bind="event: {change: saveall}, value: printer_bedDimensionY" id="settings-bedY">
                                     <span class="add-on">mm</span>
                                 </div>
                             </div>
@@ -92,7 +92,7 @@
                             <label class="control-label" for="settings-zaxis">{{ _('Z Axis') }}</label>
                             <div class="controls">
                                 <label class="checkbox">
-                                    <input type="checkbox" data-bind="checked: feature_zaxis" id="settings-zaxis"> {{ _('Show controls for z-axis') }}
+                                    <input type="checkbox" data-bind="event: {change: saveall}, checked: feature_zaxis" id="settings-zaxis"> {{ _('Show controls for z-axis') }}
                                 </label>
                             </div>
 							
@@ -105,56 +105,56 @@
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <input type="checkbox" data-bind="checked: feature_temperatureGraph" id="settings-featureTemperatureGraph"> {{ _('Enable Temperature Graph') }}
+                                    <!--<input type="checkbox" data-bind="event: {change: saveall}, checked: feature_temperatureGraph" id="settings-featureTemperatureGraph"> {{ _('Enable Temperature Graph') }}-->
                                 </label>
                             </div>
                         </div>
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <input type="checkbox" data-bind="checked: feature_gcodeViewer" id="settings-featureGcodeViewer"> {{ _('Enable GCode Visualizer') }}
+                                    <!--<input type="checkbox" data-bind="event: {change: saveall}, checked: feature_gcodeViewer" id="settings-featureGcodeViewer"> {{ _('Enable GCode Visualizer') }}-->
                                 </label>
                             </div>
                         </div>
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <input type="checkbox" data-bind="checked: feature_sdSupport" id="settings-featureSdSupport"> {{ _('Enable SD support') }}
+                                    <!--<input type="checkbox" data-bind="event: {change: saveall}, checked: feature_sdSupport" id="settings-featureSdSupport"> {{ _('Enable SD support') }}-->
                                 </label>
                             </div>
                         </div>
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <input type="checkbox" data-bind="checked: feature_sdAlwaysAvailable" id="settings-featureSdAlwaysAvailable"> {{ _('Always assume SD card is present') }} <span class="label">{{ _('Repetier') }}</span>
+                                    <!--<input type="checkbox" data-bind="event: {change: saveall}, checked: feature_sdAlwaysAvailable" id="settings-featureSdAlwaysAvailable"> {{ _('Always assume SD card is present') }} <span class="label">{{ _('Repetier') }}</span>-->
                                 </label>
                             </div>
                         </div>
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <input type="checkbox" data-bind="checked: feature_waitForStart" id="settings-featureWaitForStart"> {{ _('Wait for <code>start</code> on connect') }}
+                                    <!--<input type="checkbox" data-bind="event: {change: saveall}, checked: feature_waitForStart" id="settings-featureWaitForStart"> {{ _('Wait for <code>start</code> on connect') }}-->
                                 </label>
                             </div>
                         </div>
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <input type="checkbox" data-bind="checked: feature_alwaysSendChecksum" id="settings-featureAlwaysSendChecksum"> {{ _('Send a checksum with <strong>every</strong> command') }}  <span class="label">{{ _('Repetier') }}</span>
+                                    <!--<input type="checkbox" data-bind="event: {change: saveall}, checked: feature_alwaysSendChecksum" id="settings-featureAlwaysSendChecksum"> {{ _('Send a checksum with <strong>every</strong> command') }}  <span class="label">{{ _('Repetier') }}</span>-->
                                 </label>
                             </div>
                         </div>
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <input type="checkbox" data-bind="checked: feature_repetierTargetTemp" id="settings-featureRepetierTargetTemp"> {{ _('Support <code>TargetExtr%%n</code>/<code>TargetBed</code> target temperature format') }} <span class="label">{{ _('Repetier') }}</span>
+                                    <!--<input type="checkbox" data-bind="event: {change: saveall}, checked: feature_repetierTargetTemp" id="settings-featureRepetierTargetTemp"> {{ _('Support <code>TargetExtr%%n</code>/<code>TargetBed</code> target temperature format') }} <span class="label">{{ _('Repetier') }}</span>-->
                                 </label>
                             </div>
                         </div>
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <input type="checkbox" data-bind="checked: feature_swallowOkAfterResend" id="settings-swallowOkAfterResend"> {{ _('Swallow the first "ok" after a resend response') }}
+                                    <!--<input type="checkbox" data-bind="event: {change: saveall}, checked: feature_swallowOkAfterResend" id="settings-swallowOkAfterResend"> {{ _('Swallow the first "ok" after a resend response') }}-->
                                 </label>
                             </div>
                         </div>
@@ -166,14 +166,14 @@
                         <div class="control-group">
                             <label class="control-label" for="settings-folderUploads">{{ _('Upload Folder') }}</label>
                             <div class="controls">
-                                <input type="text" class="input-block-level" data-bind="value: folder_uploads" id="settings-folderUploads">
+                                <!--<input type="text" class="input-block-level" data-bind="event: {change: saveall}, value: folder_uploads" id="settings-folderUploads">-->
                             </div>
                         </div>
 
                         <div class="control-group">
                             <label class="control-label" for="settings-folderLogs">{{ _('Logs Folder') }}</label>
                             <div class="controls">
-                                <input type="text" class="input-block-level" data-bind="value: folder_logs" id="settings-folderLogs">
+                                <!--<input type="text" class="input-block-level" data-bind="event: {change: saveall}, value: folder_logs" id="settings-folderLogs">-->
                             </div>
                         </div>
 
@@ -189,14 +189,14 @@
                         <div data-bind="foreach: temperature_profiles">
                             <div class="row-fluid" style="margin-bottom: 5px">
                                 <div class="span3">
-                                    <input type="text" class="span12 text-right" data-bind="value: name">
+                                    <!--<input type="text" class="span12 text-right" data-bind="event: {change: saveall}, value: name">-->
                                 </div>
                                 <div class="input-append span3">
-                                    <input type="number" class="input-mini text-right" data-bind="value: extruder">
+                                    <!--<input type="number" class="input-mini text-right" data-bind="event: {change: saveall}, value: extruder">-->
                                     <span class="add-on">&deg;C</span>
                                 </div>
                                 <div class="input-append span3">
-                                    <input type="number" class="input-mini text-right" data-bind="value: bed">
+                                    <!--<input type="number" class="input-mini text-right" data-bind="event: {change: saveall}, value: bed">-->
                                     <span class="add-on">&deg;C</span>
                                 </div>
                                 <div class="span2">
@@ -221,13 +221,13 @@
                         <div data-bind="foreach: terminalFilters">
                             <div class="row-fluid" style="margin-bottom: 5px">
                                 <div class="span4">
-                                    <input type="text" class="span12" data-bind="value: name">
+                                    <!--<input type="text" class="span12" data-bind="event: {change: saveall}, value: name">-->
                                 </div>
                                 <div class="span6">
-                                    <input type="text" class="span12" data-bind="value: regex">
+                                    <!--<input type="text" class="span12" data-bind="event: {change: saveall}, value: regex">-->
                                 </div>
                                 <div class="span2">
-                                    <a title="Remove Filter" class="btn btn-danger" data-bind="click: $parent.removeTerminalFilter"><i class="icon-trash"></i></a>
+                                    <!--<a title="Remove Filter" class="btn btn-danger" data-bind="click: $parent.removeTerminalFilter"><i class="icon-trash"></i></a>-->
                                 </div>
                             </div>
                         </div>
@@ -244,7 +244,7 @@
                         <div class="control-group">
                             <label class="control-label" for="settings-appearanceName">{{ _('Title') }}</label>
                             <div class="controls">
-                                <input type="text" class="input-block-level" data-bind="value: appearance_name" id="settings-appearanceName">
+                                <!--<input type="text" class="input-block-level" data-bind="event: {change: saveall}, value: appearance_name" id="settings-appearanceName">-->
                             </div>
                         </div>
                         <div class="control-group">
@@ -262,21 +262,21 @@
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <input type="checkbox" id="settings-apiEnabled" data-bind="checked: api_enabled"> {{ _('Enable') }}
+                                    <!--<input type="checkbox" id="settings-apiEnabled" data-bind="event: {change: saveall}, checked: api_enabled"> {{ _('Enable') }}-->
                                 </label>
                             </div>
                         </div>
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <input type="checkbox" id="settings-apiCors" data-bind="checked: api_allowCrossOrigin"> {{ _('Allow <a href="%(url)s">Cross Origin Resource Sharing (CORS)</a>', url = "https://en.wikipedia.org/wiki/Cross-origin_resource_sharing") }}
+                                    <!--<input type="checkbox" id="settings-apiCors" data-bind="event: {change: saveall}, checked: api_allowCrossOrigin"> {{ _('Allow <a href="%(url)s">Cross Origin Resource Sharing (CORS)</a>', url = "https://en.wikipedia.org/wiki/Cross-origin_resource_sharing") }}-->
                                 </label>
                             </div>
                         </div>
                         <div class="control-group">
                             <label class="control-label" for="settings-apiKey">{{ _('API Key') }}</label>
                             <div class="controls">
-                                <input type="text" class="input-block-level" data-bind="value: api_key" id="settings-apikey">
+                                <!--<input type="text" class="input-block-level" data-bind="event: {change: saveall}, value: api_key" id="settings-apikey">-->
                             </div>
                         </div>
                     </form>
@@ -498,8 +498,8 @@
             </div>
         </div>
     </div>
-    <div class="">
-        <!--<button class="btn" data-dismiss="xmodal" aria-hidden="true">{{ _('Cancel') }}</button>-->
+<!--    <div class="">
+        <button class="btn" data-dismiss="xmodal" aria-hidden="true">{{ _('Cancel') }}</button>
         <button id="settings_save_btn" class="btn btn-primary" data-bind="click: saveData">{{ _('Save') }}</button>
-    </div>
+    </div>-->
 </div>

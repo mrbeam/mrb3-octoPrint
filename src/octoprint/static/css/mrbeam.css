@@ -1620,3 +1620,19 @@ input.search-query,
 #control_btns .distance {
 	min-height:24px;
 }
+
+#settingsTabs li.saveInProgress a:after {
+	content:"\f021";
+	font-family: FontAwesome;
+	font-weight: normal;
+	font-style: normal;
+	margin-left: 0.7em;
+	text-decoration: inherit;
+	-webkit-font-smoothing: antialiased;
+	display: inline-block;
+	-moz-animation: spin 2s infinite linear;
+	-o-animation: spin 2s infinite linear;
+	-webkit-animation: spin 2s infinite linear;
+	animation: spin 2s infinite linear;
+}
+

@@ -1,6 +1,7 @@
 function SettingsViewModel(loginStateViewModel, usersViewModel) {
     var self = this;
 
+	self.savetimer = undefined;
     self.loginState = loginStateViewModel;
     self.users = usersViewModel;
 
@@ -214,6 +215,16 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
     self.printer_invertY = self.koInvertAxis('y');
     self.printer_invertZ = self.koInvertAxis('z');
 
+	self.saveall = function(e, v){
+//		$("#settings_save_btn").css("visibility", "visible");
+
+		$("#settingsTabs li.active").addClass('saveInProgress');
+		if(self.savetimer !== undefined){
+			clearTimeout(self.savetimer);
+		}
+		self.savetimer = setTimeout(self.instantSaveData, 2000);
+	};
+
     self.requestData = function(callback) {
         $.ajax({
             url: API_BASEURL + "settings",
@@ -297,8 +308,8 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
         self.terminalFilters(response.terminalFilters);
     };
 
-    self.saveData = function() {
-        var data = ko.mapping.toJS(self.settings);
+	self.collectData = function (){
+		var data = ko.mapping.toJS(self.settings);
         data = _.extend(data, {
             "api" : {
                 "enabled": self.api_enabled(),
@@ -371,7 +382,13 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
             },
             "terminalFilters": self.terminalFilters()
         });
+		return data;
+	};
 
+    self.saveData = function() {
+        
+		var data = self.collectData();
+		
         $.ajax({
             url: API_BASEURL + "settings",
             type: "POST",
@@ -381,7 +398,31 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
             success: function(response) {
                 self.fromResponse(response);
 //                $("#settings_dialog").modal("hide");
-                $("#settings_save_btn").attr("disabled", "disabled");
+//                $("#settings_save_btn").attr("disabled", "disabled");
+				$("#settings_save_btn").css("visibility", "hidden");
+				console.log("save callback");
+
+            }
+        });
+    };
+	
+    self.instantSaveData = function() {
+        
+		var data = self.collectData();
+		
+        $.ajax({
+            url: API_BASEURL + "settings",
+            type: "POST",
+            dataType: "json",
+            contentType: "application/json; charset=UTF-8",
+            data: JSON.stringify(data),
+            success: function(response) {
+//                self.fromResponse(response);
+//                $("#settings_dialog").modal("hide");
+//                $("#settings_save_btn").attr("disabled", "disabled");
+//				$("#settings_save_btn").css("visibility", "hidden");
+				$("#settingsTabs li.active").removeClass('saveInProgress');
+				self.savetimer = undefined;
             }
         });
     };
