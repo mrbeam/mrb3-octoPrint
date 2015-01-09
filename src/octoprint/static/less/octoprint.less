@@ -305,6 +305,32 @@ table {
       }
     }
 
+    // Printer profiles
+    &.settings_printerProfiles_profiles_name {
+      text-overflow: ellipsis;
+      text-align: left;
+    }
+
+    &.settings_printerProfiles_profiles_model {
+      text-align: left;
+      width: 250px;
+    }
+
+    &.settings_printerProfiles_profiles_action {
+      text-align: center;
+      width: 80px;
+
+      a {
+        text-decoration: none;
+        color: #000;
+
+        &.disabled {
+          color: #ccc;
+          cursor: default;
+        }
+      }
+    }
+
   }
 }
 
@@ -338,7 +364,7 @@ ul.dropdown-menu li a {
 
 /** Connection settings */
 
-#connection_ports, #connection_baudrates {
+#connection_ports, #connection_baudrates, #connection_printers {
   width: 100%;
 }
 

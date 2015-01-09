@@ -46,7 +46,6 @@ defaults = dict(
     layer_height=0.1,
     wall_thickness=0.8,
     solid_layer_thickness=0.6,
-    nozzle_size=0.4,
     print_temperature=[220, 0, 0, 0],
     print_bed_temperature=70,
     platform_adhesion=PlatformAdhesionTypes.NONE,
@@ -515,8 +514,11 @@ class Profile(object):
 
 		return result
 
-	def __init__(self, profile, overrides=None):
+	def __init__(self, profile, printer_profile, posX, posY, overrides=None):
 		self._profile = self.__class__.merge_profile(profile, overrides=overrides)
+		self._printer_profile = printer_profile
+		self._posX = posX
+		self._posY = posY
 
 	def profile(self):
 		import copy
@@ -524,23 +526,22 @@ class Profile(object):
 
 	def get(self, key):
 		if key in ("machine_width", "machine_depth", "machine_center_is_zero"):
-			bedDimensions = s.globalGet(["printerParameters", "bedDimensions"])
-			circular = bedDimensions["circular"] if "circular" in bedDimensions else False
-			radius = bedDimensions["radius"] if "radius" in bedDimensions and bedDimensions["radius"] is not None else 0
 			if key == "machine_width":
-				return radius * 2 if circular else bedDimensions["x"]
+				return self._printer_profile["volume"]["width"]
 			elif key == "machine_depth":
-				return radius * 2 if circular else bedDimensions["y"]
+				return self._printer_profile["volume"]["depth"]
+			elif key == "machine_height":
+				return self._printer_profile["volume"]["height"]
 			elif key == "machine_center_is_zero":
-				return circular
+				return self._printer_profile["volume"]["formFactor"] == "circular"
 			else:
 				return None
 
 		elif key == "extruder_amount":
-			return s.globalGetInt(["printerParameters", "numExtruders"])
+			return self._printer_profile["extruder"]["count"]
 
 		elif key.startswith("extruder_offset_"):
-			extruder_offsets = s.globalGet(["printerParameters", "extruderOffsets"])
+			extruder_offsets = self._printer_profile["extruder"]["offsets"]
 			match = Profile.regex_extruder_offset.match(key)
 			if not match:
 				return 0.0
@@ -553,9 +554,13 @@ class Profile(object):
 				return 0.0
 			if number >= len(extruder_offsets):
 				return 0.0
-			if not axis in extruder_offsets[number]:
+
+			if axis == "x":
+				return extruder_offsets[number][0]
+			elif axis == "y":
+				return extruder_offsets[number][1]
+			else:
 				return 0.0
-			return extruder_offsets[number][axis]
 
 		elif key.startswith("filament_diameter"):
 			match = Profile.regex_filament_diameter.match(key)
@@ -638,7 +643,7 @@ class Profile(object):
 		return int(value * 1000)
 
 	def get_gcode_template(self, key):
-		extruder_count = s.globalGetInt(["printerParameters", "numExtruders"])
+		extruder_count = self.get_int("extruder_amount")
 
 		if key in self._profile:
 			gcode = self._profile[key]
@@ -649,14 +654,6 @@ class Profile(object):
 			return gcode[extruder_count-1]
 		else:
 			return gcode
-
-	def get_machine_extruder_offset(self, extruder, axis):
-		extruder_offsets = s.globalGet(["printerParameters", "extruderOffsets"])
-		if extruder >= len(extruder_offsets):
-			return 0.0
-		if axis.lower() not in ("x", "y"):
-			return 0.0
-		return extruder_offsets[extruder][axis.lower()]
 
 	def get_profile_string(self):
 		import base64
@@ -708,7 +705,7 @@ class Profile(object):
 		return pre + str(f)
 
 	def get_gcode(self, key):
-		extruder_count = s.globalGetInt(["printerParameters", "numExtruders"])
+		extruder_count = self.get_int("extruder_amount")
 
 		prefix = ""
 		postfix = ""
@@ -761,7 +758,7 @@ class Profile(object):
 
 	def calculate_edge_width_and_line_count(self):
 		wall_thickness = self.get_float("wall_thickness")
-		nozzle_size = self.get_float("nozzle_size")
+		nozzle_size = self._printer_profile["extruder"]["nozzleDiameter"]
 
 		if self.get_boolean("spiralize") or self.get_boolean("follow_surface"):
 			return wall_thickness, 1
@@ -792,7 +789,7 @@ class Profile(object):
 		return int(math.ceil(solid_thickness / (layer_height - 0.0001)))
 
 	def calculate_minimal_extruder_count(self):
-		extruder_count = s.globalGetInt(["printerParameters", "numExtruders"])
+		extruder_count = self.get("extruder_amount")
 		if extruder_count < 2:
 			return 1
 		if self.get("support") == SupportLocationTypes.NONE:
@@ -801,12 +798,30 @@ class Profile(object):
 			return 2
 		return 1
 
+	def get_pos_x(self):
+		if self._posX:
+			try:
+				return int(float(self._posX) * 1000)
+			except ValueError:
+				pass
+
+		return int(self.get_float("machine_width") / 2.0 * 1000) if not self.get_boolean("machine_center_is_zero") else 0.0
+
+	def get_pos_y(self):
+		if self._posY:
+			try:
+				return int(float(self._posY) * 1000)
+			except ValueError:
+				pass
+
+		return int(self.get_float("machine_depth") / 2.0 * 1000) if not self.get_boolean("machine_center_is_zero") else 0.0
+
 	def convert_to_engine(self):
 
 		edge_width, line_count = self.calculate_edge_width_and_line_count()
 		solid_layer_count = self.calculate_solid_layer_count()
 
-		extruder_count = s.globalGetInt(["printerParameters", "numExtruders"])
+		extruder_count = self.get_int("extruder_amount")
 		minimal_extruder_count = self.calculate_minimal_extruder_count()
 
 		settings = {
@@ -849,8 +864,8 @@ class Profile(object):
 			"coolHeadLift": 1 if self.get_boolean("cool_head_lift") else 0,
 
 			# model positioning
-			"posx": int(self.get_float("machine_width") / 2.0 * 1000) if not self.get_boolean("machine_center_is_zero") else 0.0,
-			"posy": int(self.get_float("machine_depth") / 2.0 * 1000) if not self.get_boolean("machine_center_is_zero") else 0.0,
+			"posx": self.get_pos_x(),
+			"posy": self.get_pos_y(),
 
 			# gcodes
 			"startCode": self.get_gcode("start_gcode"),
@@ -864,7 +879,7 @@ class Profile(object):
 
 		for extruder in range(1, extruder_count):
 			for axis in ("x", "y"):
-				settings["extruderOffset[{extruder}].{axis}".format(extruder=extruder, axis=axis.upper())] = self.get_machine_extruder_offset(extruder, axis)
+				settings["extruderOffset[{extruder}].{axis}".format(extruder=extruder, axis=axis.upper())] = self.get("extruder_offset_{axis}{extruder}".format(extruder=extruder, axis=axis.lower()))
 
 		fanFullHeight = self.get_microns("fan_full_height")
 		settings["fanFullOnLayerNr"] = (fanFullHeight - settings["initialLayerThickness"] - 1) / settings["layerThickness"] + 1

@@ -45,6 +45,7 @@
         <script lang="javascript">
             var BASEURL = "{{ url_for('index') }}";
             var API_BASEURL = BASEURL + "api/";
+            var PLUGIN_BASEURL = BASEURL + "plugin/";
             var GCODE_WORKER = "{{ url_for('static', filename='gcodeviewer/js/Worker.js') }}";
 
             var CONFIG_GCODEFILESPERPAGE = 5000;
@@ -59,7 +60,7 @@
             var CONFIG_GCODE_SIZE_THRESHOLD = {{ gcodeThreshold }};
             var CONFIG_GCODE_MOBILE_SIZE_THRESHOLD = {{ gcodeMobileThreshold }};
 
-            var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + BASEURL + "sockjs";
+            var SOCKJS_URI = "{{ url_for('index') }}" + "sockjs";
             var SOCKJS_DEBUG = {%  if debug -%} true; {% else %} false; {%- endif %}
 
             var UI_API_KEY = "{{ uiApiKey }}";
@@ -125,7 +126,7 @@
                 <div class="accordion span4">
                     <div class="accordion-group" data-bind="visible: loginState.isUser" id="connection_accordion">
                         <div class="accordion-heading">
-                            <a class="accordion-toggle" data-toggle="collapse" href="#connection"><i class="icon-signal"></i> {{ _('Connection') }}</a>
+                            <a class="accordion-toggle" data-toggle="collapse" data-target="#connection"><i class="icon-signal"></i> {{ _('Connection') }}</a>
                         </div>
                         <div class="accordion-body collapse in" id="connection">
                             <div class="accordion-inner">
@@ -133,6 +134,8 @@
                                 <select id="connection_ports" data-bind="options: portOptions, optionsCaption: 'AUTO', value: selectedPort, css: {disabled: !isErrorOrClosed()}, enable: isErrorOrClosed() && loginState.isUser()"></select>
                                 <label for="connection_baudrates" data-bind="css: {disabled: !isErrorOrClosed()}, enable: isErrorOrClosed() && loginState.isUser()">{{ _('Baudrate') }}</label>
                                 <select id="connection_baudrates" data-bind="options: baudrateOptions, optionsCaption: 'AUTO', value: selectedBaudrate, css: {disabled: !isErrorOrClosed()}, enable: isErrorOrClosed() && loginState.isUser()"></select>
+                                <label for="connection_printers" data-bind="css: {disabled: !isErrorOrClosed()}, enable: isErrorOrClosed() && loginState.isUser()">{{ _('Printer Profile') }}</label>
+                                <select id="connection_printers" data-bind="options: printerOptions, optionsText: 'name', optionsValue: 'id', value: selectedPrinter, css: {disabled: !isErrorOrClosed()}, enable: isErrorOrClosed() && loginState.isUser()"></select>
                                 <label class="checkbox">
                                     <input type="checkbox" id="connection_save" data-bind="checked: saveSettings, css: {disabled: !isErrorOrClosed()}, enable: isErrorOrClosed() && loginState.isUser()"> {{ _('Save connection settings') }}
                                 </label>
@@ -668,7 +671,6 @@
         {% endif %}
         <!-- End plugin template files -->
 
-
         <script type="text/javascript" src="{{ url_for('static', filename='js/lib/jquery/jquery.min.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/lib/modernizr.custom.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/lib/underscore-min.js') }}"></script>
@@ -688,6 +690,7 @@
         <script type="text/javascript" src="{{ url_for('static', filename='js/lib/jquery/jquery.iframe-transport.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/lib/jquery/jquery.fileupload.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/lib/jquery/jquery.slimscroll.min.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/lib/jquery/jquery.qrcode.min.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/lib/sockjs-0.3.4.min.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/lib/moment-with-locales.min.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/lib/pusher.color.min.js') }}"></script>
@@ -706,6 +709,7 @@
         <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/loginstate.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/navigation.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/printerstate.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/printerprofiles.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/settings.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/slicing.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/temperature.js') }}"></script>
