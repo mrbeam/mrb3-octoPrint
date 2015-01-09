@@ -19,7 +19,7 @@ import octoprint.util as util
 
 @api.route("/printer", methods=["GET"])
 def printerState():
-	if not printer.isOperational():
+	if not (printer.isOperational() or printer.isLocked()):
 		return make_response("Printer is not operational", 409)
 
 	# process excludes

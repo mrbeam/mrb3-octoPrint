@@ -464,6 +464,7 @@ class Printer():
 	def _getStateFlags(self):
 		return {
 			"operational": self.isOperational(),
+			"locked": self.isLocked(),
 			"printing": self.isPrinting(),
 			"closedOrError": self.isClosedOrError(),
 			"error": self.isError(),
@@ -680,6 +681,9 @@ class Printer():
 
 	def isOperational(self):
 		return self._comm is not None and self._comm.isOperational()
+
+	def isLocked(self):
+		return self._comm is not None and self._comm.isLocked()
 
 	def isPrinting(self):
 		return self._comm is not None and self._comm.isPrinting()

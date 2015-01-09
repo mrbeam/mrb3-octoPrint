@@ -220,6 +220,7 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
 
     self.downloadLink = function(data) {
         if (data["refs"] && data["refs"]["download"]) {
+			console.log(data["refs"])
             return data["refs"]["download"];
         } else {
             return false;

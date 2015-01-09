@@ -14,6 +14,7 @@ function ControlViewModel(loginStateViewModel, settingsViewModel, printerStateVi
 
     self.isErrorOrClosed = ko.observable(undefined);
     self.isOperational = ko.observable(undefined);
+    self.isLocked = ko.observable(undefined);
     self.isPrinting = ko.observable(undefined);
     self.isPaused = ko.observable(undefined);
     self.isError = ko.observable(undefined);
@@ -60,6 +61,7 @@ function ControlViewModel(loginStateViewModel, settingsViewModel, printerStateVi
     self._processStateData = function(data) {
         self.isErrorOrClosed(data.flags.closedOrError);
         self.isOperational(data.flags.operational);
+        self.isLocked(data.flags.locked);
         self.isPaused(data.flags.paused);
         self.isPrinting(data.flags.printing);
         self.isError(data.flags.error);

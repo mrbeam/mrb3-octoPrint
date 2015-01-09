@@ -154,7 +154,7 @@ var UI_API_KEY = "{{ uiApiKey }}";
 												</div>
 												<div>
 													<button class="btn box pull-left" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('x',-1) }"><i class="icon-arrow-left"></i></button>
-													<button class="btn box pull-left" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendHomeCommand(['x', 'y']) }"><i class="icon-home"></i></button>
+													<button class="btn box pull-left" data-bind="enable: (isOperational() || isLocked()) && !isPrinting() && loginState.isUser(), click: function() { $root.sendHomeCommand(['x', 'y']) }"><i class="icon-home"></i></button>
 													<button class="btn box pull-left" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: function() { $root.sendJogCommand('x',1) }"><i class="icon-arrow-right"></i></button>
 												</div>
 												<div>
@@ -282,7 +282,7 @@ var UI_API_KEY = "{{ uiApiKey }}";
 														<div class="size">{{ _('Size') }}: <span data-bind="text: formatSize(size)"></span></div>
 														<div class="btn-group action-buttons">
 															<div class="btn btn-mini" data-bind="click: function() { if ($root.enableRemove($data)) { $root.removeFile($data); } else { return; } }, css: {disabled: !$root.enableRemove($data)}"><i class="icon-trash" title="{{ _('Remove') }}"></i></div>
-															<div class="btn btn-mini"  data-bind="click: function() { $root.convertSVG($data); }, css: {disabled: !$root.enableSVGConversion($data)}"><i class="icon-fire" title="{{ _('Convert to Laserpath') }}"></i></div>
+															<div class="btn btn-mini"  data-bind="click: function() { $root.convertSVG($data); }, css: {disabled: !$root.enableSVGConversion($data)}"><i class="icon-play" title="{{ _('Convert to Laserpath') }}"></i></div>
 														</div>
 													</div>
 												</script>

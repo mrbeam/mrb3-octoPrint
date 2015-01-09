@@ -114,6 +114,7 @@ class MachineCom(object):
 	STATE_ERROR = 9
 	STATE_CLOSED_WITH_ERROR = 10
 	STATE_TRANSFERING_FILE = 11
+	STATE_LOCKED = 12
 	
 	def __init__(self, port = None, baudrate = None, callbackObject = None):
 		self._logger = logging.getLogger(__name__)
@@ -263,6 +264,8 @@ class MachineCom(object):
 			return "Error: %s" % (self.getShortErrorString())
 		if self._state == self.STATE_TRANSFERING_FILE:
 			return "Transfering file to SD"
+		if self._state == self.STATE_LOCKED:
+			return "Locked"
 		return "?%d?" % (self._state)
 	
 	def getShortErrorString(self):
@@ -281,6 +284,9 @@ class MachineCom(object):
 	
 	def isOperational(self):
 		return self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PRINTING or self._state == self.STATE_PAUSED or self._state == self.STATE_TRANSFERING_FILE
+
+	def isLocked(self):
+		return self._state == self.STATE_LOCKED
 	
 	def isPrinting(self):
 		return self._state == self.STATE_PRINTING
@@ -736,7 +742,15 @@ class MachineCom(object):
 						grblMoving = True
 
 					grblLastStatus = line
-
+					
+					if("Alarm" in line):
+						self._changeState(self.STATE_LOCKED)
+					else:
+						if(grblMoving):
+							self._changeState(self.STATE_PRINTING)
+						else:
+							self._changeState(self.STATE_OPERATIONAL)
+						
 					parts = line.strip("\r\n").split(":")
 
 					pos = parts[1].split(",")
@@ -744,6 +758,7 @@ class MachineCom(object):
 
 					pos = parts[2].split(",")
 					WPos = (float(pos[0]), float(pos[1]), float( pos[2].strip(">") ))
+					
 					
 					self._callback.mcPosUpdate(MPos, WPos)
 
