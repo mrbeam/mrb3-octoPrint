@@ -69,11 +69,11 @@ $(function() {
         var terminalViewModel = new TerminalViewModel(loginStateViewModel, settingsViewModel);
         var slicingViewModel = new SlicingViewModel(loginStateViewModel);
         var vectorConversionViewModel = new VectorConversionViewModel(loginStateViewModel, settingsViewModel);
-        var gcodeFilesViewModel = new GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicingViewModel, vectorConversionViewModel);
+		var workingAreaViewModel = new WorkingAreaViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel);
+        var gcodeFilesViewModel = new GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicingViewModel, vectorConversionViewModel, workingAreaViewModel);
         var gcodeViewModel = new GcodeViewModel(loginStateViewModel, settingsViewModel);
         var navigationViewModel = new NavigationViewModel(loginStateViewModel, appearanceViewModel, settingsViewModel, usersViewModel);
         var logViewModel = new LogViewModel(loginStateViewModel);
-		var workingAreaViewModel = new WorkingAreaViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel);
 
 
         var viewModelMap = {
@@ -281,6 +281,7 @@ $(function() {
 			workingAreaViewModel.trigger_resize();
 		});
 		workingAreaViewModel.trigger_resize(); // initialize
+		workingAreaViewModel.init();
 
         $(document).bind("dragover", function (e) {
             var dropOverlay = $("#drop_overlay");

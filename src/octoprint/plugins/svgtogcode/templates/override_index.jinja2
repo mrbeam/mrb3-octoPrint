@@ -271,6 +271,7 @@ var UI_API_KEY = "{{ uiApiKey }}";
 															<div class="btn btn-mini" data-bind="click: function() { if ($root.enableRemove($data)) { $root.removeFile($data); } else { return; } }, css: {disabled: !$root.enableRemove($data)}"><i class="icon-trash" title="{{ _('Remove') }}"></i></div>
 															<div class="btn btn-mini" data-bind="click: function() { if ($root.enableSelect($data)) { $root.loadFile($data, false); } else { return; } }, css: {disabled: !$root.enableSelect($data)}"><i class="icon-folder-open" title="{{ _('Load') }}"></i></div>
 															<div class="btn btn-mini"  data-bind="click: function() { if ($root.enableSelect($data)) { $root.loadFile($data, true); } else { return; } }, css: {disabled: !$root.enableSelect($data)}"><i class="icon-fire" title="{{ _('Load and Laser') }}"></i></div>
+															<div class="btn btn-mini"  data-bind="click: function() { $root.showFile($data); }"><i class="icon-arrow-right" title="{{ _('Preview') }}"></i></div>
 														</div>
 													</div>
 												</script>
@@ -282,7 +283,8 @@ var UI_API_KEY = "{{ uiApiKey }}";
 														<div class="size">{{ _('Size') }}: <span data-bind="text: formatSize(size)"></span></div>
 														<div class="btn-group action-buttons">
 															<div class="btn btn-mini" data-bind="click: function() { if ($root.enableRemove($data)) { $root.removeFile($data); } else { return; } }, css: {disabled: !$root.enableRemove($data)}"><i class="icon-trash" title="{{ _('Remove') }}"></i></div>
-															<div class="btn btn-mini"  data-bind="click: function() { $root.convertSVG($data); }, css: {disabled: !$root.enableSVGConversion($data)}"><i class="icon-play" title="{{ _('Convert to Laserpath') }}"></i></div>
+															<div class="btn btn-mini" data-bind="click: function() { $root.convertSVG($data); }, css: {disabled: !$root.enableSVGConversion($data)}"><i class="icon-play" title="{{ _('Convert to Laserpath') }}"></i></div>
+															<div class="btn btn-mini" data-bind="click: function() { $root.placeSVG($data); }, css: {disabled: !$root.enableSVGConversion($data)}"><i class="icon-arrow-right" title="{{ _('Use') }}"></i></div>
 														</div>
 													</div>
 												</script>
@@ -316,14 +318,25 @@ var UI_API_KEY = "{{ uiApiKey }}";
 							</div>
 
 							<div class="span8">
-								<div id="area_preview" class="workingarea" 
+								<svg id="area_preview" class="workingarea" 
 									 data-bind="click: move_laser, 
 										style: {
 											backgroundPosition: crosshairX()+'px'+' '+crosshairY()+'px',
 											width: workingAreaWidth()+'px',
 											height: workingAreaHeight()+'px'
-										}">
-								</div>
+										},
+										attr: { transform: scaleMatrix() }
+									 ">
+								<g id="scaleGroup" data-bind="attr: { transform: scaleMatrix() }"></g>
+								</svg>
+								
+<!--								<div class="jumbotron">
+									<canvas id="renderPathCanvas" style="border: none;" width="512" height="512"></canvas>
+
+									<input id="timeSlider" type="text" data-slider-min="0" data-slider-max="1000" data-slider-step="1" data-slider-value="1000" />
+
+								</div>-->
+
 							</div>
 						</div>
 					</div>
@@ -529,8 +542,11 @@ var UI_API_KEY = "{{ uiApiKey }}";
 					<script type="text/javascript" src="{{ url_for('static', filename='gcodeviewer/js/gCodeReader.js') }}"></script>
 					<script type="text/javascript" src="{{ url_for('static', filename='gcodeviewer/js/renderer.js') }}"></script>
 
+					<script src="{{ url_for('static', filename='js/lib/jscut/gl-matrix-2.2.0-min.js') }}"></script>
+					<script src="{{ url_for('static', filename='js/lib/jscut/webgl-utils.js') }}"></script>
+					<script src="{{ url_for('static', filename='js/lib/jscut/parseGcode.js') }}"></script>
+					<script src="{{ url_for('static', filename='js/lib/jscut/RenderPath.js') }}"></script>
 
-
-
+				
 				</body>
 			</html>

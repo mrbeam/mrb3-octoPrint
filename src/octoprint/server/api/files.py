@@ -274,7 +274,6 @@ def gcodeFileCommand(filename, target):
 		"select": [],
 		"slice": []
 	}
-
 	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
 	if response is not None:
 		return response

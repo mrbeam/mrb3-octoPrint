@@ -59,6 +59,14 @@ function WorkingAreaViewModel(loginStateViewModel, settingsViewModel, printerSta
 		return self.settings.printer_bedDimensionX() / self.workingAreaWidth();
 	});
 	
+	self.scaleMatrix = ko.computed(function(){
+		var m = new Snap.Matrix();
+		m.scale(25.4/90 * 1/self.px2mm_factor());
+		return m;
+	});
+	
+	self.placedDesigns = ko.observableArray([]);
+	
 	self.trigger_resize = function(){
 		self.availableHeight(document.documentElement.clientHeight - $('body>nav').outerHeight()  - $('footer>*').outerHeight() - 39); // magic number
 		self.availableWidth($('#workingarea div.span8').innerWidth());
@@ -99,6 +107,41 @@ function WorkingAreaViewModel(loginStateViewModel, settingsViewModel, printerSta
 	};
 	
 	//self.getDivDimensions(); // init
+	
+	self.placeSVG = function(url){
+		console.log("workingarea", url);
+		Snap.load(url, function (f) {
+			var newSvg = f.select("g");
+			var id = self.generateId(url);
+			newSvg.attr("id", id);
+			snap.select("#scaleGroup").append(newSvg);
+			
+			newSvg.drag();// Making croc draggable. Go ahead drag it around!
+			// Obviously drag could take event handlers too
+			var ref = {
+				id : id,
+				url : url
+			};
+			self.placedDesigns.push(ref);
+		});
+	};
+	
+	self.init = function(){
+		// init snap.svg
+		snap = Snap('#area_preview');
+
+	};
+	
+	self.generateId = function(url){
+		var idBase = '_'+url.substring(url.lastIndexOf('/')+1).replace('.', '-'); // _ at first place if filename starts with a digit
+		var suffix = 0;
+		var id = idBase + "-" + suffix;
+		while(snap.select('#'+id) !== null){
+			suffix += 1;
+			id = idBase + suffix;
+		}
+		return id;
+	};
 }
 
 

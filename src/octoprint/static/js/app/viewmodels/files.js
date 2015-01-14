@@ -1,10 +1,11 @@
-function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicingViewModel, vectorConversionViewModel) {
+function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicingViewModel, vectorConversionViewModel, workingAreaViewModel) {
     var self = this;
 
     self.printerState = printerStateViewModel;
     self.loginState = loginStateViewModel;
     self.slicing = slicingViewModel;
     self.conversion = vectorConversionViewModel;
+	self.workingArea = workingAreaViewModel;
 
     self.isErrorOrClosed = ko.observable(undefined);
     self.isOperational = ko.observable(undefined);
@@ -196,6 +197,14 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
         self.conversion.show(file.origin, file.name);
     };
 
+	self.placeSVG = function(file) {
+		if (file && file["refs"] && file["refs"]["download"]) {
+			var url = file.refs.download.replace("downloads", "serve");
+			console.log("placeSVG", url);
+			self.workingArea.placeSVG(url);
+		}
+    };
+
     self.initSdCard = function() {
         self._sendSdCommand("init");
     };
@@ -220,7 +229,6 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
 
     self.downloadLink = function(data) {
         if (data["refs"] && data["refs"]["download"]) {
-			console.log(data["refs"])
             return data["refs"]["download"];
         } else {
             return false;
@@ -342,7 +350,7 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
     };
 
     self.onUpdatedFiles = function(payload) {
-		console.log(payload)
+		console.log("onUpdatedFiles", payload)
         if (payload.type == "gcode") {
             self.requestData();
         }
