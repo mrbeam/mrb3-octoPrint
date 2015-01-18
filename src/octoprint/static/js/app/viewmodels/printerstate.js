@@ -1,4 +1,4 @@
-function PrinterStateViewModel(loginStateViewModel) {
+function PrinterStateViewModel(loginStateViewModel, vectorConversionViewModel) {
     var self = this;
 
     self.loginState = loginStateViewModel;
@@ -32,6 +32,7 @@ function PrinterStateViewModel(loginStateViewModel) {
     self.currentHeight = ko.observable(undefined);
 	
 	self.currentPos = ko.observable(undefined);
+	self.conversion = vectorConversionViewModel;
 
 
     self.TITLE_PRINT_BUTTON_PAUSED = gettext("Restarts the print job from the beginning");
@@ -240,6 +241,10 @@ function PrinterStateViewModel(loginStateViewModel) {
     self.cancel = function() {
         self._jobCommand("cancel");
     };
+	
+	self.convertWorkingArea = function(){		
+        self.conversion.show2();
+	};
 
     self._jobCommand = function(command, callback) {
         $.ajax({

@@ -212,8 +212,15 @@ var UI_API_KEY = "{{ uiApiKey }}";
 												<div class="bar" id="job_progressBar" data-bind="style: { width: progressString() + '%' }"></div>
 											</div>
 
-											<div class="row-fluid print-control" style="display: none;" data-bind="visible: loginState.isUser">
+<!--											<div class="row-fluid print-control" style="display: none;" data-bind="visible: loginState.isUser">
 												<button class="btn btn-danger span4" data-bind="click: print_with_safety_glasses_warning, enable: isOperational() && isReady() && !isPrinting() && loginState.isUser(), attr: {title: titlePrintButton}" id="job_print">
+													<i class="icon-white" data-bind="css: {'icon-fire': !isPaused(), 'icon-undo': isPaused(), 'wobble': isPrinting()}"></i> <span data-bind="text: (isPaused() ? '{{ _('Restart') }}' : '{{ _('Laser') }}')">{{ _('Laser') }}</span>
+												</button>
+												<button class="btn span4" id="job_pause" data-bind="click: pause, enable: isOperational() && (isPrinting() || isPaused()) && loginState.isUser(), css: {active: isPaused()}, attr: {title: titlePauseButton}"><i data-bind="css: {'icon-pause': !isPaused(), 'icon-play': isPaused()}"></i> <span data-bind="visible: !isPaused()">{{ _('Pause') }}</span><span data-bind="visible: isPaused()">{{ _('Resume') }}</span></button>
+												<button class="btn span4" id="job_cancel" data-bind="click: cancel, enable: isOperational() && (isPrinting() || isPaused()) && loginState.isUser()" title="{{ _('Cancels the job') }}"><i class="icon-stop"></i> {{ _('Cancel') }}</button>
+											</div>-->
+											<div class="row-fluid print-control" style="display: none;" data-bind="visible: loginState.isUser">
+												<button class="btn btn-danger span4" data-bind="click: convertWorkingArea, enable: isOperational() && isReady() && !isPrinting() && loginState.isUser(), attr: {title: titlePrintButton}" id="job_print">
 													<i class="icon-white" data-bind="css: {'icon-fire': !isPaused(), 'icon-undo': isPaused(), 'wobble': isPrinting()}"></i> <span data-bind="text: (isPaused() ? '{{ _('Restart') }}' : '{{ _('Laser') }}')">{{ _('Laser') }}</span>
 												</button>
 												<button class="btn span4" id="job_pause" data-bind="click: pause, enable: isOperational() && (isPrinting() || isPaused()) && loginState.isUser(), css: {active: isPaused()}, attr: {title: titlePauseButton}"><i data-bind="css: {'icon-pause': !isPaused(), 'icon-play': isPaused()}"></i> <span data-bind="visible: !isPaused()">{{ _('Pause') }}</span><span data-bind="visible: isPaused()">{{ _('Resume') }}</span></button>
@@ -360,8 +367,8 @@ var UI_API_KEY = "{{ uiApiKey }}";
 								
 								<pre id="terminal-output" class="pre-scrollable"></pre>
 								<div class="input-append" style="display: none;" data-bind="visible: loginState.isUser">
-									<input type="text" id="terminal-command" style="width:88%;" data-bind="value: command, event: { keyup: function(d,e) { return handleKeyUp(e); }, keydown: function(d,e) { return handleKeyDown(e); } }, enable: isOperational() && loginState.isUser()">
-									<button class="btn" type="button" id="terminal-send" data-bind="click: sendCommand, enable: isOperational() && loginState.isUser()">{{ _('Send') }}</button>
+									<input type="text" id="terminal-command" style="width:88%;" data-bind="value: command, event: { keyup: function(d,e) { return handleKeyUp(e); }, keydown: function(d,e) { return handleKeyDown(e); } }, enable: (isOperational() || isLocked()) && loginState.isUser()">
+									<button class="btn" type="button" id="terminal-send" data-bind="click: sendCommand, enable: (isOperational() || isLocked()) && loginState.isUser()">{{ _('Send') }}</button>
 								</div>
 							</div>
 

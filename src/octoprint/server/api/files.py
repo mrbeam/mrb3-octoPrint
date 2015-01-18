@@ -359,6 +359,106 @@ def gcodeFileCommand(filename, target):
 
 	return NO_CONTENT
 
+@api.route("/files/convert", methods=["POST"])
+@restricted_access
+def gcodeConvertCommand():
+	target = FileDestinations.LOCAL;
+	
+	#if not _verifyFileExists(target, filename):
+	#	return make_response("File not found on '%s': %s" % (target, filename), 404)
+
+	# valid file commands, dict mapping command name to mandatory parameters
+	valid_commands = {
+		"convert": []
+	}
+	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
+	if response is not None:
+		return response
+	
+	import re
+	svg = data['svg']
+	#svg = re.sub(r"inkscape:[a-zA-Z_-]+=\".*?\" ", "", svg)
+	#svg = re.sub(r"sodipodi:[a-zA-Z_-]+=\".*?\" ", "", svg)
+	del data['svg']
+	
+		
+	if command == "convert":
+		print("files.py convert", data)
+		
+		import os
+		name, _ = os.path.splitext(data['gcode'])
+		
+		filename = target + "/" + name + ".svg"
+		class Wrapper(object):
+			def __init__(self, filename, content):
+				self.filename = filename
+				self.content = content
+
+			def save(self, absolute_dest_path):
+				with open(absolute_dest_path, "w") as d:
+					d.write(self.content)
+					d.close()
+
+		fileObj = Wrapper(filename, svg)
+		fileManager.add_file(target, filename, fileObj, links=None, allow_overwrite=True)
+		#fh = open(filename, 'w')
+		#fh.write(svg)
+		#fh.close()
+		
+		slicer = "svgtogcode";
+		if "slicer" in data.keys() and data["slicer"]:
+			slicer = data["slicer"]
+			del data["slicer"]
+		slicer_instance = slicingManager.get_slicer(slicer)
+		if slicer_instance.get_slicer_properties()["same_device"] and (printer.isPrinting() or printer.isPaused()):
+			# slicer runs on same device as OctoPrint, slicing while printing is hence disabled
+			return make_response("Cannot convert while lasering due to performance reasons".format(**locals()), 409)
+
+		if "gcode" in data.keys() and data["gcode"]:
+			gcode_name = data["gcode"]
+			del data["gcode"]
+		else:
+			import os
+			name, _ = os.path.splitext(filename)
+			gcode_name = name + ".gco"
+
+		# prohibit overwriting the file that is currently being printed
+		currentOrigin, currentFilename = _getCurrentFile()
+		if currentFilename == gcode_name and currentOrigin == target and (printer.isPrinting() or printer.isPaused()):
+			make_response("Trying to slice into file that is currently being printed: %s" % gcode_name, 409)
+
+		if "profile" in data.keys() and data["profile"]:
+			profile = data["profile"]
+			del data["profile"]
+		else:
+			profile = None
+
+		override_keys = [k for k in data if k.startswith("profile.") and data[k] is not None]
+		overrides = dict()
+		for key in override_keys:
+			overrides[key[len("profile."):]] = data[key]
+
+		ok, result = fileManager.slice(slicer, target, filename, target, gcode_name, profile=profile, overrides=overrides)
+		if ok:
+			files = {}
+			location = url_for(".readGcodeFile", target=target, filename=gcode_name, _external=True)
+			result = {
+				"name": gcode_name,
+				"origin": FileDestinations.LOCAL,
+				"refs": {
+					"resource": location,
+					"download": url_for("index", _external=True) + "downloads/files/" + target + "/" + gcode_name
+				}
+			}
+
+			r = make_response(jsonify(result), 202)
+			r.headers["Location"] = location
+			return r
+		else:
+			return make_response("Could not slice: {result}".format(result=result), 500)
+
+	return NO_CONTENT
+
 
 @api.route("/files/<string:target>/<path:filename>", methods=["DELETE"])
 @restricted_access

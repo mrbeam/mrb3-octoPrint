@@ -10,6 +10,7 @@ function TerminalViewModel(loginStateViewModel, settingsViewModel) {
 
     self.isErrorOrClosed = ko.observable(undefined);
     self.isOperational = ko.observable(undefined);
+    self.isLocked = ko.observable(undefined);
     self.isPrinting = ko.observable(undefined);
     self.isPaused = ko.observable(undefined);
     self.isError = ko.observable(undefined);
@@ -56,6 +57,7 @@ function TerminalViewModel(loginStateViewModel, settingsViewModel) {
     self._processStateData = function(data) {
         self.isErrorOrClosed(data.flags.closedOrError);
         self.isOperational(data.flags.operational);
+        self.isLocked(data.flags.locked);
         self.isPaused(data.flags.paused);
         self.isPrinting(data.flags.printing);
         self.isError(data.flags.error);
@@ -70,7 +72,6 @@ function TerminalViewModel(loginStateViewModel, settingsViewModel) {
         } else {
             self.filterRegex = new RegExp(filterRegexStr);
         }
-        console.log("Terminal filter regex: " + filterRegexStr);
     };
 
     self.updateOutput = function() {
@@ -97,7 +98,8 @@ function TerminalViewModel(loginStateViewModel, settingsViewModel) {
             return;
         }
 
-        var re = /^([gmt][0-9]+)(\s.*)?/;
+        //var re = /^([gmt][0-9]+)(\s.*)?/;
+        var re = /^(([gmtfs][0-9]+)|(\$[cinhgx#$])|([?~!]))(\s.*)?/; // grbl style
         var commandMatch = command.match(re);
         if (commandMatch != null) {
             command = commandMatch[1].toUpperCase() + ((commandMatch[2] !== undefined) ? commandMatch[2] : "");

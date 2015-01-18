@@ -2,6 +2,7 @@ function VectorConversionViewModel(loginStateViewModel, settingsViewModel) {
     var self = this;
 
     self.loginState = loginStateViewModel;
+	self.settings = settingsViewModel;
 
     self.target = undefined;
     self.file = undefined;
@@ -27,19 +28,34 @@ function VectorConversionViewModel(loginStateViewModel, settingsViewModel) {
         self.gcodeFilename(self.file.substr(0, self.file.lastIndexOf(".")));
         $("#dialog_vector_graphics_conversion").modal("show");
     };
+	
+    self.show2 = function() {
+		var tmpsvg = snap.select("#scaleGroup"); // get working area 
+		var dim = self.settings.printer_bedDimensions();
+		var w = dim.x * 90/25.4; // convert mm to pix with 90dpi (inkscape default - TODO use 72 for illustrator svg) 
+		var h = dim.y * 90/25.4;
+		var s = Snap(w, h); // create new empty svg with working area dimensions
+		s.append(tmpsvg); // .. and fill it
+		self.svg = s.outerSVG();
+		// TODO: js svg conversion
+        self.title(gettext("Converting"));
+		var gcodeFile = "tmp"+Date.now()+".gco"; // TODO: user should not deal with gcode anymore. go and laser it.
+        self.gcodeFilename(gcodeFile);
+        $("#dialog_vector_graphics_conversion").modal("show");
+    };
 
     self.slicer.subscribe(function(newValue) {
         self.profilesForSlicer(newValue);
     });
 
     self.enableConvertButton = ko.computed(function() {
-        if (self.laserIntensity() == undefined || self.laserSpeed() == undefined || self.gcodeFilename() == undefined) {
+        if (self.laserIntensity() === undefined || self.laserSpeed() === undefined || self.gcodeFilename() === undefined) {
             return false;
         } else {
             var tmpIntensity = parseInt(self.laserIntensity().trim());
             var tmpSpeed = parseInt(self.laserSpeed().trim());
             var tmpGcodeFilename = self.gcodeFilename().trim();
-            return tmpGcodeFilename != ""
+            return tmpGcodeFilename !== ""
                 && tmpIntensity > 0 && tmpIntensity <= 1000
                 && tmpSpeed >= 30 && tmpSpeed <= 2000;
         }
@@ -51,18 +67,17 @@ function VectorConversionViewModel(loginStateViewModel, settingsViewModel) {
             type: "GET",
             dataType: "json",
             success: self.fromResponse
-        })
+        });
     };
 
     self.fromResponse = function(data) {
-		console.log("convert.js", data);
         self.data = data;
 
         var selectedSlicer = undefined;
         self.slicers.removeAll();
         _.each(_.values(data), function(slicer) {
             var name = slicer.displayName;
-            if (name == undefined) {
+            if (name === undefined) {
                 name = slicer.key;
             }
 
@@ -126,15 +141,19 @@ function VectorConversionViewModel(loginStateViewModel, settingsViewModel) {
         }
 
         var data = {
-            command: "slice",
+            command: "convert",
             "profile.speed": self.laserSpeed(),
             "profile.intensity": self.laserIntensity(),
             slicer: "svgtogcode",
             gcode: gcodeFilename
         };
 
+		if(self.svg !== undefined){
+			data.svg = self.svg;
+		}
+
         $.ajax({
-            url: API_BASEURL + "files/" + self.target + "/" + self.file,
+            url: API_BASEURL + "files/convert",
             type: "POST",
             dataType: "json",
             contentType: "application/json; charset=UTF-8",

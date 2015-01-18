@@ -387,7 +387,7 @@ class MachineCom(object):
 		cmd = cmd.encode('ascii', 'replace')
 		if self.isPrinting() and not self.isSdFileSelected():
 			self._commandQueue.put(cmd)
-		elif self.isOperational():
+		elif self.isOperational() or self.isLocked():
 			self._sendCommand(cmd)
 
 	def startPrint(self):
@@ -745,11 +745,9 @@ class MachineCom(object):
 					
 					if("Alarm" in line):
 						self._changeState(self.STATE_LOCKED)
-					else:
-						if(grblMoving):
-							self._changeState(self.STATE_PRINTING)
-						else:
-							self._changeState(self.STATE_OPERATIONAL)
+					if("Idle" in line):
+						self._changeState(self.STATE_OPERATIONAL)
+					
 						
 					parts = line.strip("\r\n").split(":")
 

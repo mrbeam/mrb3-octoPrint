@@ -246,6 +246,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 				on_progress_kwargs = dict()
 
 		self._svgtogcode_logger.info("### Slicing %s to %s using profile stored at %s" % (model_path, machinecode_path, profile_path))
+		print("### Slicing %s to %s using profile stored at %s" % (model_path, machinecode_path, profile_path))
 
 		engine_settings = self._convert_to_engine(profile_path)
 
@@ -253,6 +254,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 		homedir = expanduser("~")
 		executable = homedir + "/mrbeam-inkscape-ext/mrbeam.py"
 		log_path = homedir + "/.octoprint/logs/svgtogcode.log"
+		log_enabled = "true"
 		
 		# debugging stuff. TODO remove
 		hostname = socket.gethostname()
@@ -269,7 +271,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 		args = ['python "%s"' % executable, '-f "%s"' % dest_file, '-d "%s"' % dest_dir]
 		for k, v in engine_settings.items():
 			args += ['"%s=%s"' % (k, str(v))]
-		args += ['--create-log=false', '"--log-filename=%s"' % log_path,'"%s"' % model_path]
+		args += ['--create-log=%s' % log_enabled, '"--log-filename=%s"' % log_path,'"%s"' % model_path]
 
 		#python ~/mrbeam-inkscape-ext/standalone.py -f output.gcode -d output/path --engraving-laser-speed=300
 		#  --laser-intensity=1000  --create-log=false path/to/input.svg

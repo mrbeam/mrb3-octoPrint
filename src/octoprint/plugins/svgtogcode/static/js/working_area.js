@@ -109,11 +109,19 @@ function WorkingAreaViewModel(loginStateViewModel, settingsViewModel, printerSta
 	//self.getDivDimensions(); // init
 	
 	self.placeSVG = function(url){
-		console.log("workingarea", url);
 		Snap.load(url, function (f) {
+			var namespaces = {};
+			var root = f.select('svg').node.attributes;
+            for(var i = 0; i < root.length; i++){ 
+				var attr = root[i];
+				if(attr.name.indexOf("xmlns") === 0){
+					namespaces[attr.name] = attr.value;
+				}
+			}
+			
 			var newSvg = f.select("g");
+			newSvg.attr(namespaces);
 			var id = self.generateId(url);
-			newSvg.attr("id", id);
 			snap.select("#scaleGroup").append(newSvg);
 			
 			newSvg.drag();// Making croc draggable. Go ahead drag it around!

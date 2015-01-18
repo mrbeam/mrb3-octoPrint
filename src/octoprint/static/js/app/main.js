@@ -62,13 +62,13 @@ $(function() {
         var settingsViewModel = new SettingsViewModel(loginStateViewModel, usersViewModel);
         var connectionViewModel = new ConnectionViewModel(loginStateViewModel, settingsViewModel);
         var timelapseViewModel = new TimelapseViewModel(loginStateViewModel);
-        var printerStateViewModel = new PrinterStateViewModel(loginStateViewModel, timelapseViewModel);
+        var vectorConversionViewModel = new VectorConversionViewModel(loginStateViewModel, settingsViewModel);
+        var printerStateViewModel = new PrinterStateViewModel(loginStateViewModel, vectorConversionViewModel);
         var appearanceViewModel = new AppearanceViewModel(settingsViewModel);
         var temperatureViewModel = new TemperatureViewModel(loginStateViewModel, settingsViewModel);
         var controlViewModel = new ControlViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel);
         var terminalViewModel = new TerminalViewModel(loginStateViewModel, settingsViewModel);
         var slicingViewModel = new SlicingViewModel(loginStateViewModel);
-        var vectorConversionViewModel = new VectorConversionViewModel(loginStateViewModel, settingsViewModel);
 		var workingAreaViewModel = new WorkingAreaViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel);
         var gcodeFilesViewModel = new GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicingViewModel, vectorConversionViewModel, workingAreaViewModel);
         var gcodeViewModel = new GcodeViewModel(loginStateViewModel, settingsViewModel);

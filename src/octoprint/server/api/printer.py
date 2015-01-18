@@ -212,7 +212,7 @@ def printerBedState():
 @api.route("/printer/printhead", methods=["POST"])
 @restricted_access
 def printerPrintheadCommand():
-	if not printer.isOperational() or printer.isPrinting():
+	if not (printer.isOperational() or printer.isLocked()) or printer.isPrinting():
 		# do not jog when a print job is running or we don't have a connection
 		return make_response("Printer is not operational or currently printing", 409)
 
@@ -301,7 +301,7 @@ def printerSdState():
 @restricted_access
 def printerCommand():
 	# TODO: document me
-	if not printer.isOperational():
+	if not (printer.isOperational() or printer.isLocked()):
 		return make_response("Printer is not operational", 409)
 
 	if not "application/json" in request.headers["Content-Type"]:
