@@ -938,7 +938,7 @@ class MachineCom(object):
 							self.close()
 
 				### Operational
-				elif self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PAUSED:
+				elif self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PAUSED or self.STATE_LOCKED:
 					#Request the temperature on comm timeout (every 5 seconds) when we are not printing.
 					if line == "" or "wait" in line:
 						if self._resendDelta is not None:
@@ -951,7 +951,8 @@ class MachineCom(object):
 							else:
 								self._sendCommand("M105")
 								
-						tempRequestTimeout = getNewTimeout("detection") if self._grbl else getNewTimeout("temperature")
+						tempRequestTimeout = getNewTimeout("detection") if self._grbl else getNewTimeout("position")
+						###print(tempRequestTimeout)
 						
 					# resend -> start resend procedure from requested line
 					elif line.lower().startswith("resend") or line.lower().startswith("rs"):
@@ -979,7 +980,7 @@ class MachineCom(object):
 						if time.time() > tempRequestTimeout and not self.isStreaming():
 							if self._grbl:
 								self._commandQueue.put("?")
-								tempRequestTimeout = getNewTimeout("detection")
+								tempRequestTimeout = getNewTimeout("position")
 							else:
 								self._commandQueue.put("M105")
 								tempRequestTimeout = getNewTimeout("temperature")

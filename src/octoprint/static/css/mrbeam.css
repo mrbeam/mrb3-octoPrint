@@ -1623,6 +1623,22 @@ input.search-query,
 	min-height:24px;
 }
 
+.safety_glasses_heads_up {
+	background-image:url(../img/safety_glasses_heads_up500.png);
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: contain;
+	width:250px;
+	height:150px;
+	float: right;
+	margin: 0em 1em;
+}
+
+.safety_glasses_warning {
+	font-size: large;
+	font-weight: bold;
+}
+
 #settingsTabs li.saveInProgress a:after {
 	content:"\f021";
 	font-family: FontAwesome;

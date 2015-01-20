@@ -182,7 +182,7 @@ class FileManager(object):
 					self.add_file(dest_location, dest_path, file_obj, links=links, allow_overwrite=True)
 
 					end_time = time.time()
-					eventManager().fire(Events.SLICING_DONE, {"stl": source_path, "gcode": dest_path, "time": end_time - start_time})
+					eventManager().fire(Events.SLICING_DONE, {"stl": source_path, "gcode": dest_path, "gcode_location": dest_location, "time": end_time - start_time})
 
 					if callback is not None:
 						if callback_args is None:

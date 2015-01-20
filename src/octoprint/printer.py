@@ -201,8 +201,10 @@ class Printer():
 		self.command("?")
 
 	def home(self, axes):
-		#self.commands(["G91", "G28 %s" % " ".join(map(lambda x: "%s0" % x.upper(), axes)), "G90"])
-		self.commands(["$H", "G92X0Y0Z0", "G90", "G21"])
+		if(settings().getBoolean(["feature", "grbl"])):
+			self.commands(["$H", "G92X0Y0Z0", "G90", "G21"])
+		else:
+			self.commands(["G91", "G28 %s" % " ".join(map(lambda x: "%s0" % x.upper(), axes)), "G90"])
 
 	def extrude(self, amount):
 		extrusionSpeed = settings().get(["printerParameters", "movementSpeed", "e"])

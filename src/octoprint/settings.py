@@ -33,7 +33,8 @@ default_settings = {
 			"connection": 2,
 			"communication": 10,
 			"temperature": 5,
-			"sdStatus": 1
+			"sdStatus": 1,
+			"position": 0.5
 		},
 		"additionalPorts": []
 	},

@@ -377,8 +377,6 @@ def gcodeConvertCommand():
 	
 	import re
 	svg = data['svg']
-	#svg = re.sub(r"inkscape:[a-zA-Z_-]+=\".*?\" ", "", svg)
-	#svg = re.sub(r"sodipodi:[a-zA-Z_-]+=\".*?\" ", "", svg)
 	del data['svg']
 	
 		
@@ -401,9 +399,6 @@ def gcodeConvertCommand():
 
 		fileObj = Wrapper(filename, svg)
 		fileManager.add_file(target, filename, fileObj, links=None, allow_overwrite=True)
-		#fh = open(filename, 'w')
-		#fh.write(svg)
-		#fh.close()
 		
 		slicer = "svgtogcode";
 		if "slicer" in data.keys() and data["slicer"]:

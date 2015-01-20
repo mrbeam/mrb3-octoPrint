@@ -117,6 +117,7 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
 
     self._otherRequestInProgress = false;
     self.requestData = function(filenameToFocus, locationToFocus) {
+		console.log("requestData", filenameToFocus, locationToFocus);
         if (self._otherRequestInProgress) return;
 
         self._otherRequestInProgress = true;
@@ -125,6 +126,7 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
             method: "GET",
             dataType: "json",
             success: function(response) {
+				console.log("requestData api/files/response", response);
                 self.fromResponse(response, filenameToFocus, locationToFocus);
                 self._otherRequestInProgress = false;
             },
@@ -357,7 +359,30 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
     };
 
     self.onSlicingDone = function(payload) {
-        self.requestData();
+        //self.requestData();
+		jQuery('<div/>', {
+			class: "safety_glasses_heads_up"
+		}).appendTo("#confirmation_dialog .confirmation_dialog_message");
+		jQuery('<div/>', {
+			class: "safety_glasses_warning",
+			text: gettext("The laser will now start. Protect yourself and everybody in the room appropriately before proceeding!")
+		}).appendTo("#confirmation_dialog .confirmation_dialog_message");
+		//$("#confirmation_dialog .confirmation_dialog_message").text(gettext("The laser will now start. Protect yourself and everybody in the room appropriately before proceeding!"));
+		$("#confirmation_dialog .confirmation_dialog_acknowledge").unbind("click");
+		$("#confirmation_dialog .confirmation_dialog_acknowledge").click(
+			function(e) {
+				e.preventDefault(); 
+				$("#confirmation_dialog").modal("hide"); 
+				var url = API_BASEURL + "files/" + payload.gcode_location + "/" + payload.gcode;
+				$.ajax({
+					url: url,
+					type: "POST",
+					dataType: "json",
+					contentType: "application/json; charset=UTF-8",
+					data: JSON.stringify({command: "select", print: true})
+				});
+			});
+		$("#confirmation_dialog").modal("show");
     };
 
     self.onMetadataAnalysisFinished = function(payload) {
