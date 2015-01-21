@@ -1,8 +1,9 @@
-function VectorConversionViewModel(loginStateViewModel, settingsViewModel) {
+function VectorConversionViewModel(loginStateViewModel, settingsViewModel, workingAreaViewModel) {
     var self = this;
 
     self.loginState = loginStateViewModel;
 	self.settings = settingsViewModel;
+	self.workingArea = workingAreaViewModel;
 
     self.target = undefined;
     self.file = undefined;
@@ -39,10 +40,41 @@ function VectorConversionViewModel(loginStateViewModel, settingsViewModel) {
 		self.svg = s.outerSVG();
 		// TODO: js svg conversion
         self.title(gettext("Converting"));
-		var gcodeFile = "tmp"+Date.now()+".gco"; // TODO: user should not deal with gcode anymore. go and laser it.
+		var gcodeFile = self.create_gcode_filename(self.workingArea.placedDesigns());
         self.gcodeFilename(gcodeFile);
         $("#dialog_vector_graphics_conversion").modal("show");
     };
+
+	self.create_gcode_filename = function(placedDesigns){
+		if(placedDesigns.length > 0){
+			var filemap = {};
+			for(var idx in placedDesigns){
+				var design = placedDesigns[idx];
+				var start = design.url.lastIndexOf('/')+1;
+				var end = design.url.lastIndexOf('.');
+				var name = design.url.substring(start, end);
+				if(filemap[name] !== undefined) filemap[name] += 1;
+				else filemap[name] = 1;
+			}
+			var mostPlaced;
+			var placed = 0;
+			for(var name in filemap){
+				if(filemap[name] > placed){
+					mostPlaced = name;
+					placed = filemap[name];
+				}
+			}
+			var uniqueDesigns = Object.keys(filemap).length;
+			var gcode_name = mostPlaced;
+			if(placed > 1) gcode_name += "." + placed + "x";
+			if(uniqueDesigns > 1){
+				gcode_name += "_"+(uniqueDesigns-1)+"more";
+			}
+			return gcode_name + ".gco";
+		} else { 
+			return "tmp"+Date.now()+".gco"; // TODO: user should not deal with gcode anymore. go and laser it.
+		}
+	};
 
     self.slicer.subscribe(function(newValue) {
         self.profilesForSlicer(newValue);

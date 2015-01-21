@@ -1,9 +1,9 @@
-function WorkingAreaViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel) {
+function WorkingAreaViewModel(loginStateViewModel, settingsViewModel) {
     var self = this;
 
     self.loginState = loginStateViewModel;
     self.settings = settingsViewModel;
-    self.state = printerStateViewModel;
+    self.state = undefined;
 
     self.log = [];
 
