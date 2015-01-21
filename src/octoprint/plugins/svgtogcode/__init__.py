@@ -246,7 +246,6 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 				on_progress_kwargs = dict()
 
 		self._svgtogcode_logger.info("### Slicing %s to %s using profile stored at %s" % (model_path, machinecode_path, profile_path))
-		print("### Slicing %s to %s using profile stored at %s" % (model_path, machinecode_path, profile_path))
 
 		engine_settings = self._convert_to_engine(profile_path)
 
@@ -311,13 +310,13 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 			if p.returncode == 0:
 				return True, None
 			else:
-				self._logger.warn("Could not slice via Cura, got return code %r" % p.returncode)
+				self._logger.warn("Could not slice, got return code %r" % p.returncode)
 				return False, "Got returncode %r" % p.returncode
 
 		except octoprint.slicing.SlicingCancelled as e:
 			raise e
 		except:
-			self._logger.exception("Could not slice via Cura, got an unknown error")
+			self._logger.exception("Could not slice, got an unknown error")
 			return False, "Unknown error, please consult the log file"
 
 		finally:

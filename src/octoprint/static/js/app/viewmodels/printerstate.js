@@ -206,16 +206,35 @@ function PrinterStateViewModel(loginStateViewModel, vectorConversionViewModel) {
         self.busyFiles(busyFiles);
     };
 
+	self.show_safety_glasses_warning = function(callback){
+			
+		jQuery('<div/>', {
+			class: "safety_glasses_heads_up"
+		}).appendTo("#confirmation_dialog .confirmation_dialog_message");
+		jQuery('<div/>', {
+			class: "safety_glasses_warning",
+			text: gettext("The laser will now start. Protect yourself and everybody in the room appropriately before proceeding!")
+		}).appendTo("#confirmation_dialog .confirmation_dialog_message");
+		//$("#confirmation_dialog .confirmation_dialog_message").text(gettext("The laser will now start. Protect yourself and everybody in the room appropriately before proceeding!"));
+		$("#confirmation_dialog .confirmation_dialog_acknowledge").unbind("click");
+		$("#confirmation_dialog .confirmation_dialog_acknowledge").click(
+			function(e){
+				if(typeof callback === 'function'){
+					callback(e);
+					$("#confirmation_dialog").modal("hide"); 
+					$("#confirmation_dialog .confirmation_dialog_message").html('');
+				}
+			});
+		$("#confirmation_dialog").modal("show");	
+		
+	};
+	
 	self.print_with_safety_glasses_warning = function(){
-		$("#confirmation_dialog .confirmation_dialog_message").text(gettext("The laser will now start. Protect yourself and everybody in the room appropriately before proceeding!"));
-            $("#confirmation_dialog .confirmation_dialog_acknowledge").unbind("click");
-            $("#confirmation_dialog .confirmation_dialog_acknowledge").click(
-					function(e) {
-						e.preventDefault(); 
-						$("#confirmation_dialog").modal("hide"); 
-						self.print(); 
-					});
-            $("#confirmation_dialog").modal("show");
+		var callback = function(e) {
+							e.preventDefault(); 
+							self.print(); 
+						};
+		self.show_safety_glasses_warning(callback);
 	};
 
     self.print = function() {

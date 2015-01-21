@@ -184,6 +184,10 @@ class FileManager(object):
 					end_time = time.time()
 					eventManager().fire(Events.SLICING_DONE, {"stl": source_path, "gcode": dest_path, "gcode_location": dest_location, "time": end_time - start_time})
 
+					#absolute_path = self._storage(dest_location).get_absolute_path(dest_path)
+					#with open (absolute_path, "r") as myfile:
+					#	print("sliced gcode\n", myfile.readlines())
+
 					if callback is not None:
 						if callback_args is None:
 							callback_args = ()

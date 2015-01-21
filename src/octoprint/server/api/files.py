@@ -381,7 +381,6 @@ def gcodeConvertCommand():
 	
 		
 	if command == "convert":
-		print("files.py convert", data)
 		
 		import os
 		name, _ = os.path.splitext(data['gcode'])

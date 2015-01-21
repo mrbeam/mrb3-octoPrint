@@ -218,6 +218,7 @@ class MachineCom(object):
 
 		oldState = self.getStateString()
 		self._state = newState
+		print('Changing monitoring state from \'%s\' to \'%s\'' % (oldState, self.getStateString()))
 		self._log('Changing monitoring state from \'%s\' to \'%s\'' % (oldState, self.getStateString()))
 		self._callback.mcStateChange(newState)
 
@@ -448,6 +449,7 @@ class MachineCom(object):
 				"file": self._currentFile.getFilename(),
 				"origin": self._currentFile.getFileLocation()
 			})
+			print("comm.py selectFile", filename, self._currentFile)
 			self._callback.mcFileSelected(filename, self._currentFile.getFilesize(), False)
 
 	def unselectFile(self):
@@ -745,7 +747,8 @@ class MachineCom(object):
 					
 					if("Alarm" in line):
 						self._changeState(self.STATE_LOCKED)
-					if("Idle" in line):
+					if("Idle" in line and self._state == self.STATE_LOCKED):
+						print("### comm.py GRBL pos update", line)		
 						self._changeState(self.STATE_OPERATIONAL)
 					
 						
@@ -938,7 +941,7 @@ class MachineCom(object):
 							self.close()
 
 				### Operational
-				elif self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PAUSED or self.STATE_LOCKED:
+				elif self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PAUSED or self._state == self.STATE_LOCKED:
 					#Request the temperature on comm timeout (every 5 seconds) when we are not printing.
 					if line == "" or "wait" in line:
 						if self._resendDelta is not None:

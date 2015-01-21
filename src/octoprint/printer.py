@@ -258,6 +258,7 @@ class Printer():
 		if self._comm is None or (self._comm.isBusy() or self._comm.isStreaming()):
 			self._logger.info("Cannot load file: printer not connected or currently busy")
 			return
+		print("printe.py", "selectFile", filename, sd, printAfterSelect);
 
 		self._printAfterSelect = printAfterSelect
 		self._comm.selectFile(filename, sd)
@@ -281,7 +282,7 @@ class Printer():
 			return
 		if self._selectedFile is None:
 			return
-
+		
 		self._addPositionData(None, None)
 		self._setCurrentZ(None)
 		self._comm.startPrint()
