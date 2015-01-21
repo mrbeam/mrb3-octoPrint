@@ -160,7 +160,7 @@ default_settings = {
 		"allowCrossOrigin": False
 	},
 	"terminalFilters": [
-		{ "name": "Suppress status & confirmation messages", "regex": "(Send: \?)|(Recv: ok)" }
+		{ "name": "Suppress status & confirmation messages", "regex": "(Send: \?)|(Recv: ok)|(Recv: <)" }
 		#{ "name": "Suppress M27 requests/responses", "regex": "(Send: M27)|(Recv: SD printing byte)" }
 	],
 	"plugins": {},
