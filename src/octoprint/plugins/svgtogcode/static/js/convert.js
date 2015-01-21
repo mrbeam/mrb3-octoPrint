@@ -31,13 +31,11 @@ function VectorConversionViewModel(loginStateViewModel, settingsViewModel, worki
     };
 	
     self.show2 = function() {
-		var tmpsvg = snap.select("#scaleGroup"); // get working area 
+		var tmpsvg = snap.select("#scaleGroup").innerSVG(); // get working area 
 		var dim = self.settings.printer_bedDimensions();
 		var w = dim.x * 90/25.4; // convert mm to pix with 90dpi (inkscape default - TODO use 72 for illustrator svg) 
 		var h = dim.y * 90/25.4;
-		var s = Snap(w, h); // create new empty svg with working area dimensions
-		s.append(tmpsvg); // .. and fill it
-		self.svg = s.outerSVG();
+		self.svg = '<svg height="'+ h +'" version="1.1" width="'+ w +'" xmlns="http://www.w3.org/2000/svg"><defs/>'+ tmpsvg +'</svg>';
 		// TODO: js svg conversion
         self.title(gettext("Converting"));
 		var gcodeFile = self.create_gcode_filename(self.workingArea.placedDesigns());

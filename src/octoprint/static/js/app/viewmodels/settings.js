@@ -400,7 +400,6 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
 //                $("#settings_dialog").modal("hide");
 //                $("#settings_save_btn").attr("disabled", "disabled");
 				$("#settings_save_btn").css("visibility", "hidden");
-				console.log("save callback");
 
             }
         });
