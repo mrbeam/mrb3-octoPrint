@@ -374,30 +374,6 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
 		};
 		self.printerState.show_safety_glasses_warning(callback);
 		
-        //self.requestData();
-//		jQuery('<div/>', {
-//			class: "safety_glasses_heads_up"
-//		}).appendTo("#confirmation_dialog .confirmation_dialog_message");
-//		jQuery('<div/>', {
-//			class: "safety_glasses_warning",
-//			text: gettext("The laser will now start. Protect yourself and everybody in the room appropriately before proceeding!")
-//		}).appendTo("#confirmation_dialog .confirmation_dialog_message");
-//		//$("#confirmation_dialog .confirmation_dialog_message").text(gettext("The laser will now start. Protect yourself and everybody in the room appropriately before proceeding!"));
-//		$("#confirmation_dialog .confirmation_dialog_acknowledge").unbind("click");
-//		$("#confirmation_dialog .confirmation_dialog_acknowledge").click(
-//			function(e) {
-//				e.preventDefault(); 
-//				$("#confirmation_dialog").modal("hide"); 
-//				var url = API_BASEURL + "files/" + payload.gcode_location + "/" + payload.gcode;
-//				$.ajax({
-//					url: url,
-//					type: "POST",
-//					dataType: "json",
-//					contentType: "application/json; charset=UTF-8",
-//					data: JSON.stringify({command: "select", print: true})
-//				});
-//			});
-//		$("#confirmation_dialog").modal("show");
     };
 
     self.onMetadataAnalysisFinished = function(payload) {
