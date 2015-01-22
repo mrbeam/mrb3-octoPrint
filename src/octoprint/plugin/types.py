@@ -176,6 +176,13 @@ class BlueprintPlugin(Plugin):
 
 		return None
 
+	def is_blueprint_protected(self):
+		"""
+		Whether the blueprint is supposed to be protected by API key (the default) or not.
+		"""
+
+		return True
+
 
 class SettingsPlugin(Plugin):
 	def on_settings_load(self):
@@ -214,10 +221,44 @@ class SlicerPlugin(Plugin):
 	def save_slicer_profile(self, path, profile, allow_overwrite=True, overrides=None):
 		pass
 
-	def do_slice(self, model_path, machinecode_path=None, profile_path=None, on_progress=None, on_progress_args=None, on_progress_kwargs=None):
+	def do_slice(self, model_path, printer_profile, machinecode_path=None, profile_path=None, on_progress=None, on_progress_args=None, on_progress_kwargs=None):
 		pass
 
 	def cancel_slicing(self, machinecode_path):
 		pass
 
+
+class ProgressPlugin(Plugin):
+	"""
+	Via the ``ProgressPlugin`` mixing plugins can let themselves be called upon progress in print jobs or slicing jobs,
+	limited to minimally 1% steps.
+	"""
+
+	def on_print_progress(self, storage, path, progress):
+		"""
+		Called by OctoPrint on minimally 1% increments during a running print job.
+
+		:param location string: Location of the file
+		:param path string:     Path of the file
+		:param progress int:    Current progress as a value between 0 and 100
+		"""
+		pass
+
+	def on_slicing_progress(self, slicer, source_location, source_path, destination_location, destination_path, progress):
+		"""
+		Called by OctoPrint on minimally 1% increments during a running slicing job.
+
+		:param slicer string:               Key of the slicer reporting the progress
+		:param source_location string:      Location of the source file
+		:param source_path string:          Path of the source file
+		:param destination_location string: Location the destination file
+		:param destination_path string:     Path of the destination file
+		:param progress int:                Current progress as a value between 0 and 100
+		"""
+		pass
+
+
+class AppPlugin(Plugin):
+	def get_additional_apps(self):
+		return []
 

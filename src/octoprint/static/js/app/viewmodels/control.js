@@ -29,10 +29,14 @@ function ControlViewModel(loginStateViewModel, settingsViewModel, printerStateVi
 
     self.feedbackControlLookup = {};
 
-    self.settings.printer_numExtruders.subscribe(function(oldVal, newVal) {
+    self.settings.printerProfiles.currentProfileData.subscribe(function() {
+        self._updateExtruderCount();
+        self.settings.printerProfiles.currentProfileData().extruder.count.subscribe(self._updateExtruderCount);
+    });
+    self._updateExtruderCount = function() {
         var tools = [];
 
-        var numExtruders = self.settings.printer_numExtruders();
+        var numExtruders = self.settings.printerProfiles.currentProfileData().extruder.count();
         if (numExtruders > 1) {
             // multiple extruders
             for (var extruder = 0; extruder < numExtruders; extruder++) {
@@ -48,7 +52,7 @@ function ControlViewModel(loginStateViewModel, settingsViewModel, printerStateVi
         }
 
         self.tools(tools);
-    });
+    };
 
     self.fromCurrentData = function(data) {
         self._processStateData(data.state);
@@ -139,9 +143,8 @@ function ControlViewModel(loginStateViewModel, settingsViewModel, printerStateVi
 
     self.sendJogCommand = function(axis, multiplier, distance) {
         if (typeof distance === "undefined")
-//            distance = $('#jog_distance button.active').data('distance');
-            distance = self.jogDistanceInMM();
-        if (self.settings.getPrinterInvertAxis(axis)) {
+			distance = self.jogDistanceInMM();
+        if (self.settings.printerProfiles.currentProfileData() && self.settings.printerProfiles.currentProfileData()["axes"] && self.settings.printerProfiles.currentProfileData()["axes"][axis] && self.settings.printerProfiles.currentProfileData()["axes"][axis]["inverted"]()) {
             multiplier *= -1;
         }
 

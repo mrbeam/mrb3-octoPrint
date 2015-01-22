@@ -28,6 +28,7 @@ babel = Babel(app)
 debug = False
 
 printer = None
+printerProfileManager = None
 fileManager = None
 slicingManager = None
 analysisQueue = None
@@ -35,6 +36,7 @@ userManager = None
 eventManager = None
 loginManager = None
 pluginManager = None
+appSessionManager = None
 
 principals = Principal(app)
 admin_permission = Permission(RoleNeed("admin"))
@@ -42,6 +44,7 @@ user_permission = Permission(RoleNeed("user"))
 
 # only import the octoprint stuff down here, as it might depend on things defined above to be initialized already
 from octoprint.printer import Printer, getConnectionOptions
+from octoprint.printer.profile import PrinterProfileManager
 from octoprint.settings import settings
 import octoprint.users as users
 import octoprint.events as events
@@ -174,6 +177,9 @@ def on_identity_loaded(sender, identity):
 
 
 def load_user(id):
+	if id == "_api":
+		return users.ApiUser()
+
 	if session and "usersession.id" in session:
 		sessionid = session["usersession.id"]
 	else:
@@ -206,6 +212,7 @@ class Server():
 			self._checkForRoot()
 
 		global printer
+		global printerProfileManager
 		global fileManager
 		global slicingManager
 		global analysisQueue
@@ -213,30 +220,39 @@ class Server():
 		global eventManager
 		global loginManager
 		global pluginManager
+		global appSessionManager
 		global debug
 
 		from tornado.ioloop import IOLoop
 		from tornado.web import Application
 
+		import sys
+
 		debug = self._debug
 
 		# first initialize the settings singleton and make sure it uses given configfile and basedir if available
 		self._initSettings(self._configfile, self._basedir)
-		pluginManager = octoprint.plugin.plugin_manager(init=True)
 
 		# then initialize logging
 		self._initLogging(self._debug, self._logConf)
 		logger = logging.getLogger(__name__)
-
+		def exception_logger(exc_type, exc_value, exc_tb):
+			logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_tb))
+		sys.excepthook = exception_logger
 		logger.info("Starting OctoPrint %s" % DISPLAY_VERSION)
 
+		# then initialize the plugin manager
+		pluginManager = octoprint.plugin.plugin_manager(init=True)
+
+		printerProfileManager = PrinterProfileManager()
 		eventManager = events.eventManager()
 		analysisQueue = octoprint.filemanager.analysis.AnalysisQueue()
-		slicingManager = octoprint.slicing.SlicingManager(settings().getBaseFolder("slicingProfiles"))
+		slicingManager = octoprint.slicing.SlicingManager(settings().getBaseFolder("slicingProfiles"), printerProfileManager)
 		storage_managers = dict()
 		storage_managers[octoprint.filemanager.FileDestinations.LOCAL] = octoprint.filemanager.storage.LocalFileStorage(settings().getBaseFolder("uploads"))
-		fileManager = octoprint.filemanager.FileManager(analysisQueue, slicingManager, initial_storage_managers=storage_managers)
-		printer = Printer(fileManager, analysisQueue)
+		fileManager = octoprint.filemanager.FileManager(analysisQueue, slicingManager, printerProfileManager, initial_storage_managers=storage_managers)
+		printer = Printer(fileManager, analysisQueue, printerProfileManager)
+		appSessionManager = util.flask.AppSessionManager()
 
 		# configure additional template folders for jinja2
 		template_plugins = pluginManager.get_implementations(octoprint.plugin.TemplatePlugin)
@@ -274,8 +290,10 @@ class Server():
 			app.wsgi_app,
 			settings().get(["server", "reverseProxy", "prefixHeader"]),
 			settings().get(["server", "reverseProxy", "schemeHeader"]),
+			settings().get(["server", "reverseProxy", "hostHeader"]),
 			settings().get(["server", "reverseProxy", "prefixFallback"]),
-			settings().get(["server", "reverseProxy", "prefixScheme"])
+			settings().get(["server", "reverseProxy", "schemeFallback"]),
+			settings().get(["server", "reverseProxy", "hostFallback"])
 		)
 
 		secret_key = settings().get(["server", "secretKey"])
@@ -303,14 +321,27 @@ class Server():
 		app.debug = self._debug
 
 		from octoprint.server.api import api
+		from octoprint.server.apps import apps
 
 		# register API blueprint
 		app.register_blueprint(api, url_prefix="/api")
+		app.register_blueprint(apps, url_prefix="/apps")
 
 		# also register any blueprints defined in BlueprintPlugins
-		octoprint.plugin.call_plugin(octoprint.plugin.types.BlueprintPlugin,
-		                             "get_blueprint",
-		                             callback=lambda name, _, blueprint: app.register_blueprint(blueprint, url_prefix="/plugin/{name}".format(name=name)))
+		blueprint_plugins = octoprint.plugin.plugin_manager().get_implementations(octoprint.plugin.BlueprintPlugin)
+		for name, plugin in blueprint_plugins.items():
+			blueprint = plugin.get_blueprint()
+			if blueprint is None:
+				continue
+
+			if plugin.is_blueprint_protected():
+				from octoprint.server.util import apiKeyRequestHandler, corsResponseHandler
+				blueprint.before_request(apiKeyRequestHandler)
+				blueprint.after_request(corsResponseHandler)
+
+			url_prefix = "/plugin/{name}".format(name=name)
+			app.register_blueprint(blueprint, url_prefix=url_prefix)
+			logger.debug("Registered API of plugin {name} under URL prefix {url_prefix}".format(name=name, url_prefix=url_prefix))
 
 		self._router = SockJSRouter(self._createSocketConnection, "/sockjs")
 
@@ -332,9 +363,10 @@ class Server():
 		eventManager.fire(events.Events.STARTUP)
 		if settings().getBoolean(["serial", "autoconnect"]):
 			(port, baudrate) = settings().get(["serial", "port"]), settings().getInt(["serial", "baudrate"])
+			printer_profile = printerProfileManager.get_default()
 			connectionOptions = getConnectionOptions()
 			if port in connectionOptions["ports"]:
-				printer.connect(port, baudrate)
+				printer.connect(port=port, baudrate=baudrate, profile=printer_profile["id"] if "id" in printer_profile else "_default")
 
 		# start up watchdogs
 		observer = Observer()
@@ -383,7 +415,7 @@ class Server():
 
 	def _createSocketConnection(self, session):
 		global printer, fileManager, analysisQueue, userManager, eventManager
-		return util.sockjs.PrinterStateConnection(printer, fileManager, analysisQueue, userManager, eventManager, session)
+		return util.sockjs.PrinterStateConnection(printer, fileManager, analysisQueue, userManager, eventManager, pluginManager, session)
 
 	def _checkForRoot(self):
 		if "geteuid" in dir(os) and os.geteuid() == 0:
@@ -425,7 +457,7 @@ class Server():
 			},
 			"loggers": {
 				"SERIAL": {
-					"level": "CRITICAL",
+					"level": "DEBUG",
 					"handlers": ["serialFile"],
 					"propagate": False
 				},

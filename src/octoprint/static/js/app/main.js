@@ -58,20 +58,23 @@ $(function() {
 
         //~~ Initialize view models
         var loginStateViewModel = new LoginStateViewModel();
+        var printerProfilesViewModel = new PrinterProfilesViewModel();
         var usersViewModel = new UsersViewModel(loginStateViewModel);
-        var settingsViewModel = new SettingsViewModel(loginStateViewModel, usersViewModel);
-        var connectionViewModel = new ConnectionViewModel(loginStateViewModel, settingsViewModel);
         var timelapseViewModel = new TimelapseViewModel(loginStateViewModel);
-        var appearanceViewModel = new AppearanceViewModel(settingsViewModel);
+
+        var printerStateViewModel = new PrinterStateViewModel(loginStateViewModel, timelapseViewModel);
+        var settingsViewModel = new SettingsViewModel(loginStateViewModel, usersViewModel, printerProfilesViewModel);
+        var connectionViewModel = new ConnectionViewModel(loginStateViewModel, settingsViewModel, printerProfilesViewModel);
+        var appearanceViewModel = new AppearanceViewModel(settingsViewModel, printerStateViewModel);
         var temperatureViewModel = new TemperatureViewModel(loginStateViewModel, settingsViewModel);
         var terminalViewModel = new TerminalViewModel(loginStateViewModel, settingsViewModel);
-        var slicingViewModel = new SlicingViewModel(loginStateViewModel);
-		var workingAreaViewModel = new WorkingAreaViewModel(loginStateViewModel, settingsViewModel);
-        var vectorConversionViewModel = new VectorConversionViewModel(loginStateViewModel, settingsViewModel, workingAreaViewModel);
-        var printerStateViewModel = new PrinterStateViewModel(loginStateViewModel, vectorConversionViewModel);
-		workingAreaViewModel.state = printerStateViewModel; //  resolving circular dependency ugly
-        var gcodeFilesViewModel = new GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicingViewModel, vectorConversionViewModel, workingAreaViewModel);
-        var controlViewModel = new ControlViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel);
+
+		//var workingAreaViewModel = new WorkingAreaViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel);
+        var slicingViewModel = new SlicingViewModel(loginStateViewModel, printerProfilesViewModel);
+        //var vectorConversionViewModel = new VectorConversionViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel, workingAreaViewModel);
+        //var gcodeFilesViewModel = new GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicingViewModel, vectorConversionViewModel, workingAreaViewModel);
+        var gcodeFilesViewModel = new GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicingViewModel, null, null);
+		var controlViewModel = new ControlViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel);
         var gcodeViewModel = new GcodeViewModel(loginStateViewModel, settingsViewModel);
         var navigationViewModel = new NavigationViewModel(loginStateViewModel, appearanceViewModel, settingsViewModel, usersViewModel);
         var logViewModel = new LogViewModel(loginStateViewModel);
@@ -79,6 +82,7 @@ $(function() {
 
         var viewModelMap = {
             loginStateViewModel: loginStateViewModel,
+            printerProfilesViewModel: printerProfilesViewModel,
             usersViewModel: usersViewModel,
             settingsViewModel: settingsViewModel,
             connectionViewModel: connectionViewModel,
@@ -93,8 +97,8 @@ $(function() {
             navigationViewModel: navigationViewModel,
             logViewModel: logViewModel,
             slicingViewModel: slicingViewModel,
-            vectorConversionViewModel: vectorConversionViewModel,
-            workingAreaViewModel: workingAreaViewModel
+            //vectorConversionViewModel: vectorConversionViewModel,
+            //workingAreaViewModel: workingAreaViewModel
         };
 
         var allViewModels = _.values(viewModelMap);
@@ -102,8 +106,9 @@ $(function() {
         var additionalViewModels = [];
         _.each(ADDITIONAL_VIEWMODELS, function(viewModel) {
             var viewModelClass = viewModel[0];
-            var viewModelParameters = viewModel[1];
-            var viewModelBindTarget = viewModel[2];
+            var viewModelId = viewModel[1];
+            var viewModelParameters = viewModel[2];
+            var viewModelBindTarget = viewModel[3];
 
             var constructorParameters = [];
             _.each(viewModelParameters, function(parameter) {
@@ -117,6 +122,7 @@ $(function() {
             var viewModelInstance = new viewModelClass(constructorParameters);
             additionalViewModels.push([viewModelInstance, viewModelBindTarget]);
             allViewModels.push(viewModelInstance);
+			viewModelMap[viewModelId] = viewModelInstance;
         });
 
         var dataUpdater = new DataUpdater(allViewModels);
@@ -278,11 +284,11 @@ $(function() {
         }
 		
 		// change working area when window size is changed
-		$(window).resize(function(){
-			workingAreaViewModel.trigger_resize();
-		});
-		workingAreaViewModel.trigger_resize(); // initialize
-		workingAreaViewModel.init();
+//		$(window).resize(function(){
+//			workingAreaViewModel.trigger_resize();
+//		});
+//		workingAreaViewModel.trigger_resize(); // initialize
+//		workingAreaViewModel.init();
 
         $(document).bind("dragover", function (e) {
             var dropOverlay = $("#drop_overlay");
@@ -382,6 +388,31 @@ $(function() {
             }
         };
 
+        ko.bindingHandlers.qrcode = {
+            update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+                var val = ko.utils.unwrapObservable(valueAccessor());
+
+                var defaultOptions = {
+                    text: "",
+                    size: 200,
+                    fill: "#000",
+                    background: null,
+                    label: "",
+                    fontname: "sans",
+                    fontcolor: "#000",
+                    radius: 0,
+                    ecLevel: "L"
+                };
+
+                var options = {};
+                _.each(defaultOptions, function(value, key) {
+                    options[key] = ko.utils.unwrapObservable(val[key]) || value;
+                });
+
+                $(element).empty().qrcode(options);
+            }
+        };
+
         ko.bindingHandlers.invisible = {
             init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
                 if (!valueAccessor()) return;
@@ -418,12 +449,16 @@ $(function() {
 //            }
 //
 //            ko.applyBindings(slicingViewModel, document.getElementById("slicing_configuration_dialog"));
-            vectorConversionViewModel.init();
-			ko.applyBindings(vectorConversionViewModel, document.getElementById("dialog_vector_graphics_conversion"));
-			ko.applyBindings(workingAreaViewModel, document.getElementById("area_preview"));
+//            vectorConversionViewModel.init();
+			//ko.applyBindings(vectorConversionViewModel, document.getElementById("dialog_vector_graphics_conversion"));
+//			ko.applyBindings(workingAreaViewModel, document.getElementById("area_preview"));
 
             // apply bindings and signal startup
             _.each(additionalViewModels, function(additionalViewModel) {
+                if (additionalViewModel[1] === undefined) {
+                    return;
+                }
+
                 if (additionalViewModel[0].hasOwnProperty("onBeforeBinding")) {
                     additionalViewModel[0].onBeforeBinding();
                 }

@@ -4,7 +4,7 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
     self.printerState = printerStateViewModel;
     self.loginState = loginStateViewModel;
     self.slicing = slicingViewModel;
-    self.conversion = vectorConversionViewModel;
+    //self.conversion = vectorConversionViewModel;
 	self.workingArea = workingAreaViewModel;
 
     self.isErrorOrClosed = ko.observable(undefined);
@@ -195,19 +195,6 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
         if (!file) return;
 
         self.slicing.show(file.origin, file.name);
-    };
-
-    self.convertSVG = function(file) {
-        if (!file) return;
-
-        self.conversion.show(file.origin, file.name);
-    };
-
-	self.placeSVG = function(file) {
-		if (file && file["refs"] && file["refs"]["download"]) {
-			var url = file.refs.download.replace("downloads", "serve");
-			self.workingArea.placeSVG(url);
-		}
     };
 
     self.initSdCard = function() {

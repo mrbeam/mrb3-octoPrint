@@ -96,6 +96,10 @@ ClientOpened
 ClientClosed
    A client has disconnected from the webserver
 
+   Payload:
+
+     * ``remoteAddress``: the remote address (IP) of the client that disconnected
+
 Printer communication
 ---------------------
 
@@ -356,3 +360,9 @@ SlicingFailed
      * ``stl``: the STL's filename
      * ``gcode``: the sliced GCODE's filename
      * ``reason``: the reason for the slicing having failed
+
+Settings
+--------
+
+SettingsUpdated
+   The internal settings were updated.

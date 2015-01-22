@@ -238,7 +238,7 @@ var UI_API_KEY = "{{ uiApiKey }}";
 													<button class="btn span4" id="job_cancel" data-bind="click: cancel, enable: isOperational() && (isPrinting() || isPaused()) && loginState.isUser()" title="{{ _('Cancels the job') }}"><i class="icon-stop"></i> {{ _('Cancel') }}</button>
 												</div>-->
 												<div class="row-fluid print-control" style="display: none;" data-bind="visible: loginState.isUser">
-													<button class="btn btn-danger span4" data-bind="click: convertWorkingArea, enable: isOperational() && isReady() && !isPrinting() && loginState.isUser(), attr: {title: titlePrintButton}" id="job_print">
+													<button class="btn btn-danger span4" data-bind="click: conversion.show_conversion_dialog, enable: isOperational() && isReady() && !isPrinting() && loginState.isUser(), attr: {title: titlePrintButton}" id="job_print">
 														<i class="icon-white" data-bind="css: {'icon-fire': !isPaused(), 'icon-undo': isPaused(), 'wobble': isPrinting()}"></i> <span data-bind="text: (isPaused() ? '{{ _('Restart') }}' : '{{ _('Laser') }}')">{{ _('Laser') }}</span>
 													</button>
 													<button class="btn span4" id="job_pause" data-bind="click: pause, enable: isOperational() && (isPrinting() || isPaused()) && loginState.isUser(), css: {active: isPaused()}, attr: {title: titlePauseButton}"><i data-bind="css: {'icon-pause': !isPaused(), 'icon-play': isPaused()}"></i> <span data-bind="visible: !isPaused()">{{ _('Pause') }}</span><span data-bind="visible: isPaused()">{{ _('Resume') }}</span></button>
@@ -308,7 +308,7 @@ var UI_API_KEY = "{{ uiApiKey }}";
 														<div class="btn-group action-buttons">
 															<div class="btn btn-mini" data-bind="click: function() { if ($root.enableRemove($data)) { $root.removeFile($data); } else { return; } }, css: {disabled: !$root.enableRemove($data)}"><i class="icon-trash" title="{{ _('Remove') }}"></i></div>
 															<!--<div class="btn btn-mini" data-bind="click: function() { $root.convertSVG($data); }, css: {disabled: !$root.enableSVGConversion($data)}"><i class="icon-play" title="{{ _('Convert to Laserpath') }}"></i></div>-->
-															<div class="btn btn-mini" data-bind="click: function() { $root.placeSVG($data); }, css: {disabled: !$root.enableSVGConversion($data)}"><i class="icon-arrow-right" title="{{ _('Use') }}"></i></div>
+															<div class="btn btn-mini" data-bind="click: function() { $root.workingArea.placeSVG($data); }, css: {disabled: !$root.enableSVGConversion($data)}"><i class="icon-arrow-right" title="{{ _('Use') }}"></i></div>
 														</div>
 													</div>
 												</script>
@@ -526,6 +526,7 @@ var UI_API_KEY = "{{ uiApiKey }}";
 					<script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/loginstate.js') }}"></script>
 					<script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/navigation.js') }}"></script>
 					<script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/printerstate.js') }}"></script>
+					<script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/printerprofiles.js') }}"></script>
 					<script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/settings.js') }}"></script>
 					<script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/slicing.js') }}"></script>
 					<script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/temperature.js') }}"></script>

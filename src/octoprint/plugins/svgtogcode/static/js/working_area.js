@@ -1,9 +1,10 @@
-function WorkingAreaViewModel(loginStateViewModel, settingsViewModel) {
+function WorkingAreaViewModel(params) {
     var self = this;
 
-    self.loginState = loginStateViewModel;
-    self.settings = settingsViewModel;
-    self.state = undefined;
+    self.loginState = params[0];
+    self.settings = params[1];
+    self.state = params[2];
+    self.files = params[3];
 
     self.log = [];
 
@@ -22,7 +23,9 @@ function WorkingAreaViewModel(loginStateViewModel, settingsViewModel) {
 	self.px2mm_factor = 1; // initial value
 	self.hwRatio = ko.computed(function(){
 		// y/x = 297/216 respectively 594/432
-		var ratio = self.settings.printer_bedDimensionY() / self.settings.printer_bedDimensionX();
+		var h = self.settings.printerProfiles.currentProfileData().volume.depth();
+		var w = self.settings.printerProfiles.currentProfileData().volume.width();
+		var ratio = h / w;
 		return ratio;
 	}, self);
 	
@@ -56,7 +59,7 @@ function WorkingAreaViewModel(loginStateViewModel, settingsViewModel) {
 	}, self);
 	
 	self.px2mm_factor = ko.computed(function(){
-		return self.settings.printer_bedDimensionX() / self.workingAreaWidth();
+		return self.settings.printerProfiles.currentProfileData().volume.width() / self.workingAreaWidth();
 	});
 	
 	self.scaleMatrix = ko.computed(function(){
@@ -75,13 +78,12 @@ function WorkingAreaViewModel(loginStateViewModel, settingsViewModel) {
 	self.move_laser = function(el){
 		var x = self.px2mm(event.offsetX);
 		var y = self.px2mm(event.toElement.offsetHeight - event.offsetY);
-		var command = "G0 X"+x+" Y"+y;
 		$.ajax({
-			url: API_BASEURL + "printer/command",
+			url: API_BASEURL + "printer/printhead",
 			type: "POST",
 			dataType: "json",
 			contentType: "application/json; charset=UTF-8",
-			data: JSON.stringify({"command": command})
+			data: JSON.stringify({"command": "position", x:x, y:y})
 		});
 	};
 	
@@ -108,7 +110,14 @@ function WorkingAreaViewModel(loginStateViewModel, settingsViewModel) {
 	
 	//self.getDivDimensions(); // init
 	
-	self.placeSVG = function(url){
+	self.placeSVG = function(file) {
+		if (file && file["refs"] && file["refs"]["download"]) {
+			var url = file.refs.download.replace("downloads", "serve");
+			self.loadSVG(url);
+		}
+    };
+	
+	self.loadSVG = function(url){
 		Snap.load(url, function (f) {
 			var namespaces = {};
 			var root = f.select('svg').node.attributes;
@@ -149,6 +158,15 @@ function WorkingAreaViewModel(loginStateViewModel, settingsViewModel) {
 			id = idBase + suffix;
 		}
 		return id;
+	};
+	
+	self.onStartup = function(){
+		self.files.workingArea = self;
+		$(window).resize(function(){
+			self.trigger_resize();
+		});
+		self.trigger_resize(); // initialize
+		self.init();
 	};
 }
 

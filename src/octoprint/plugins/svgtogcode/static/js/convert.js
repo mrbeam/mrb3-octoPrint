@@ -1,9 +1,11 @@
-function VectorConversionViewModel(loginStateViewModel, settingsViewModel, workingAreaViewModel) {
+function VectorConversionViewModel(params) {
     var self = this;
 
-    self.loginState = loginStateViewModel;
-	self.settings = settingsViewModel;
-	self.workingArea = workingAreaViewModel;
+    self.loginState = params[0];
+	self.settings = params[1];
+	self.state = params[2];
+	self.workingArea = params[3];
+	self.files = params[4];
 
     self.target = undefined;
     self.file = undefined;
@@ -21,7 +23,7 @@ function VectorConversionViewModel(loginStateViewModel, settingsViewModel, worki
     self.slicers = ko.observableArray();
     self.profile = ko.observable();
     self.profiles = ko.observableArray();
-
+	
     self.show = function(target, file) {
         self.target = target;
         self.file = file;
@@ -30,11 +32,11 @@ function VectorConversionViewModel(loginStateViewModel, settingsViewModel, worki
         $("#dialog_vector_graphics_conversion").modal("show");
     };
 	
-    self.show2 = function() {
+    self.show_conversion_dialog = function() {
 		var tmpsvg = snap.select("#scaleGroup").innerSVG(); // get working area 
-		var dim = self.settings.printer_bedDimensions();
-		var w = dim.x * 90/25.4; // convert mm to pix with 90dpi (inkscape default - TODO use 72 for illustrator svg) 
-		var h = dim.y * 90/25.4;
+		var dpiFactor = 90/25.4; // convert mm to pix with 90dpi (inkscape default - TODO use 72 for illustrator svg and fetch from settings) 
+		var w = dpiFactor * self.settings.printerProfiles.currentProfileData().volume.width; 
+		var h = dpiFactor * self.settings.printerProfiles.currentProfileData().volume.depth; 
 		self.svg = '<svg height="'+ h +'" version="1.1" width="'+ w +'" xmlns="http://www.w3.org/2000/svg"><defs/>'+ tmpsvg +'</svg>';
 		// TODO: js svg conversion
         self.title(gettext("Converting"));
@@ -203,6 +205,9 @@ function VectorConversionViewModel(loginStateViewModel, settingsViewModel, worki
 
     self.onStartup = function() {
         self.requestData();
+		console.log("convert.js onStartup");
+		self.state.conversion = self; // hack! injecting method to avoid circular dependency.
+		self.files.conversion = self;
     };
 	
 	self._configureIntensitySlider = function() {
@@ -239,4 +244,8 @@ function VectorConversionViewModel(loginStateViewModel, settingsViewModel, worki
 		self._configureIntensitySlider();
 		self._configureFeedrateSlider();
 	};
+	
+	console.log("self.state", self.state);
+	self.state.convertWorkingArea = self.show_conversion_dialog; // hack! injecting method to avoid circular dependency.
+
 }

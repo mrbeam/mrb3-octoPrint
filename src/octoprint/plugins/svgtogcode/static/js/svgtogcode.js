@@ -26,10 +26,18 @@ $(function() {
             }
 
             return;
-        }
+        };
 
 
 
+	}
     // view model class, parameters for constructor, container to bind to
-    ADDITIONAL_VIEWMODELS.push([SvgToGcodeViewModel, ["loginStateViewModel", "settingsViewModel", "slicingViewModel"], null]);
-}});
+    //ADDITIONAL_VIEWMODELS.push([SvgToGcodeViewModel, ["loginStateViewModel", "settingsViewModel", "slicingViewModel"], null]);
+    ADDITIONAL_VIEWMODELS.push([WorkingAreaViewModel, "workingAreaViewModel",
+		["loginStateViewModel", "settingsViewModel", "printerStateViewModel",  "gcodeFilesViewModel"], 
+		document.getElementById("area_preview")]);
+	
+    ADDITIONAL_VIEWMODELS.push([VectorConversionViewModel, "vectorConversionViewModel",
+		["loginStateViewModel", "settingsViewModel", "printerStateViewModel", "workingAreaViewModel", "gcodeFilesViewModel"], 
+		document.getElementById("dialog_vector_graphics_conversion")]);
+});

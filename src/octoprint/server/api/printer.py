@@ -218,7 +218,8 @@ def printerPrintheadCommand():
 
 	valid_commands = {
 		"jog": [],
-		"home": ["axes"]
+		"home": ["axes"],
+		"position": ["x", "y"]
 	}
 	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
 	if response is not None:
@@ -239,6 +240,18 @@ def printerPrintheadCommand():
 		# execute the jog commands
 		for axis, value in validated_values.iteritems():
 			printer.jog(axis, value)
+
+	##~~ position command
+	if command == "position":
+		# validate all jog instructions, make sure that the values are numbers
+		validated_values = {}
+		
+		x = data["x"]
+		y = data["y"]
+		if isinstance(x, (int, long, float)) and  isinstance(y, (int, long, float)) :
+			printer.position(x, y)
+		else:
+			return make_response("Not a number for axis %s: %r" % (axis, value), 400)
 
 	##~~ home command
 	elif command == "home":
@@ -300,7 +313,6 @@ def printerSdState():
 @api.route("/printer/command", methods=["POST"])
 @restricted_access
 def printerCommand():
-	# TODO: document me
 	if not (printer.isOperational() or printer.isLocked()):
 		return make_response("Printer is not operational", 409)
 
@@ -309,15 +321,17 @@ def printerCommand():
 
 	data = request.json
 
-	parameters = {}
-	if "parameters" in data.keys():
-		parameters = data["parameters"]
+	parameters = dict()
+	if "parameters" in data.keys(): parameters = data["parameters"]
 
-	commands = []
-	if "command" in data.keys():
+	if "command" in data and "commands" in data:
+		return make_response("'command' and 'commands' are mutually exclusive", 400)
+	elif "command" in data:
 		commands = [data["command"]]
-	elif "commands" in data.keys():
+	elif "commands" in data and isinstance(data["commands"], (list, tuple)):
 		commands = data["commands"]
+	else:
+		return make_response("Need either single 'command' or list of 'commands'", 400)
 
 	commandsToSend = []
 	for command in commands:
