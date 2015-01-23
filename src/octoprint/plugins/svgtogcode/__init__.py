@@ -140,10 +140,6 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 
 	##~~ AssetPlugin API
 
-	def get_asset_folder(self):
-		import os
-		return os.path.join(os.path.dirname(os.path.realpath(__file__)), "static")
-
 	def get_assets(self):
 		return {
 			"js": ["js/svgtogcode.js", "js/convert.js", "js/working_area.js", "js/lib/snap.svg-min.js"],

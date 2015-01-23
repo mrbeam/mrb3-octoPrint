@@ -25,6 +25,13 @@
   - `action:pause`: Pauses the current job in OctoPrint
   - `action:resume`: Resumes the current job in OctoPrint
   - `action:disconnect`: Disconnects OctoPrint from the printer
+* Mousing over the webcam image in the control tab enables key control mode, allowing you to quickly move the axis of your
+  printer with your computer's keyboard ([#610](https://github.com/foosel/OctoPrint/pull/610)):
+  - arrow keys: X and Y axes
+  - W, S / PageUp, PageDown: Y axes
+  - Home: Home X and Y axes
+  - End: Home Z axes
+  - 1, 2, 3, 4: change step size used (0.1, 1, 10, 100mm)
 
 ### Improvements
 
@@ -55,6 +62,7 @@
 * Also interpret lines starting with "!!" as errors
 * Added deletion of pyc files to the `python setup.py clean` command
 * Settings now show a QRCode for the API Key ([#637](https://github.com/foosel/OctoPrint/pull/637))
+* Username in UI is no longer enclosed in scare quotes ([#595](https://github.com/foosel/OctoPrint/pull/595))
 * Username in login dialog is not automatically capitalized on mobile devices anymore ([#639](https://github.com/foosel/OctoPrint/pull/639))
 * "Slicing Done" and "Streaming Done" notifications now have a green background ([#558](https://github.com/foosel/OctoPrint/issues/558))
 * Files that are currently in use, be it for slicing, printing or whatever, are now tracked and can not be deleted as
@@ -72,6 +80,8 @@
 * Automatically hard-reload the UI if upon reconnecting to the server a new version is detected.
 * Better handling of errors on the websocket - no more logging of the full stack trace to the log, only a warning
   message for now.
+* Daemonized OctoPrint now cleans up its pidfile when receiving a TERM signal ([#711](https://github.com/foosel/OctoPrint/issues/711))
+* Added serial types for OpenBSD ([#551](https://github.com/foosel/OctoPrint/pull/551))
 
 ### Bug Fixes
 
@@ -83,6 +93,11 @@
   side effects
 * [#680](https://github.com/foosel/OctoPrint/issues/680) - Don't accidentally include a newline from the MIME headers
   in the parsed multipart data from file uploads
+* [#709](https://github.com/foosel/OctoPrint/issues/709) - Properly initialize time estimation for SD card transfers too
+* [#715](https://github.com/foosel/OctoPrint/issues/715) - Fixed an error where Event Triggers of type command caused
+  and exception to be raised due to a misnamed attribute in the code
+* [#717](https://github.com/foosel/OctoPrint/issues/717) - Use ``shutil.move`` instead of ``os.rename`` to avoid cross
+  device renaming issues
 * Various fixes of bugs in newly introduced features and improvements:
   * [#625](https://github.com/foosel/OctoPrint/pull/625) - Newly added GCODE files were not being added to the analysis
     queue
@@ -91,10 +106,22 @@
     printer profiles
   * [#683](https://github.com/foosel/OctoPrint/issues/683) - Fixed heated bed option not being properly displayed in
     printer profiles
+  * [#685](https://github.com/foosel/OctoPrint/issues/685) - Quoted file name for Timelapse creation to not make
+    command hiccup on ``~`` in file name
+  * [#709](https://github.com/foosel/OctoPrint/issues/709) - Fixed file sending to SD card
+  * [#714](https://github.com/foosel/OctoPrint/issues/714) - Fixed type validation of printer profiles
+  * Heating up the heated bed (if present) was not properly configured in CuraEngine plugin
+  * [#720](https://github.com/foosel/OctoPrint/issues/720) - Fixed translation files not being properly copied over
+    during install
+  * [#724](https://github.com/foosel/OctoPrint/issues/724) - Fixed timelapse deletion for timelapses with non-ascii
+    characters in their name
+  * [#726](https://github.com/foosel/OctoPrint/issues/726) - Fixed ``babel_refresh`` command
 * Various fixes without tickets:
   * GCODE viewer now doesn't stumble over completely extrusionless GCODE files
   * Do not deliver the API key on settings API unless user has admin rights
   * Don't hiccup on slic3r filament_diameter comments in GCODE generated for multi extruder setups
+
+([Commits](https://github.com/foosel/OctoPrint/compare/master...devel))
 
 ## 1.1.2 (Unreleased)
 
@@ -102,13 +129,18 @@
 
 * Added deletion of `*.pyc` files to `python setup.py clean` command, should help tremendously when switching branches (backported
   from [9e014eb](https://github.com/foosel/OctoPrint/commit/9e014eba1feffde11ed0601d9c911b8cac9f3fb0))
+* Increased default communication and connection timeouts
+* [#706](https://github.com/foosel/OctoPrint/issues/706) - Do not truncate error reported from printer
 
 ### Bug Fixes
 
 * [#634](https://github.com/foosel/OctoPrint/pull/634) - Fixed missing `branch` fields in version dicts generated
   by versioneer
-* [IRC] - Don't hiccup on slic3r filament_diameter comments generated for multi extruder setups
-* [ML] - Fixed relative URL to sockjs endpoint, wasn't yet using the proper base url
+* [#679](https://github.com/foosel/OctoPrint/issues/679) - Fix error where API state is requested and printer is offline
+  (backport of [619fe9a](https://github.com/foosel/OctoPrint/commit/619fe9a0e78826bd1524b235a910156439bcb6d7)).
+* [#719](https://github.com/foosel/OctoPrint/issues/719) - Properly center print bed in GCODE viewer
+* [IRC] - Don't hiccup on slic3r ``filament_diameter`` comments generated for multi extruder setups
+* [ML] - Fixed relative URL to SockJS endpoint, wasn't yet using the proper base url
 * [unreported] & [#698](https://github.com/foosel/OctoPrint/issues/698) - Generated URLs now take X-Forwarded-Host header
   sent by proxies into account for included host and port, also fixed [#698](https://github.com/foosel/OctoPrint/issues/698)
   introduced by this
@@ -119,6 +151,8 @@
   - [#693](https://github.com/foosel/OctoPrint/issues/693) -  Try not to capture an image if image counter is still unset
   - [unreported] Synchronize image counter decrementing as well as incrementing to prevent rare race conditions when generating the
     image file names
+
+([Commits](https://github.com/foosel/OctoPrint/compare/1.1.1...master))
 
 ## 1.1.1 (2014-10-27)
 

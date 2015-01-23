@@ -375,6 +375,7 @@ $(function() {
                 return { controlsDescendantBindings: !valueAccessor() };
             }
         };
+        ko.virtualElements.allowedBindings.allowBindings = true;
 
         ko.bindingHandlers.slimScrolledForeach = {
             init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
@@ -422,6 +423,28 @@ $(function() {
             }
         };
 
+        //~~ startup commands
+
+        _.each(allViewModels, function(viewModel) {
+            if (viewModel.hasOwnProperty("onStartup")) {
+                viewModel.onStartup();
+            }
+        });
+
+        loginStateViewModel.subscribe(function(change, data) {
+            if ("login" == change) {
+                $("#gcode_upload").fileupload("enable");
+
+                if (data.admin) {
+                    usersViewModel.requestData();
+                }
+            } else {
+                $("#gcode_upload").fileupload("disable");
+            }
+        });
+
+        //~~ view model binding
+
         settingsViewModel.requestData(function() {
             ko.applyBindings(settingsViewModel, document.getElementById("settings_dialog"));
 
@@ -455,45 +478,34 @@ $(function() {
 
             // apply bindings and signal startup
             _.each(additionalViewModels, function(additionalViewModel) {
-                if (additionalViewModel[1] === undefined) {
+                var viewModel = additionalViewModel[0];
+                var targets = additionalViewModel[1];
+
+                if (targets === undefined) {
                     return;
                 }
 
-                if (additionalViewModel[0].hasOwnProperty("onBeforeBinding")) {
-                    additionalViewModel[0].onBeforeBinding();
+                if (!Array.isArray(targets)) {
+                    targets = [targets];
                 }
 
-                // model instance, target container
-                if (additionalViewModel[1]) {
-                    ko.applyBindings(additionalViewModel[0], additionalViewModel[1]);
-                } else {
-                    ko.applyBindings(additionalViewModel[0]);
+
+                if (viewModel.hasOwnProperty("onBeforeBinding")) {
+                    viewModel.onBeforeBinding();
                 }
 
-                if (additionalViewModel[0].hasOwnProperty("onAfterBinding")) {
-                    additionalViewModel[0].onAfterBinding();
+                _.each(targets, function(target) {
+                    try {
+                        ko.applyBindings(viewModel, target);
+                    } catch (exc) {
+                        console.log("Could not apply bindings for additional view model " + viewModel + ": " + exc.message);
+                    }
+                });
+
+                if (viewModel.hasOwnProperty("onAfterBinding")) {
+                    viewModel.onAfterBinding();
                 }
             });
-        });
-
-        //~~ startup commands
-
-        _.each(allViewModels, function(viewModel) {
-            if (viewModel.hasOwnProperty("onStartup")) {
-                viewModel.onStartup();
-            }
-        });
-
-        loginStateViewModel.subscribe(function(change, data) {
-            if ("login" == change) {
-                $("#gcode_upload").fileupload("enable");
-
-                if (data.admin) {
-                    usersViewModel.requestData();
-                }
-            } else {
-                $("#gcode_upload").fileupload("disable");
-            }
         });
 
         //~~ UI stuff
@@ -527,14 +539,14 @@ $(function() {
             }
         });
 
-        $(".accordion-toggle[href='#files']").click(function() {
+        $(".accordion-toggle[data-target='#files']").click(function() {
             var files = $("#files");
             if (files.hasClass("in")) {
                 files.removeClass("overflow_visible");
             } else {
                 setTimeout(function() {
                     files.addClass("overflow_visible");
-                }, 1000);
+                }, 100);
             }
         });
 

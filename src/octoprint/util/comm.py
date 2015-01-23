@@ -267,20 +267,15 @@ class MachineCom(object):
 		if self._state == self.STATE_CLOSED:
 			return "Closed"
 		if self._state == self.STATE_ERROR:
-			return "Error: %s" % (self.getShortErrorString())
+			return "Error: %s" % (self.getErrorString())
 		if self._state == self.STATE_CLOSED_WITH_ERROR:
-			return "Error: %s" % (self.getShortErrorString())
+			return "Error: %s" % (self.getErrorString())
 		if self._state == self.STATE_TRANSFERING_FILE:
 			return "Transfering file to SD"
 		if self._state == self.STATE_LOCKED:
 			return "Locked"
 		return "?%d?" % (self._state)
 	
-	def getShortErrorString(self):
-		if len(self._errorValue) < 20:
-			return self._errorValue
-		return self._errorValue[:20] + "..."
-
 	def getErrorString(self):
 		return self._errorValue
 	

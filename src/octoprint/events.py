@@ -109,22 +109,25 @@ class EventManager(object):
 		self._worker.start()
 
 	def _work(self):
-		while True:
-			(event, payload) = self._queue.get(True)
+		try:
+			while True:
+				(event, payload) = self._queue.get(True)
 
-			eventListeners = self._registeredListeners[event]
-			self._logger.debug("Firing event: %s (Payload: %r)" % (event, payload))
+				eventListeners = self._registeredListeners[event]
+				self._logger.debug("Firing event: %s (Payload: %r)" % (event, payload))
 
-			for listener in eventListeners:
-				self._logger.debug("Sending action to %r" % listener)
-				try:
-					listener(event, payload)
-				except:
-					self._logger.exception("Got an exception while sending event %s (Payload: %r) to %s" % (event, payload, listener))
+				for listener in eventListeners:
+					self._logger.debug("Sending action to %r" % listener)
+					try:
+						listener(event, payload)
+					except:
+						self._logger.exception("Got an exception while sending event %s (Payload: %r) to %s" % (event, payload, listener))
 
-			octoprint.plugin.call_plugin(octoprint.plugin.types.EventHandlerPlugin,
-			                             "on_event",
-			                             args=[event, payload])
+				octoprint.plugin.call_plugin(octoprint.plugin.types.EventHandlerPlugin,
+				                             "on_event",
+				                             args=[event, payload])
+		except:
+			self._logger.exception("Ooops, the event bus worker loop crashed")
 
 	def fire(self, event, payload=None):
 		"""
@@ -308,7 +311,7 @@ class CommandTrigger(GenericEventListener):
 	def _executeGcodeCommand(self, command):
 		commands = [command]
 		if isinstance(command, (list, tuple, set)):
-			self.logger.debug("Executing GCode commands: %r" % command)
+			self._logger.debug("Executing GCode commands: %r" % command)
 			commands = list(command)
 		else:
 			self._logger.debug("Executing GCode command: %s" % command)

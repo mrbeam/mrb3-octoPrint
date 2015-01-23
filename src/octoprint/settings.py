@@ -89,7 +89,8 @@ default_settings = {
 		"swallowOkAfterResend": True,
 		"repetierTargetTemp": False,
 		"grbl": True,
-		"zaxis": False
+		"zaxis": False,
+		"keyboardControl": True
 	},
 	"folder": {
 		"uploads": None,

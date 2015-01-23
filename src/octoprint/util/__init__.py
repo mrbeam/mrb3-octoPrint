@@ -9,6 +9,7 @@ import time
 import re
 import tempfile
 import logging
+import shutil
 from flask import make_response
 
 from octoprint.settings import settings, default_settings
@@ -182,7 +183,7 @@ def safeRename(old, new, throw_error=False):
 				raise e
 	else:
 		# on anything else than windows it's ooooh so much easier...
-		os.rename(old, new)
+		shutil.move(old, new)
 
 
 def silentRemove(file):
@@ -267,6 +268,20 @@ def dict_clean(a, b):
 		else:
 			result[k] = deepcopy(v)
 	return result
+
+
+def dict_contains_keys(a, b):
+	if not isinstance(a, dict) or not isinstance(b, dict):
+		return False
+
+	for k, v in a.iteritems():
+		if not k in b:
+			return False
+		elif isinstance(v, dict):
+			if not dict_contains_keys(v, b[k]):
+				return False
+
+	return True
 
 
 class Object(object):
