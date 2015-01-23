@@ -205,9 +205,10 @@ function VectorConversionViewModel(params) {
 
     self.onStartup = function() {
         self.requestData();
-		console.log("convert.js onStartup");
 		self.state.conversion = self; // hack! injecting method to avoid circular dependency.
 		self.files.conversion = self;
+		self._configureIntensitySlider();
+		self._configureFeedrateSlider();
     };
 	
 	self._configureIntensitySlider = function() {
@@ -240,10 +241,6 @@ function VectorConversionViewModel(params) {
         }).on("slideStop", self.changeFeedrate);
     };
 	
-	self.init = function(){
-		self._configureIntensitySlider();
-		self._configureFeedrateSlider();
-	};
 	
 	console.log("self.state", self.state);
 	self.state.convertWorkingArea = self.show_conversion_dialog; // hack! injecting method to avoid circular dependency.

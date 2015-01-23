@@ -144,7 +144,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 		return {
 			"js": ["js/svgtogcode.js", "js/convert.js", "js/working_area.js", "js/lib/snap.svg-min.js"],
 			"less": ["less/svgtogcode.less"],
-			"css": ["css/svgtogcode.css"]
+			"css": ["css/svgtogcode.css", "css/mrbeam.css"]
 		}
 
 	##~~ SettingsPlugin API
@@ -228,7 +228,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 
 		self._save_profile(path, new_profile, allow_overwrite=allow_overwrite)
 
-	def do_slice(self, model_path, machinecode_path=None, profile_path=None, on_progress=None, on_progress_args=None, on_progress_kwargs=None):
+	def do_slice(self, model_path, printer_profile, machinecode_path=None, profile_path=None, position=None, on_progress=None, on_progress_args=None, on_progress_kwargs=None):
 		if not profile_path:
 			profile_path = s.get(["default_profile"])
 		if not machinecode_path:

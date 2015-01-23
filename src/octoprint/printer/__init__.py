@@ -225,7 +225,6 @@ class Printer():
 		"""
 		 Sends multiple gcode commands (provided as a list) to the printer.
 		"""
-		print("printer.commands", self._comm)
 		if self._comm is None:
 			return
 

@@ -3,27 +3,29 @@
     <div class="">
         <div class="tabbable">
             <ul class="nav nav-list span3" id="settingsTabs">
-                <li class="active"><a href="#settings_serialConnection" data-toggle="tab">{{ _('Serial Connection') }}</a></li>
-                <li><a href="#settings_printerParameters" data-toggle="tab">{{ _('Parameters') }}</a></li>
 
-                {% if enableAccessControl %}
-				<li><a href="#settings_users" data-toggle="tab">{{ _('Access Control') }}</a></li>
-				{% endif %}
-               
-                <li><a href="#settings_folder" data-toggle="tab">{{ _('Folders') }}</a></li>
-                <li><a href="#settings_logs" data-toggle="tab">{{ _('Logs') }}</a></li>
-                {% if settingsPlugins %}
-                    <li class="nav-header">Plugins</li>
-                    {% for plugin_name, vars in settingsPlugins.items() %}
-                        {% if vars._settings_menu_entry %}
-                            <li><a href="#settings_plugin_{{ plugin_name }}" data-toggle="tab">{{ vars._settings_menu_entry }}</a></li>
-                        {% endif %}
-                    {% endfor %}
-                {% endif %}
+			{% if settingsEntries %}
+				<!--<li class="nav-header">Plugins</li>-->
+				{% for entry, data in settingsEntries %}
+                    {% if data is none %}
+                        <li class="nav-header">{{ entry }}</li>
+                    {% else %}
+                        {% if "custom_bindings" not in data or data["custom_bindings"] %}<!-- ko allowBindings: false -->{% endif %}
+                        <li id="{{ data._div }}_link"
+                            {% if "data_bind" in data %}data-bind="{{ data.data_bind }}"{% endif %}
+                            class="{% if not active_set %}active{% set active_set = true %}{% endif %} {% if "classes_link" in data %}{{ data.classes_link|join(' ') }}{% elif "classes" in data %}{{ data.classes|join(' ') }}{% endif %}"
+                            {% if "styles_link" in data %} style="{{ data.styles_link|join(', ') }}" {% elif "styles" in data %} style="{{ data.styles|join(', ') }}" {% endif %}
+                                >
+                            <a href="#{{ data._div }}" data-toggle="tab">{{ entry }}</a>
+                        </li>
+                        {% if "custom_bindings" not in data or data["custom_bindings"] %}<!-- /ko -->{% endif %}
+                    {% endif %}
+                {% endfor %}
+			{% endif %}
             </ul>
 
             <div class="tab-content span8">
-                <div class="tab-pane active" id="settings_serialConnection">
+<!--                <div class="tab-pane active" id="settings_serialConnection">
                     <form class="form-horizontal">
                         <div class="control-group">
                             <label class="control-label" for="settings-serialPort">{{ _('Serial Port') }}</label>
@@ -68,8 +70,8 @@
                             </div>
                         </div>
                     </form>
-                </div>
-
+                </div>-->
+<!--
 				<div class="tab-pane" id="settings_printerParameters">
                     <form class="form-horizontal">
 
@@ -99,82 +101,82 @@
                         </div>
                     </form>
                 </div>
-            
-				<div class="tab-pane" id="settings_features">
+            -->
+<!--				<div class="tab-pane" id="settings_features">
                     <form class="form-horizontal">
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <!--<input type="checkbox" data-bind="event: {change: saveall}, checked: feature_temperatureGraph" id="settings-featureTemperatureGraph"> {{ _('Enable Temperature Graph') }}-->
+                                    <input type="checkbox" data-bind="event: {change: saveall}, checked: feature_temperatureGraph" id="settings-featureTemperatureGraph"> {{ _('Enable Temperature Graph') }}
                                 </label>
                             </div>
                         </div>
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <!--<input type="checkbox" data-bind="event: {change: saveall}, checked: feature_gcodeViewer" id="settings-featureGcodeViewer"> {{ _('Enable GCode Visualizer') }}-->
+                                    <input type="checkbox" data-bind="event: {change: saveall}, checked: feature_gcodeViewer" id="settings-featureGcodeViewer"> {{ _('Enable GCode Visualizer') }}
                                 </label>
                             </div>
                         </div>
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <!--<input type="checkbox" data-bind="event: {change: saveall}, checked: feature_sdSupport" id="settings-featureSdSupport"> {{ _('Enable SD support') }}-->
+                                    <input type="checkbox" data-bind="event: {change: saveall}, checked: feature_sdSupport" id="settings-featureSdSupport"> {{ _('Enable SD support') }}
                                 </label>
                             </div>
                         </div>
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <!--<input type="checkbox" data-bind="event: {change: saveall}, checked: feature_sdAlwaysAvailable" id="settings-featureSdAlwaysAvailable"> {{ _('Always assume SD card is present') }} <span class="label">{{ _('Repetier') }}</span>-->
+                                    <input type="checkbox" data-bind="event: {change: saveall}, checked: feature_sdAlwaysAvailable" id="settings-featureSdAlwaysAvailable"> {{ _('Always assume SD card is present') }} <span class="label">{{ _('Repetier') }}</span>
                                 </label>
                             </div>
                         </div>
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <!--<input type="checkbox" data-bind="event: {change: saveall}, checked: feature_waitForStart" id="settings-featureWaitForStart"> {{ _('Wait for <code>start</code> on connect') }}-->
+                                    <input type="checkbox" data-bind="event: {change: saveall}, checked: feature_waitForStart" id="settings-featureWaitForStart"> {{ _('Wait for <code>start</code> on connect') }}
                                 </label>
                             </div>
                         </div>
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <!--<input type="checkbox" data-bind="event: {change: saveall}, checked: feature_alwaysSendChecksum" id="settings-featureAlwaysSendChecksum"> {{ _('Send a checksum with <strong>every</strong> command') }}  <span class="label">{{ _('Repetier') }}</span>-->
+                                    <input type="checkbox" data-bind="event: {change: saveall}, checked: feature_alwaysSendChecksum" id="settings-featureAlwaysSendChecksum"> {{ _('Send a checksum with <strong>every</strong> command') }}  <span class="label">{{ _('Repetier') }}</span>
                                 </label>
                             </div>
                         </div>
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <!--<input type="checkbox" data-bind="event: {change: saveall}, checked: feature_repetierTargetTemp" id="settings-featureRepetierTargetTemp"> {{ _('Support <code>TargetExtr%%n</code>/<code>TargetBed</code> target temperature format') }} <span class="label">{{ _('Repetier') }}</span>-->
+                                    <input type="checkbox" data-bind="event: {change: saveall}, checked: feature_repetierTargetTemp" id="settings-featureRepetierTargetTemp"> {{ _('Support <code>TargetExtr%%n</code>/<code>TargetBed</code> target temperature format') }} <span class="label">{{ _('Repetier') }}</span>
                                 </label>
                             </div>
                         </div>
                         <div class="control-group">
                             <div class="controls">
                                 <label class="checkbox">
-                                    <!--<input type="checkbox" data-bind="event: {change: saveall}, checked: feature_swallowOkAfterResend" id="settings-swallowOkAfterResend"> {{ _('Swallow the first "ok" after a resend response') }}-->
+                                    <input type="checkbox" data-bind="event: {change: saveall}, checked: feature_swallowOkAfterResend" id="settings-swallowOkAfterResend"> {{ _('Swallow the first "ok" after a resend response') }}
                                 </label>
                             </div>
                         </div>
                     </form>
-                </div>
-               
+                </div>-->
+     <!--          
 				<div class="tab-pane" id="settings_folder">
                     <form class="form-horizontal">
                         <div class="control-group">
                             <label class="control-label" for="settings-folderUploads">{{ _('Upload Folder') }}</label>
                             <div class="controls">
                                 <!--<input type="text" class="input-block-level" data-bind="event: {change: saveall}, value: folder_uploads" id="settings-folderUploads">-->
-                            </div>
+     <!--                       </div>
                         </div>
 
                         <div class="control-group">
                             <label class="control-label" for="settings-folderLogs">{{ _('Logs Folder') }}</label>
                             <div class="controls">
                                 <!--<input type="text" class="input-block-level" data-bind="event: {change: saveall}, value: folder_logs" id="settings-folderLogs">-->
-                            </div>
+   <!--                         </div>
                         </div>
 
                     </form>
@@ -281,7 +283,7 @@
                         </div>
                     </form>
                 </div>
-
+-->
                 {% if enableAccessControl %}
                 <div class="tab-pane" id="settings_users">
                     <table class="table table-condensed table-hover" id="system_users">
@@ -442,13 +444,23 @@
                 </div>
                 {% endif %}
 
-                {% for plugin_name, vars in settingsPlugins.items() %}
-                    <div class="tab-pane" id="settings_plugin_{{ plugin_name }}" data-bind="allowBindings: true">
-                        {% include plugin_name+"_settings_dialog.jinja2" ignore missing %}
-                    </div>
+
+				{% set active_set = false %}
+                {% for entry, data in settingsEntries %}
+                    {% if data is not none %}
+                        {% if "custom_bindings" not in data or data["custom_bindings"] %}<!-- ko allowBindings: false -->{% endif %}
+                        <div id="{{ data._div }}"
+                             {% if "data_bind" in data %}data-bind="{{ data.data_bind }}"{% endif %}
+                             class="tab-pane {% if not active_set %}active{% set active_set = true %}{% endif %} {% if classes_content in data %}{{ data.classes_content|join(' ') }}{% elif classes in data %}{{ data.classes|join(' ') }}{% endif %}"
+                             {% if "styles_content" in data %} style="{{ data.styles_content|join(', ') }}" {% elif styles in data %} style="{{ data.styles|join(', ') }}" {% endif %}
+                                >
+                            {% include data.template ignore missing %}
+                        </div>
+                        {% if "custom_bindings" not in data or data["custom_bindings"] %}<!-- /ko -->{% endif %}
+                    {% endif %}
                 {% endfor %}
 
-                <div class="tab-pane" id="settings_logs" data-bind="allowBindings: false">
+<!--                <div class="tab-pane" id="settings_logs" data-bind="allowBindings: false">
                     <div id="logs">
 
                         <div class="pull-right">
@@ -494,7 +506,7 @@
                             </ul>
                         </div>
                     </div>
-                </div>
+                </div>-->
             </div>
         </div>
     </div>
