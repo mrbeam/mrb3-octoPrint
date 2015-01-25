@@ -9,7 +9,7 @@
     <div class="control-group">
         <div class="controls">
             <label class="checkbox">
-                <input type="checkbox" data-bind="checked: feature_gcodeViewer" id="settings-featureGcodeViewer"> {{ _('Enable GCode Visualizer') }}
+                <input type="checkbox" data-bind="event: {change: saveall}, checked: feature_gcodeViewer" id="settings-featureGcodeViewer"> {{ _('Enable GCode Visualizer') }}
             </label>
         </div>
     </div>
@@ -23,7 +23,7 @@
     <div class="control-group">
         <div class="controls">
             <label class="checkbox">
-                <input type="checkbox" data-bind="checked: feature_keyboardControl" id="settings-featureKeyboardControl"> {{ _("Enable Keyboard Control") }}
+                <input type="checkbox" data-bind="event: {change: saveall}, checked: feature_keyboardControl" id="settings-featureKeyboardControl"> {{ _("Enable Keyboard Control") }}
             </label>
         </div>
     </div>

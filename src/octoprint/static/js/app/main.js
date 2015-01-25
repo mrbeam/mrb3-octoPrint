@@ -460,7 +460,7 @@ $(function() {
 //                gcodeViewModel.initialize();
 //                ko.applyBindings(gcodeViewModel, gcode);
 //            }
-            ko.applyBindings(settingsViewModel, document.getElementById("settings_dialog"));
+//            ko.applyBindings(settingsViewModel, document.getElementById("settings_dialog"));
 //            ko.applyBindings(navigationViewModel, document.getElementById("navbar"));
 //            ko.applyBindings(appearanceViewModel, document.getElementsByTagName("head")[0]);
 //            ko.applyBindings(printerStateViewModel, document.getElementById("drop_overlay"));

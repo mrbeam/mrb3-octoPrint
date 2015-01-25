@@ -23,6 +23,8 @@ function WorkingAreaViewModel(params) {
 	self.px2mm_factor = 1; // initial value
 	self.hwRatio = ko.computed(function(){
 		// y/x = 297/216 respectively 594/432
+//		var h = self.settings.laserCutterProfiles.currentProfileData().volume.depth();
+//		var w = self.settings.laserCutterProfiles.currentProfileData().volume.width();
 		var h = self.settings.printerProfiles.currentProfileData().volume.depth();
 		var w = self.settings.printerProfiles.currentProfileData().volume.width();
 		var ratio = h / w;
@@ -161,6 +163,7 @@ function WorkingAreaViewModel(params) {
 	};
 	
 	self.onStartup = function(){
+		console.log("working_area_onstartup");
 		self.files.workingArea = self;
 		$(window).resize(function(){
 			self.trigger_resize();

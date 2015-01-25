@@ -115,6 +115,7 @@ function SettingsViewModel(loginStateViewModel, usersViewModel, printerProfilesV
 
     self.removeTerminalFilter = function(filter) {
         self.terminalFilters.remove(filter);
+		self.saveall();
     };
 
     self.onSettingsShown = function() {
@@ -203,7 +204,6 @@ function SettingsViewModel(loginStateViewModel, usersViewModel, printerProfilesV
         self.temperature_profiles(response.temperature.profiles);
 
         self.system_actions(response.system.actions);
-
         self.terminalFilters(response.terminalFilters);
     };
 
@@ -274,6 +274,8 @@ function SettingsViewModel(loginStateViewModel, usersViewModel, printerProfilesV
             },
             "terminalFilters": self.terminalFilters()
         });
+		
+		console.log("data", data.terminalFilters);
 		return data;
 	};
 
