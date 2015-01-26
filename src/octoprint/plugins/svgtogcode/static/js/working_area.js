@@ -25,8 +25,8 @@ function WorkingAreaViewModel(params) {
 	self.workingAreaHeightMM = ko.observable(undefined);
 	self.hwRatio = ko.computed(function(){
 		// y/x = 297/216 respectively 594/432
-		var h = self.workingAreaWidthMM();
-		var w = self.workingAreaHeightMM();
+		var w = self.workingAreaWidthMM();
+		var h = self.workingAreaHeightMM();
 //		var h = self.settings.printerProfiles.currentProfileData().volume.depth();
 //		var w = self.settings.printerProfiles.currentProfileData().volume.width();
 		var ratio = h / w;

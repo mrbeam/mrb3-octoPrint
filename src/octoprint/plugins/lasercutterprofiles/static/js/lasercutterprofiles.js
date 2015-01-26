@@ -89,6 +89,7 @@ $(function() {
         var defaultProfile = undefined;
         var currentProfile = undefined;
         var currentProfileData = undefined;
+		console.log("lasercutterprofiles", data.profiles);
         _.each(data.profiles, function(entry) {
             if (entry.default) {
                 defaultProfile = entry.id;
@@ -207,6 +208,10 @@ $(function() {
             self.updateProfile(undefined, callback);
         }
     };
+	
+	self.isReadOnly = function (data){
+		return (data.id === "_mrbeam_senior" || data.id === "_mrbeam_junior"); 
+	};
 
     self._editorData = function() {
         var profile = {

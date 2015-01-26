@@ -135,7 +135,7 @@ class LaserCutterProfileManager(object):
 	def exists(self, identifier):
 		if identifier is None:
 			return False
-		elif identifier == "_default":
+		elif identifier == "_mrbeam_junior" or identifier == "_mrbeam_senior":
 			return True
 		else:
 			path = self._get_profile_path(identifier)
@@ -155,10 +155,8 @@ class LaserCutterProfileManager(object):
 
 			results[identifier] = dict_merge(self._load_default("_mrbeam_junior"), profile)
 			
-		if(not results.has_key("_mrbeam_junior")):
-			results["_mrbeam_junior"] = self._load_default("_mrbeam_junior")
-		if(not results.has_key("_mrbeam_senior")):
-			results["_mrbeam_senior"] = self._load_default("_mrbeam_senior")
+		results["_mrbeam_junior"] = self._load_default("_mrbeam_junior")
+		results["_mrbeam_senior"] = self._load_default("_mrbeam_senior")
 		return results
 
 	def _load_all_identifiers(self):
@@ -211,7 +209,6 @@ class LaserCutterProfileManager(object):
 			return False
 
 	def _load_default(self, defaultModel = None):
-		default_overrides = self.settings.get([defaultModel])
 		default = copy.deepcopy(self.__class__.default)
 		if(defaultModel is not None and defaultModel == "_mrbeam_senior"):
 			default['volume']['width'] *= 2
@@ -219,12 +216,7 @@ class LaserCutterProfileManager(object):
 			default['model'] = "Senior"
 			default['id'] = "_mrbeam_senior"
 		
-		if(default_overrides is None):
-			merge = default
-		else:
-			merge = dict_merge(default, default_overrides)
-
-		profile = self._ensure_valid_profile(merge)
+		profile = self._ensure_valid_profile(default)
 		if not profile:
 			self._logger.warn("Invalid default profile after applying overrides")
 			raise InvalidProfileError()
