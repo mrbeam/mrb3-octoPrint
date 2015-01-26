@@ -4,6 +4,7 @@ $(function() {
     var self = this;
 	
 	self.workingarea = params[0];
+	self.control = params[1];
 
     self._cleanProfile = function() {
         return {
@@ -89,7 +90,6 @@ $(function() {
         var defaultProfile = undefined;
         var currentProfile = undefined;
         var currentProfileData = undefined;
-		console.log("lasercutterprofiles", data.profiles);
         _.each(data.profiles, function(entry) {
             if (entry.default) {
                 defaultProfile = entry.id;
@@ -109,6 +109,8 @@ $(function() {
 		
 		self.workingarea.workingAreaWidthMM(self.currentProfileData().volume.width());
 		self.workingarea.workingAreaHeightMM(self.currentProfileData().volume.depth());
+//		self.control.currentProfile(self.currentProfileData());
+//		console.log("lasercutterprofiles from_response", self.control.currentProfile());
     };
 
     self.addProfile = function(callback) {
@@ -142,8 +144,6 @@ $(function() {
             profile = self._editorData();
         }
 		
-			console.log("updateProfile", profile);
-
         $.ajax({
             url: BASEURL + "plugin/lasercutterprofiles/profiles/" + profile.id,
             type: "PATCH",
@@ -247,13 +247,18 @@ $(function() {
     self.onSettingsShown = self.requestData;
     self.onStartup = function(){
 		self.requestData();
+		self.control.showZAxis = ko.computed(function(){
+			var has = self.currentProfileData()['zAxis']();
+			return has;
+		}); // dependency injection
 	};
+	
 }
 
 	
     // view model class, identifier, parameters for constructor, container to bind to
     ADDITIONAL_VIEWMODELS.push([LaserCutterProfilesViewModel, "laserCutterProfilesViewModel",
-		["workingAreaViewModel"], 
+		["workingAreaViewModel", "controlViewModel"], 
 		document.getElementById("laserCutterProfiles")]);
 	
 });

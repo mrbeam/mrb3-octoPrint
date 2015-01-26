@@ -1150,6 +1150,11 @@ ul.dropdown-menu li a {
 	display:inline-block;
 	width: 80px;
 }
+#control_zaxis_focus {
+	display:inline-block;
+	width: 80px;
+	margin: 12px 0;
+}
 #control_xyaxis {
 	display:inline-block;
 	margin: 1em auto 0;

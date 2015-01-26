@@ -165,7 +165,6 @@ function WorkingAreaViewModel(params) {
 	};
 	
 	self.onStartup = function(){
-		console.log("working_area_onstartup");
 		self.files.workingArea = self;
 		$(window).resize(function(){
 			self.trigger_resize();

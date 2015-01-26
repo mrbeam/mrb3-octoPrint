@@ -199,9 +199,11 @@ class LaserCutterProfilesPlugin(octoprint.plugin.SettingsPlugin,
 	##~~ TemplatePlugin API
 
 	def get_template_vars(self):
-		return dict(
-			_settings_menu_entry="Laser cutter profile"
+		selectedProfile = laserCutterProfileManager.get_current_or_default()
+		d = dict(
+			settings_menu_entry="Laser cutter profiles",
 		)
+		return d
 
 	def get_template_folder(self):
 		import os
