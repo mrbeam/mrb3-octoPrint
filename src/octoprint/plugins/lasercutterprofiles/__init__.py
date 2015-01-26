@@ -183,7 +183,6 @@ class LaserCutterProfilesPlugin(octoprint.plugin.SettingsPlugin,
 		cfg = dict(
 			current_profile_id=s.get(["current_profile_id"]),
 		)
-		print("on_settings_load", cfg)
 		return cfg
 
 	def on_settings_save(self, data):
@@ -193,7 +192,6 @@ class LaserCutterProfilesPlugin(octoprint.plugin.SettingsPlugin,
 			zAxis = data["zAxis"] in octoprint.settings.valid_boolean_trues
 			s.setBoolean(["zAxis"], zAxis)
 		selectedProfile = laserCutterProfileManager.get_current_or_default()
-		print("on_settings_save", selectedProfile)
 		s.set(["current_profile_id"], selectedProfile['id'])
 
 	##~~ TemplatePlugin API
