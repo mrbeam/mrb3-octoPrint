@@ -21,12 +21,14 @@ function WorkingAreaViewModel(params) {
 	self.availableHeight = ko.observable(undefined);
 	self.availableWidth = ko.observable(undefined);
 	self.px2mm_factor = 1; // initial value
+	self.workingAreaWidthMM = ko.observable(undefined);
+	self.workingAreaHeightMM = ko.observable(undefined);
 	self.hwRatio = ko.computed(function(){
 		// y/x = 297/216 respectively 594/432
-//		var h = self.settings.laserCutterProfiles.currentProfileData().volume.depth();
-//		var w = self.settings.laserCutterProfiles.currentProfileData().volume.width();
-		var h = self.settings.printerProfiles.currentProfileData().volume.depth();
-		var w = self.settings.printerProfiles.currentProfileData().volume.width();
+		var h = self.workingAreaWidthMM();
+		var w = self.workingAreaHeightMM();
+//		var h = self.settings.printerProfiles.currentProfileData().volume.depth();
+//		var w = self.settings.printerProfiles.currentProfileData().volume.width();
 		var ratio = h / w;
 		return ratio;
 	}, self);
@@ -50,18 +52,18 @@ function WorkingAreaViewModel(params) {
 		}
 	});
 	
-	self.workingAreaWidth = ko.computed(function(){
+	self.workingAreaWidthPx = ko.computed(function(){
 		var dim = self.workingAreaDim();
 		return dim ? dim[0] : 1;
 	}, self);
 	
-	self.workingAreaHeight = ko.computed(function(){
+	self.workingAreaHeightPx = ko.computed(function(){
 		var dim = self.workingAreaDim();
 		return dim ? dim[1] : 1;
 	}, self);
 	
 	self.px2mm_factor = ko.computed(function(){
-		return self.settings.printerProfiles.currentProfileData().volume.width() / self.workingAreaWidth();
+		return self.workingAreaWidthMM() / self.workingAreaWidthPx();
 	});
 	
 	self.scaleMatrix = ko.computed(function(){

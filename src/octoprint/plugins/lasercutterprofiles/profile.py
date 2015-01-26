@@ -11,7 +11,6 @@ import copy
 import re
 import logging
 
-from octoprint.settings import settings
 from octoprint.util import dict_merge, dict_clean, dict_contains_keys
 
 class SaveError(Exception):
@@ -42,9 +41,10 @@ class LaserCutterProfileManager(object):
 		)
 	)
 
-	def __init__(self):
+	def __init__(self, settings):
 		self._current = None
-		self._folder = settings().getBaseFolder("plugins")+"/lasercutterprofiles"
+		self.settings = settings
+		self._folder = self.settings.getBaseFolder("plugins")+"/lasercutterprofiles"
 		if not os.path.exists(self._folder):
 			os.makedirs(self._folder)
 		self._logger = logging.getLogger(__name__)
@@ -91,24 +91,23 @@ class LaserCutterProfileManager(object):
 		profile["id"] = identifier
 		profile = dict_clean(profile, self.__class__.default)
 
-		print("save", profile)
 		if identifier == "_default":
 			default_profile = dict_merge(self._load_default(), profile)
 			if not self._ensure_valid_profile(default_profile):
 				raise InvalidProfileError()
 
-			settings().set(["printerProfiles", "defaultProfile"], default_profile, defaults=dict(printerProfiles=dict(defaultProfile=self.__class__.default)))
-			settings().save()
+			self.settings.set(["defaultProfile"], default_profile, defaults=dict(lasercutterprofiles=dict(defaultProfile=self.__class__.default)))
+			self.settings.save()
 		else:
 			self._save_to_path(self._get_profile_path(identifier), profile, allow_overwrite=allow_overwrite)
 
 			if make_default:
-				settings().set(["printerProfiles", "default"], identifier)
+				self.set_default(identifier)
 
 		return self.get(identifier)
 
 	def get_default(self):
-		default = settings().get(["printerProfiles", "default"])
+		default = self.settings.get(["current_profile_id"])
 		if default is not None and self.exists(default):
 			profile = self.get(default)
 			if profile is not None:
@@ -121,8 +120,8 @@ class LaserCutterProfileManager(object):
 		if identifier is not None and not identifier in all_identifiers:
 			return
 
-		settings().set(["printerProfile", "default"], identifier)
-		settings().save()
+		self.settings.set(["current_profile_id"], identifier)
+		self.settings.save()
 
 	def get_current_or_default(self):
 		if self._current is not None:
@@ -191,7 +190,6 @@ class LaserCutterProfileManager(object):
 
 	def _save_to_path(self, path, profile, allow_overwrite=False):
 		validated_profile = self._ensure_valid_profile(profile)
-		print("_save_to_path", validated_profile, path)
 		if not validated_profile:
 			raise InvalidProfileError()
 
@@ -203,7 +201,6 @@ class LaserCutterProfileManager(object):
 			try:
 				yaml.safe_dump(profile, f, default_flow_style=False, indent="  ", allow_unicode=True)
 			except Exception as e:
-				print (e.message)
 				raise SaveError("Cannot save profile %s: %s" % (profile["id"], e.message))
 
 	def _remove_from_path(self, path):
@@ -214,7 +211,7 @@ class LaserCutterProfileManager(object):
 			return False
 
 	def _load_default(self, defaultModel = None):
-		default_overrides = settings().get(["laserCutterProfiles", defaultModel])
+		default_overrides = self.settings.get([defaultModel])
 		default = copy.deepcopy(self.__class__.default)
 		if(defaultModel is not None and defaultModel == "_mrbeam_senior"):
 			default['volume']['width'] *= 2
@@ -252,7 +249,6 @@ class LaserCutterProfileManager(object):
 	def _ensure_valid_profile(self, profile):
 		# ensure all keys are present
 		if not dict_contains_keys(self.default, profile):
-			print("key error")
 			return False
 
 		# conversion helper
@@ -274,7 +270,6 @@ class LaserCutterProfileManager(object):
 			try:
 				convert_value(profile, path, int)
 			except:
-				print("int error")
 				return False
 
 		# convert floats
@@ -282,7 +277,6 @@ class LaserCutterProfileManager(object):
 			try:
 				convert_value(profile, path, float)
 			except:
-				print("float error")
 				return False
 
 		# convert booleans
@@ -290,7 +284,6 @@ class LaserCutterProfileManager(object):
 			try:
 				convert_value(profile, path, bool)
 			except:
-				print("bool error")
 				return False
 
 		return profile

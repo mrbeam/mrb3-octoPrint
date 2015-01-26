@@ -24,9 +24,12 @@ import copy
 from octoprint.server.util.flask import restricted_access
 from flask import Blueprint, request, jsonify, abort, current_app, session, make_response, url_for
 
-
+default_settings = {
+	"current_profile_id": "_mrbeam_junior"
+}
+s = octoprint.plugin.plugin_settings("lasercutterprofiles", defaults=default_settings)
 blueprint = flask.Blueprint("plugin.lasercutterprofiles", __name__)
-laserCutterProfileManager = LaserCutterProfileManager()
+laserCutterProfileManager = LaserCutterProfileManager(s)
 
 @blueprint.route("/profiles", methods=["GET"])
 def laserCutterProfilesList():
@@ -73,8 +76,8 @@ def laserCutterProfilesAdd():
 		return make_response("Profile is invalid", 400)
 	except CouldNotOverwriteError:
 		return make_response("Profile already exists and overwriting was not allowed", 400)
-	except Exception as e:
-		return make_response("Could not save profile: %s" % e.message, 500)
+	#except Exception as e:
+	#	return make_response("Could not save profile: %s" % e.message, 500)
 	else:
 		return jsonify(dict(profile=_convert_profile(saved_profile)))
 
@@ -126,8 +129,8 @@ def laserCutterProfilesUpdate(identifier):
 		return make_response("Profile is invalid", 400)
 	except CouldNotOverwriteError:
 		return make_response("Profile already exists and overwriting was not allowed", 400)
-	except Exception as e:
-		return make_response("Could not save profile: %s" % e.message, 500)
+	#except Exception as e:
+	#	return make_response("Could not save profile: %s" % e.message, 500)
 	else:
 		return jsonify(dict(profile=_convert_profile(saved_profile)))
 
@@ -148,13 +151,6 @@ def _convert_profile(profile):
 	return converted
 
 
-
-default_settings = {
-	"zAxis": False,
-	"working_area_width": 216,
-	"working_area_height": 297
-}
-s = octoprint.plugin.plugin_settings("lasercutterprofiles", defaults=default_settings)
 
 
 class LaserCutterProfilesPlugin(octoprint.plugin.SettingsPlugin,
@@ -184,20 +180,21 @@ class LaserCutterProfilesPlugin(octoprint.plugin.SettingsPlugin,
 	##~~ SettingsPlugin API
 
 	def on_settings_load(self):
-		return dict(
-			workingAreaHeight=s.get(["workingAreaHeight"]),
-			workingAreaWidth=s.get(["workingAreaWidth"]),
-			zAxis=s.getBoolean(["zAxis"])
+		cfg = dict(
+			current_profile_id=s.get(["current_profile_id"]),
 		)
+		print("on_settings_load", cfg)
+		return cfg
 
 	def on_settings_save(self, data):
-		if "workingAreaHeight" in data and data["workingAreaHeight"]:
-			s.set(["workingAreaHeight"], data["workingAreaHeight"])
 		if "workingAreaWidth" in data and data["workingAreaWidth"]:
 			s.set(["workingAreaWidth"], data["workingAreaWidth"])
 		if "zAxis" in data:
 			zAxis = data["zAxis"] in octoprint.settings.valid_boolean_trues
 			s.setBoolean(["zAxis"], zAxis)
+		selectedProfile = laserCutterProfileManager.get_current_or_default()
+		print("on_settings_save", selectedProfile)
+		s.set(["current_profile_id"], selectedProfile['id'])
 
 	##~~ TemplatePlugin API
 

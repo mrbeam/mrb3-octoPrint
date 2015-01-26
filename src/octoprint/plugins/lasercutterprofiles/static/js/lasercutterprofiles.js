@@ -3,35 +3,26 @@ $(function() {
 	function LaserCutterProfilesViewModel(params) {
     var self = this;
 	
-	self.settings = params[0];
+	self.workingarea = params[0];
 
     self._cleanProfile = function() {
         return {
             id: "",
             name: "",
             model: "",
-            color: "default",
             volume: {
                 formFactor: "rectangular",
-                width: 200,
-                depth: 200,
-                height: 200
+                width: 216,
+                depth: 297,
+                height: 0
             },
-            heatedBed: false,
+            zAxis: false,
             axes: {
                 x: {speed: 6000, inverted: false},
                 y: {speed: 6000, inverted: false},
-                z: {speed: 200, inverted: false},
-                e: {speed: 300, inverted: false}
-            },
-            extruder: {
-                count: 1,
-                offsets: [
-                    [0,0]
-                ],
-                nozzleDiameter: 0.4
+                z: {speed: 200, inverted: false}
             }
-        }
+        };
     };
 
     self.profiles = new ItemListHelper(
@@ -58,26 +49,18 @@ $(function() {
     self.editorNew = ko.observable(false);
 
     self.editorName = ko.observable();
-//    self.editorColor = ko.observable();
     self.editorIdentifier = ko.observable();
     self.editorModel = ko.observable();
 
     self.editorVolumeWidth = ko.observable();
     self.editorVolumeDepth = ko.observable();
     self.editorVolumeHeight = ko.observable();
-//    self.editorVolumeFormFactor = ko.observable();
 
-//    self.editorHeatedBed = ko.observable();
     self.editorZAxis = ko.observable();
-
-//    self.editorNozzleDiameter = ko.observable();
-//    self.editorExtruders = ko.observable();
-//    self.editorExtruderOffsets = ko.observableArray();
 
     self.editorAxisXSpeed = ko.observable();
     self.editorAxisYSpeed = ko.observable();
     self.editorAxisZSpeed = ko.observable();
-//    self.editorAxisESpeed = ko.observable();
 
     self.editorAxisXInverted = ko.observable(false);
     self.editorAxisYInverted = ko.observable(false);
@@ -122,6 +105,9 @@ $(function() {
         self.defaultProfile(defaultProfile);
         self.currentProfile(currentProfile);
         self.currentProfileData(currentProfileData);
+		
+		self.workingarea.workingAreaWidthMM(self.currentProfileData().volume.width());
+		self.workingarea.workingAreaHeightMM(self.currentProfileData().volume.depth());
     };
 
     self.addProfile = function(callback) {
@@ -154,6 +140,8 @@ $(function() {
         if (profile == undefined) {
             profile = self._editorData();
         }
+		
+			console.log("updateProfile", profile);
 
         $.ajax({
             url: BASEURL + "plugin/lasercutterprofiles/profiles/" + profile.id,
@@ -253,16 +241,14 @@ $(function() {
 
     self.onSettingsShown = self.requestData;
     self.onStartup = function(){
-		console.log("lasercutter profiles onStartup");
-		self.settings.laserCutterProfiles = self;
-		self.requestData;
+		self.requestData();
 	};
 }
 
 	
     // view model class, identifier, parameters for constructor, container to bind to
     ADDITIONAL_VIEWMODELS.push([LaserCutterProfilesViewModel, "laserCutterProfilesViewModel",
-		["settingsViewModel"], 
+		["workingAreaViewModel"], 
 		document.getElementById("laserCutterProfiles")]);
 	
 });
