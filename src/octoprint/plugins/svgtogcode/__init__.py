@@ -266,7 +266,8 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 		args = ['python "%s"' % executable, '-f "%s"' % dest_file, '-d "%s"' % dest_dir]
 		for k, v in engine_settings.items():
 			args += ['"%s=%s"' % (k, str(v))]
-		args += ['--create-log=%s' % log_enabled, '"--log-filename=%s"' % log_path,'"%s"' % model_path]
+		fill_enabled = False # disabled as highly experimental
+		args += ['--fill-areas=%s' % fill_enabled, '--create-log=%s' % log_enabled, '"--log-filename=%s"' % log_path,'"%s"' % model_path]
 
 		#python ~/mrbeam-inkscape-ext/standalone.py -f output.gcode -d output/path --engraving-laser-speed=300
 		#  --laser-intensity=1000  --create-log=false path/to/input.svg
