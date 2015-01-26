@@ -14,7 +14,7 @@
         <td class="settings_printerProfiles_profiles_name"><span class="icon-star" data-bind="invisible: !isdefault()"></span> <span data-bind="text: name"></span></td>
         <td class="settings_printerProfiles_profiles_model" data-bind="text: model"></td>
         <td class="settings_printerProfiles_profiles_action">
-            <a href="#" class="icon-star" title="{{ _('Set as default profile') }}" data-bind="click: function() { $root.makeDefault($data); }"></a>&nbsp;|&nbsp;<a href="#" class="icon-pencil" title="{{ _('Edit Profile') }}" data-bind="css: {disabled:$root.isReadOnly}, click: function() { if(!$root.isReadOnly($data)) $root.showEditProfileDialog($data); }"></a>&nbsp;|&nbsp;<a href="#" class="icon-trash" title="{{ _('Delete Profile') }}" data-bind="css: {disabled:$root.isReadOnly}, click: function() { if(!$root.isReadOnly($data)) $root.removeProfile($data); }"></a>
+            <a href="#" class="icon-star" title="{{ _('Set as default profile') }}" data-bind="click: function() { $root.makeDefault($data); }"></a>&nbsp;|&nbsp;<a href="#" class="icon-pencil" title="{{ _('Edit Profile') }}" data-bind="css: {disabled:$root.isReadOnly($data)}, click: function() { if(!$root.isReadOnly($data)) $root.showEditProfileDialog($data); }"></a>&nbsp;|&nbsp;<a href="#" class="icon-trash" title="{{ _('Delete Profile') }}" data-bind="css: {disabled:$root.isReadOnly($data)}, click: function() { if(!$root.isReadOnly($data)) $root.removeProfile($data); }"></a>
         </td>
     </tr>
     </tbody>

@@ -1376,6 +1376,17 @@ ul.dropdown-menu li a {
   height: 17px;
   display: inline-block !important;
 }
+
+table th.settings_printerProfiles_profiles_action a, table td.settings_printerProfiles_profiles_action a {
+	text-decoration: none;
+	color: #000;
+}
+
+td.settings_printerProfiles_profiles_action a.disabled {
+	color: #ccc;
+	cursor: default;
+}
+
 .center {
   float: none;
   margin-left: auto;

@@ -109,8 +109,6 @@ $(function() {
 		
 		self.workingarea.workingAreaWidthMM(self.currentProfileData().volume.width());
 		self.workingarea.workingAreaHeightMM(self.currentProfileData().volume.depth());
-//		self.control.currentProfile(self.currentProfileData());
-//		console.log("lasercutterprofiles from_response", self.control.currentProfile());
     };
 
     self.addProfile = function(callback) {
