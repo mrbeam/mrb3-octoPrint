@@ -228,6 +228,10 @@ function ControlViewModel(loginStateViewModel, settingsViewModel, printerStateVi
             data: JSON.stringify(data)
         });
     };
+	
+	self.setCoordinateOrigin = function(){
+		self.sendCustomCommand({type:'command', command: "G92 X0 Y0"});
+	};
 
     self.sendCustomCommand = function(command) {
         if (!command)

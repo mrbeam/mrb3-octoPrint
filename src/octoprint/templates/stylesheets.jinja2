@@ -6,7 +6,7 @@
 <link href="{{ url_for('static', filename='css/pnotify.min.css') }}" rel="stylesheet" media="screen">
 
 {% if stylesheet == "less" %}
-    <link href="{{ url_for('static', filename='less/octoprint.less') }}" rel="stylesheet/less" type="text/css" media="screen">
+    <!--<link href="{{ url_for('static', filename='less/octoprint.less') }}" rel="stylesheet/less" type="text/css" media="screen">-->
 
     <!-- Plugin files -->
     {% for name, assets in assetPlugins.items() %}
@@ -20,7 +20,7 @@
 
     <script src="{{ url_for('static', filename='js/lib/less.min.js') }}" type="text/javascript"></script>
 {% else %}
-    <link href="{{ url_for('static', filename='css/octoprint.css') }}" rel="stylesheet" type="text/css" media="screen">
+    <!--<link href="{{ url_for('static', filename='css/octoprint.css') }}" rel="stylesheet" type="text/css" media="screen">-->
     <!-- Plugin files -->
     {% for name, assets in assetPlugins.items() %}
         {% if "css" in assets %}
