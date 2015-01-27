@@ -26,7 +26,7 @@ GCODE.renderer = (function(){
         bgColorGrid: "#ffffff",
         bgColorOffGrid: "#eeeeee",
         colorLine: ["#000000", "#3333cc", "#cc3333", "#33cc33", "#cc33cc"],
-        colorMove: "#00ff00",
+        colorMove: "#dddddd",
         colorRetract: "#ff0000",
         colorRestart: "#0000ff",
 
@@ -342,8 +342,7 @@ GCODE.renderer = (function(){
     };
 
     var drawLayer = function(layerNum, fromProgress, toProgress, isNotCurrentLayer){
-        console.log("Drawing layer " + layerNum + " from " + fromProgress + " to " + toProgress + " (current: " + !isNotCurrentLayer + ")");
-
+		
         var i;
 
         //~~ store current layer values
@@ -362,7 +361,7 @@ GCODE.renderer = (function(){
 
         //~~ find our initial prevX/prevY tuple
 
-        if (cmds[0].prevX !== undefined && cmds[0].prevY !== undefined) {
+        if (typeof(cmds[0].prevX) !== 'undefined' && typeof(cmds[0].prevY) !== 'undefined') {
             // command contains prevX/prevY values, use those
             prevX = cmds[0].prevX * zoomFactor;
             prevY = -1 * cmds[0].prevY * zoomFactor;
@@ -375,15 +374,15 @@ GCODE.renderer = (function(){
             prevX = undefined;
             prevY = undefined;
             for (i = model[layerNum-1].length-1; i >= 0; i--) {
-                if (prevX === undefined && model[layerNum - 1][i].x !== undefined) prevX = model[layerNum - 1][i].x * zoomFactor;
-                if (prevY === undefined && model[layerNum - 1][i].y !== undefined) prevY =- model[layerNum - 1][i].y * zoomFactor;
+                if (typeof(prevX) === 'undefined' && typeof(model[layerNum - 1][i].x) !== 'undefined') prevX = model[layerNum - 1][i].x * zoomFactor;
+                if (typeof(prevY) === 'undefined' && typeof(model[layerNum - 1][i].y) !== 'undefined') prevY =- model[layerNum - 1][i].y * zoomFactor;
             }
         }
 
         // if we did not find prevX or prevY, set it to 0 (might be that we are on the first command of the first layer,
         // or it's just a very weird model...)
-        if (prevX === undefined) prevX = 0;
-        if (prevY === undefined) prevY = 0;
+        if (typeof(prevX) === 'undefined') prevX = 0;
+        if (typeof(prevY) === 'undefined') prevY = 0;
 
         //~~ render this layer's commands
 
@@ -423,8 +422,8 @@ GCODE.renderer = (function(){
             // alpha value (100% if current layer is being rendered, 30% otherwise)
             var alpha = (renderOptions['showNextLayer'] || renderOptions['showPreviousLayer']) && isNotCurrentLayer ? 0.3 : 1.0;
             var shade = tool * 0.15;
-
-            if (!cmds[i].extrude && !cmds[i].noMove) {
+			
+            if (!cmds[i].extrude && !cmds[i].noMove && cmds[i].laser === 0) {
                 // neither extrusion nor move
                 if (cmds[i].retract == -1) {
                     // retract => draw dot if configured to do so
@@ -446,7 +445,7 @@ GCODE.renderer = (function(){
                     ctx.lineTo(x*zoomFactor,y*zoomFactor);
                     ctx.stroke();
                 }
-            } else if(cmds[i].extrude) {
+            } else if(cmds[i].extrude || cmds[i].laser > 0) {
                 if (cmds[i].retract == 0) {
                     // no retraction => real extrusion move, use tool color to draw line
                     ctx.strokeStyle = pusher.color(renderOptions["colorLine"][tool]).shade(shade).alpha(alpha).html();

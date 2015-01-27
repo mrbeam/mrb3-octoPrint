@@ -241,8 +241,6 @@ function VectorConversionViewModel(params) {
         }).on("slideStop", self.changeFeedrate);
     };
 	
-	
-	console.log("self.state", self.state);
 	self.state.convertWorkingArea = self.show_conversion_dialog; // hack! injecting method to avoid circular dependency.
 
 }

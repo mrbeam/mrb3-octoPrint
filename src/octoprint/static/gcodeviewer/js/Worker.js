@@ -22,7 +22,6 @@
     var layerCnt = 0;
     var speeds = {extrude: [], retract: [], move: []};
     var speedsByLayer = {extrude: {}, retract: {}, move: {}};
-console.error("WORKER");
     var sendLayerToParent = function(layerNum, z, progress){
         self.postMessage({
             "cmd": "returnLayer",
@@ -45,7 +44,7 @@ console.error("WORKER");
             tmpZHeight[layerNum[i]] = z_heights[z[i]];
         }
 
-        self.postMessage({
+		self.postMessage({
             "cmd": "returnMultiLayer",
             "msg": {
                 model: tmpModel,
@@ -124,8 +123,8 @@ console.error("WORKER");
 
                 if (typeof(cmds[j].x) !== 'undefined'
                         && typeof(cmds[j].prevX) !== 'undefined'
-                        && typeof(cmds[j].extrude) !== 'undefined'
-                        && cmds[j].extrude
+                       // && typeof(cmds[j].extrude) !== 'undefined'
+                       // && cmds[j].extrude
                         && !isNaN(cmds[j].x)) {
                     var x = cmds[j].x;
                     max.x = max.x !== undefined ? Math.max(max.x, x) : x;
@@ -136,8 +135,8 @@ console.error("WORKER");
 
                 if (typeof(cmds[j].y) !== 'undefined'
                         && typeof(cmds[j].prevY) !== 'undefined'
-                        && typeof(cmds[j].extrude) !== 'undefined'
-                        && cmds[j].extrude
+                      //  && typeof(cmds[j].extrude) !== 'undefined'
+                      //  && cmds[j].extrude
                         && !isNaN(cmds[j].y)){
                     var y = cmds[j].y;
 
@@ -149,7 +148,7 @@ console.error("WORKER");
 
                 if (typeof(cmds[j].prevZ) !== 'undefined'
                         && typeof(cmds[j].extrude) !== 'undefined'
-                        && cmds[j].extrude
+                       // && cmds[j].extrude
                         && !isNaN(cmds[j].prevZ)) {
                     var z = cmds[j].prevZ;
                     max.z = max.z !== undefined ? Math.max(max.z, z) : z;
@@ -175,8 +174,9 @@ console.error("WORKER");
                 } else if (cmds[j].retract !== 0) {
                     printTimeAdd = Math.abs(cmds[j].extrusion / (cmds[j].speed/60));
                 }
-
-                printTime += printTimeAdd;
+				
+				if(!isNaN(printTimeAdd))
+					printTime += printTimeAdd;
                 if (typeof(printTimeByLayer[cmds[j].prevZ]) === 'undefined') {
                     printTimeByLayer[cmds[j].prevZ] = 0;
                 }
@@ -215,7 +215,7 @@ console.error("WORKER");
         modelSize.y = Math.abs(max.y - min.y);
         modelSize.z = Math.abs(max.z - min.z);
         layerHeight = (max.z-min.z) / (layerCnt - 1);
-
+		
         sendAnalyzeDone();
     };
 
@@ -228,8 +228,10 @@ console.error("WORKER");
         var lastSend = 0;
 
         var layer = 0;
-        var x, y, z = 0;
-        var prevX = 0, prevY = 0, prevZ = 0;
+        var x, y, z, pi, pj, pp = 0;
+		var clockwise = false;
+		var laser = 0;
+        var prevX = 0, prevY = 0, prevZ = -1;
         var f, lastF = 4000;
         var extrude = false, extrudeRelative = false, retract = 0;
         var positionRelative = false;
@@ -247,6 +249,10 @@ console.error("WORKER");
             x = undefined;
             y = undefined;
             z = undefined;
+            pi = undefined;
+            pj = undefined;
+            pp = undefined;
+			clockwise = false;
             retract = 0;
 
             var line = gcode[i].line;
@@ -256,13 +262,13 @@ console.error("WORKER");
             line = line.split(/[\(;]/)[0];
 
             var addToModel = false;
+            var convertAndAddToModel = false;
             var move = false;
 
             var log = false;
 
-            if (/^(?:G0|G1)\s/i.test(line)) {
-				console.log("Worker.js doParse", line);
-                var args = line.split(/\s/);
+            if (/^(?:G0|G00|G1|G01)\s+/i.test(line)) {
+                var args = line.split(/\s+/);
 
                 for (var j = 0; j < args.length; j++) {
                     switch(argChar = args[j].charAt(0).toLowerCase()){
@@ -340,8 +346,118 @@ console.error("WORKER");
                     addToModel = true;
                     move = true;
                 }
+            } else if (/^(?:G2|G02|G3|G03)\s+/i.test(line)) {
+				var units = "G21"; // mm
+                var args = line.split(/\s+/);
+				var lastPos = {x: prevX, y:prevY, z:prevZ};
+
+				clockwise = /^(?:G2|G02)/i.test(args[0]);
+                for (var j = 0; j < args.length; j++) {
+                    switch(argChar = args[j].charAt(0).toLowerCase()){
+						 case 'x':
+                            if (positionRelative) {
+                                x = prevX + Number(args[j].slice(1)) + offset.x;
+                            } else {
+                                x = Number(args[j].slice(1)) + offset.x;
+                            }
+
+                            break;
+
+                        case 'y':
+                            if (positionRelative) {
+                                y = prevY + Number(args[j].slice(1)) + offset.y;
+                            } else {
+                                y = Number(args[j].slice(1)) + offset.y;
+                            }
+
+                            break;
+
+                        case 'z':
+                            if (positionRelative) {
+                                z = prevZ + Number(args[j].slice(1));
+                            } else {
+                                z = Number(args[j].slice(1));
+                            }
+
+                            break;
+							
+                        case 'i':
+                            pi = Number(args[j].slice(1)) + offset.x;
+                            
+                            break;
+
+                        case 'j':
+							pj = Number(args[j].slice(1)) + offset.y;
+
+                            break;
+
+                        case 'p':
+                            pp = Number(args[j].slice(1));
+
+                            break;
+
+                        case 'e':
+                        case 'a':
+                        case 'b':
+                        case 'c':
+                            assumeNonDC = true;
+                            numSlice = Number(args[j].slice(1));
+
+                            if (!extrudeRelative) {
+                                // absolute extrusion positioning
+                                prev_extrude[tool]["abs"] = numSlice - prev_extrude[tool][argChar];
+                                prev_extrude[tool][argChar] = numSlice;
+                            } else {
+                                prev_extrude[tool]["abs"] = numSlice;
+                                prev_extrude[tool][argChar] += numSlice;
+                            }
+
+                            extrude = prev_extrude[tool]["abs"] > 0;
+                            if (prev_extrude[tool]["abs"] < 0) {
+                                prev_retract[tool] = -1;
+                                retract = -1;
+                            } else if (prev_extrude[tool]["abs"] == 0) {
+                                retract = 0;
+                            } else if (prev_extrude[tool]["abs"] > 0 && prev_retract[tool] < 0) {
+                                prev_retract[tool] = 0;
+                                retract = 1;
+                            } else {
+                                retract = 0;
+                            }
+
+                            break;
+
+                        case 'f':
+                            numSlice = parseFloat(args[j].slice(1));
+                            lastF = numSlice;
+                            break;
+                    }
+                }
+
+                if (dcExtrude && !assumeNonDC) {
+                    extrude = true;
+                    prev_extrude[tool]["abs"] = Math.sqrt((prevX - x) * (prevX - x) + (prevY - y) * (prevY - y));
+                }
+
+                if (typeof(x) !== 'undefined' || typeof(y) !== 'undefined' || typeof(z) !== 'undefined' 
+						|| typeof(pi) !== 'undefined' || typeof(pj) !== 'undefined' || typeof(pp) !== 'undefined' || retract != 0) {
+					
+                    convertAndAddToModel = true;
+                    move = true;
+                }
             } else if (/^(?:M82)/i.test(line)) {
                 extrudeRelative = false;
+            } else if (/^(?:M3|M03)/i.test(line)) {
+				var args = line.split(/\s+/);
+                for (var j = 0; j < args.length; j++) {
+                    switch(argChar = args[j].charAt(0).toLowerCase()){
+						 case 's':
+			                laser = Number(args[j].slice(1));
+                         break;
+					}
+				}
+            } else if (/^(?:M5|M05)/i.test(line)) {
+			     laser = 0;
             } else if (/^(?:G91)/i.test(line)) {
                 positionRelative = true;
                 extrudeRelative = true;
@@ -404,7 +520,7 @@ console.error("WORKER");
                     move = false;
                 }
 
-            } else if (/^(?:G28)/i.test(line)) {
+            } else if (/^(?:G28|$H)/i.test(line)) {
                 var args = line.split(/\s/);
 
                 if (args.length == 1) {
@@ -448,33 +564,54 @@ console.error("WORKER");
                 if (!offset) offset = {x: 0, y: 0};
             }
 
-            if (typeof(z) !== 'undefined' && z != prevZ) {
-                if (z_heights[z]) {
-                    layer = z_heights[z];
-                } else {
-                    layer = model.length;
-                    z_heights[z] = layer;
-                }
+			// ensure z is set.
+			if(typeof(z) === 'undefined'){
+				if(typeof(prevZ) !== 'undefined'){
+					z = prevZ;
+				} else {
+					z = 0;
+				}
+			}
+			
+			// create layer number. 
+			if (z_heights.hasOwnProperty(z)) {
+				layer = z_heights[z];
+			} else {
+				layer = model.length;
+				z_heights[z] = layer; // map layer number to z-height
+			}
+			
+			
+			
+//			z_heights[z]
+//            if (typeof(z) !== 'undefined' && z != prevZ) {
+//                if (z_heights[z]) {
+//                    layer = z_heights[z];
+//                } else {
+//                    layer = model.length;
+//                    z_heights[z] = layer;
+//                }
+//
+//                prevZ = z;
+//            } else if (typeof(z) === 'undefined' && typeof(prevZ) !== 'undefined') {
+//                if (z_heights.hasOwnProperty(prevZ)) {
+//                    layer = z_heights[prevZ];
+//                } else {
+//                    layer = model.length;
+//                    z_heights[prevZ] = layer;
+//                }
+//            }
 
-                sendLayer = layer;
-                sendLayerZ = z;
-                prevZ = z;
-            } else if (typeof(z) == 'undefined' && typeof(prevZ) != 'undefined') {
-                if (z_heights.hasOwnProperty(prevZ)) {
-                    layer = z_heights[prevZ];
-                } else {
-                    layer = model.length;
-                    z_heights[prevZ] = layer;
-                }
-            }
-			console.log("worker.js addToModel", addToModel, line);
+			
+            if (!model[layer]) model[layer] = [];
+			
             if (addToModel) {
-                if (!model[layer]) model[layer] = [];
                 model[layer].push({
                     x: x,
                     y: y,
                     z: z,
                     extrude: extrude,
+					laser: laser,
                     retract: retract,
                     noMove: !move,
                     extrusion: (extrude || retract) && prev_extrude[tool]["abs"] ? prev_extrude[tool]["abs"] : 0,
@@ -487,13 +624,43 @@ console.error("WORKER");
                     tool: tool
                 });
             }
-			
+            if (convertAndAddToModel) {
+				var parts = convertG2G3(clockwise, x, y, z, pi, pj, pp, lastPos, units);
+				var lastPart = parts[0];
+				for (var l = 1; l < parts.length; l++) {
+					var part = parts[l];
+					
+					model[layer].push({
+						x: part[0],
+						y: part[1],
+						z: part[2],
+						extrude: extrude,
+						laser: laser,
+						retract: retract,
+						noMove: !move,
+						extrusion: (extrude || retract) && prev_extrude[tool]["abs"] ? prev_extrude[tool]["abs"] : 0,
+						prevX: lastPart[0],
+						prevY: lastPart[1],
+						prevZ: lastPart[2],
+						speed: lastF,
+						gcodeLine: i,
+						percentage: percentage,
+						tool: tool
+					});
+					
+					lastPart = part;
+				}
+            }
 
             if (move) {
                 if (typeof(x) !== 'undefined') prevX = x;
                 if (typeof(y) !== 'undefined') prevY = y;
             }
 
+			sendLayer = layer;
+			sendLayerZ = z;
+			
+			// send in chunks
             if (typeof(sendLayer) !== "undefined") {
                 if (i - lastSend > gcode.length*0.02 && sendMultiLayer.length != 0){
                     lastSend = i;
@@ -507,13 +674,12 @@ console.error("WORKER");
                 sendLayerZ = undefined;
             }
         }
-		console.log("worker.js model", model);
+		prevZ = z;
         sendMultiLayerToParent(sendMultiLayer, sendMultiLayerZ, i / gcode.length*100);
     };
 
 
     var parseGCode = function(message){
-	console.log("Worker.js", "parseGCode", message.options);
         gcode = message.gcode;
         firstReport = message.options.firstReport;
         toolOffsets = message.options.toolOffsets;
@@ -553,6 +719,121 @@ console.error("WORKER");
             gCodeOptions[opt] = options[opt];
         }
     };
+
+	var convertG2G3 = function(clockwise, x, y, z, i, j, p, lastPos, units){
+//	private void drawArc(GCodeParser parser, MachineStatus machineStatus, Map<String, ParsedWord> currentBlock) throws SimException {
+		if(typeof(x) === 'undefined') x = lastPos.x;
+		if(typeof(y) === 'undefined') y = lastPos.y;
+		if(typeof(z) === 'undefined') z = lastPos.z;
+        if(typeof(i) === 'undefined') i = 0.0;
+        if(typeof(j) === 'undefined') j = 0.0;
+        if(typeof(p) === 'undefined') p = 1.0;
+
+        var curveSection = 1.0; // mm
+        if (units === "G20") { // inches
+            curveSection = 1.0/25.4;
+        } 
+	
+
+        // angle variables.
+        var angleA;
+        var angleB;
+        var angle;
+
+        // delta variables.
+        var aX;
+        var aY;
+        var bX;
+        var bY;
+
+
+//		center of rotation
+        var cX = lastPos.x + i;
+        var cY = lastPos.y + j;
+
+        aX = lastPos.x - cX;
+        aY = lastPos.y - cY;
+        bX = x - cX;
+        bY = y - cY;
+
+        // Clockwise
+        if (clockwise) {
+            angleA = Math.atan2(bY, bX);
+            angleB = Math.atan2(aY, aX);
+        } else {
+            angleA = Math.atan2(aY, aX);
+            angleB = Math.atan2(bY, bX);
+        }
+
+        // Make sure angleB is always greater than angleA
+        // and if not add 2PI so that it is (this also takes
+        // care of the special case of angleA == angleB,
+        // ie we want a complete circle)
+        if (angleB <= angleA) {
+            angleB += 2 * Math.PI * p;
+        }
+        angle = angleB - angleA;
+
+        // calculate a couple useful things.
+        var radius = Math.sqrt(aX * aX + aY * aY);
+        var length = radius * angle;
+
+        // for doing the actual move.
+        var steps;
+        var s;
+
+        // Maximum of either 2.4 times the angle in radians
+        // or the length of the curve divided by the curve section constant
+        steps = Math.ceil(Math.max(angle * 2.4, length / curveSection, 8));
+
+
+        var fta;
+        if (!clockwise) {
+            fta = angleA + angle;
+        } else {
+            fta = angleA;
+        }
+
+        // THis if arc is correct
+        // TODO move this into the validator
+        var r2 = Math.sqrt(bX * bX + bY * bY);
+        var percentage;
+        if (r2 > radius) {
+            percentage = Math.abs(radius / r2) * 100.0;
+        } else {
+            percentage = Math.abs(r2 / radius) * 100.0;
+        }
+
+        if (percentage < 99.7) {
+            var sb = "";
+            sb += "Radius to end of arc differs from radius to start:\n";
+            sb += "r1=" + radius + "\n";
+            sb += "r2=" + r2 + "\n";
+            console.error("Worker.js convertG2G3", sb);
+        }
+
+        // this is the real line calculation.
+		var parts = [];
+		var arcStartZ = lastPos.z;
+        for (s = 1; s <= steps; s++) {
+            var step;
+            if (!clockwise)
+                step = s;
+            else
+                step = steps - s;
+
+            var ta = (angleA + angle *  (step / steps));
+
+			parts.push([cX + radius * Math.cos(ta),cY + radius * Math.sin(ta),lastPos.z + (z - arcStartZ) * s / steps]);
+			
+//            addData(
+//                    (cX + radius * Math.cos(ta)),
+//                    (cY + radius * Math.sin(ta)),
+//                    (lastPos.z + (currentPos.z - arcStartZ) * s / steps), gcommand);
+        }
+//    	console.log("Worker.js convertG2G3 splitted into", parts.length);
+		return parts;
+	};
 
 onmessage = function (e){
     var data = e.data;

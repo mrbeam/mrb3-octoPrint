@@ -100,16 +100,17 @@ GCODE.gCodeReader = (function(){
 
         var purge;
         for(var i = 0; i < model.length; i++){
-            purge = true;
+//            purge = true;
+            purge = model[i].length === 0;
 
-            if (typeof(model[i]) !== "undefined") {
-                for (var j = 0; j < model[i].length; j++) {
-                    if(model[i][j].extrude) {
-                        purge = false;
-                        break;
-                    }
-                }
-            }
+//            if (typeof(model[i]) !== "undefined") {
+//                for (var j = 0; j < model[i].length; j++) {
+//                    if(model[i][j].extrude) {
+//                        purge = false;
+//                        break;
+//                    }
+//                }
+//            }
 
             if (purge) {
                 model.splice(i, 1);
@@ -132,7 +133,6 @@ GCODE.gCodeReader = (function(){
             lines = reader.target.result.split(/\n/);
             reader.target.result = null;
             prepareGCode(totalSize);
-			console.log("gCodeReader loadFile", totalSize);
 
             GCODE.ui.worker.postMessage({
                     "cmd":"parseGCode",

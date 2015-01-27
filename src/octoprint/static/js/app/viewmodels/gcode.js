@@ -330,7 +330,6 @@ function GcodeViewModel(loginStateViewModel, settingsViewModel) {
             self.selectedFile.name(undefined);
             self.selectedFile.date(undefined);
             self.selectedFile.size(undefined);
-
             self.clear();
             return;
         }
