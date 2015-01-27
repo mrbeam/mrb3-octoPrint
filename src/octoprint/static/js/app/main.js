@@ -64,6 +64,7 @@ $(function() {
 
         var printerStateViewModel = new PrinterStateViewModel(loginStateViewModel, timelapseViewModel);
         var settingsViewModel = new SettingsViewModel(loginStateViewModel, usersViewModel, printerProfilesViewModel);
+        var gcodeViewModel = new GcodeViewModel(loginStateViewModel, settingsViewModel);
         var connectionViewModel = new ConnectionViewModel(loginStateViewModel, settingsViewModel, printerProfilesViewModel);
         var appearanceViewModel = new AppearanceViewModel(settingsViewModel, printerStateViewModel);
         var temperatureViewModel = new TemperatureViewModel(loginStateViewModel, settingsViewModel);
@@ -75,7 +76,6 @@ $(function() {
         //var gcodeFilesViewModel = new GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicingViewModel, vectorConversionViewModel, workingAreaViewModel);
         var gcodeFilesViewModel = new GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicingViewModel, null, null);
 		var controlViewModel = new ControlViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel);
-        var gcodeViewModel = new GcodeViewModel(loginStateViewModel, settingsViewModel);
         var navigationViewModel = new NavigationViewModel(loginStateViewModel, appearanceViewModel, settingsViewModel, usersViewModel);
         var logViewModel = new LogViewModel(loginStateViewModel);
 
@@ -283,12 +283,6 @@ $(function() {
             }
         }
 		
-		// change working area when window size is changed
-//		$(window).resize(function(){
-//			workingAreaViewModel.trigger_resize();
-//		});
-//		workingAreaViewModel.trigger_resize(); // initialize
-//		workingAreaViewModel.init();
 
         $(document).bind("dragover", function (e) {
             var dropOverlay = $("#drop_overlay");
@@ -451,16 +445,14 @@ $(function() {
             ko.applyBindings(connectionViewModel, document.getElementById("connection"));
             ko.applyBindings(printerStateViewModel, document.getElementById("state"));
             ko.applyBindings(gcodeFilesViewModel, document.getElementById("files_accordion"));
-            //ko.applyBindings(temperatureViewModel, document.getElementById("temp"));
             ko.applyBindings(controlViewModel, document.getElementById("control"));
             ko.applyBindings(controlViewModel, document.getElementById("focus"));
             ko.applyBindings(terminalViewModel, document.getElementById("term"));
-//            var gcode = document.getElementById("gcode");
-//            if (gcode) {
-//                gcodeViewModel.initialize();
-//                ko.applyBindings(gcodeViewModel, gcode);
-//            }
-//            ko.applyBindings(settingsViewModel, document.getElementById("settings_dialog"));
+            var gcode = document.getElementById("gcode");
+            if (gcode) {
+                gcodeViewModel.initialize();
+                ko.applyBindings(gcodeViewModel, gcode);
+            }
 //            ko.applyBindings(navigationViewModel, document.getElementById("navbar"));
 //            ko.applyBindings(appearanceViewModel, document.getElementsByTagName("head")[0]);
 //            ko.applyBindings(printerStateViewModel, document.getElementById("drop_overlay"));

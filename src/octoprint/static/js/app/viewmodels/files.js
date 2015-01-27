@@ -174,6 +174,30 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
     };
 	
 	self.startGcodeWithSafetyWarning = function(gcodeFile){
+		console.log("files.js startGcodeWithSafetyWarning", gcodeFile);
+		var date = Date.now();
+		if(GCODE){
+                url: BASEURL + "downloads/files/local/" + gcodeFile,
+            $.ajax({
+                data: { "ctime": date },
+                type: "GET",
+                success: function(response, rstatus) {
+                    if(rstatus === 'success'){
+						var par = {
+							target: {
+								result: response
+							}
+						};
+						console.log("files.js loaded gcode");
+						GCODE.gCodeReader.loadFile(par);
+                    }
+                },
+                error: function() {
+                    self.status = "idle";
+                    self.errorCount++;
+                }
+            });
+		}
 		self.printerState.show_safety_glasses_warning(function(){
 			self.loadFile(gcodeFile, true);
 		});

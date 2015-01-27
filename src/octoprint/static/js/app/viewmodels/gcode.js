@@ -470,5 +470,16 @@ function GcodeViewModel(loginStateViewModel, settingsViewModel) {
     self.onDataUpdaterReconnect = function() {
         self.reset();
     }
+	
+	self.onSlicingDone = function(payload){
+		console.log("gcode.js onSlicingDone", payload);
+		var file = payload.gcode;
+		var loc = payload.gcode_location;
+		self.loadFile(file, Date.now());
+	};
+	
+	self.onUpdatedFiles = function(payload){
+//		console.log("gcode.js onUpdatedFiles", payload);
+	};
 
 }

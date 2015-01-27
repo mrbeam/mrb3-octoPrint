@@ -22,7 +22,7 @@
     var layerCnt = 0;
     var speeds = {extrude: [], retract: [], move: []};
     var speedsByLayer = {extrude: {}, retract: {}, move: {}};
-
+console.error("WORKER");
     var sendLayerToParent = function(layerNum, z, progress){
         self.postMessage({
             "cmd": "returnLayer",
@@ -261,6 +261,7 @@
             var log = false;
 
             if (/^(?:G0|G1)\s/i.test(line)) {
+				console.log("Worker.js doParse", line);
                 var args = line.split(/\s/);
 
                 for (var j = 0; j < args.length; j++) {
@@ -466,7 +467,7 @@
                     z_heights[prevZ] = layer;
                 }
             }
-
+			console.log("worker.js addToModel", addToModel, line);
             if (addToModel) {
                 if (!model[layer]) model[layer] = [];
                 model[layer].push({
@@ -486,6 +487,7 @@
                     tool: tool
                 });
             }
+			
 
             if (move) {
                 if (typeof(x) !== 'undefined') prevX = x;
@@ -505,11 +507,13 @@
                 sendLayerZ = undefined;
             }
         }
+		console.log("worker.js model", model);
         sendMultiLayerToParent(sendMultiLayer, sendMultiLayerZ, i / gcode.length*100);
     };
 
 
     var parseGCode = function(message){
+	console.log("Worker.js", "parseGCode", message.options);
         gcode = message.gcode;
         firstReport = message.options.firstReport;
         toolOffsets = message.options.toolOffsets;

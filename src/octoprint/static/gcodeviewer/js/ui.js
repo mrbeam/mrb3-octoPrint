@@ -46,9 +46,11 @@ GCODE.ui = (function(){
     };
 
     var processMessage = function(e){
+		console.log("ui processMessage", e.data.cmd);
         var data = e.data;
         switch (data.cmd) {
             case "returnModel":
+				console.log("ui processMessage returnModel -> analyzeModel");
                 GCODE.ui.worker.postMessage({
                     "cmd":"analyzeModel",
                     "msg":{}

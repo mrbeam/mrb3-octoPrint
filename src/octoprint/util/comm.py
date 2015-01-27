@@ -453,7 +453,6 @@ class MachineCom(object):
 				"file": self._currentFile.getFilename(),
 				"origin": self._currentFile.getFileLocation()
 			})
-			print("comm.py selectFile", filename, self._currentFile)
 			self._callback.mcFileSelected(filename, self._currentFile.getFilesize(), False)
 
 	def unselectFile(self):
@@ -779,7 +778,6 @@ class MachineCom(object):
 					if("Alarm" in line):
 						self._changeState(self.STATE_LOCKED)
 					if("Idle" in line and self._state == self.STATE_LOCKED):
-						print("### comm.py GRBL pos update", line)		
 						self._changeState(self.STATE_OPERATIONAL)
 					
 						

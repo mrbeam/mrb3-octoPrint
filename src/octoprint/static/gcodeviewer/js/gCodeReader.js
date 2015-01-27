@@ -39,6 +39,7 @@ GCODE.gCodeReader = (function(){
             byteCount += lines[i].length + 1; // line length + \n
             tmp = lines[i].indexOf(";");
             if(tmp > 1 || tmp === -1) {
+				//console.log("gCodeReader.js line", lines[i]);
                 gcode.push({line: lines[i], percentage: byteCount * 100 / totalSize});
             }
         }
@@ -131,6 +132,7 @@ GCODE.gCodeReader = (function(){
             lines = reader.target.result.split(/\n/);
             reader.target.result = null;
             prepareGCode(totalSize);
+			console.log("gCodeReader loadFile", totalSize);
 
             GCODE.ui.worker.postMessage({
                     "cmd":"parseGCode",
