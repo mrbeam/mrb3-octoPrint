@@ -345,6 +345,9 @@ GCODE.renderer = (function(){
 		
         var i;
 
+		var mdlInfo = GCODE.gCodeReader.getModelInfo();
+		var yShift = mdlInfo.min.y;
+
         //~~ store current layer values
 
         isNotCurrentLayer = isNotCurrentLayer !== undefined ? isNotCurrentLayer : false;
@@ -363,19 +366,19 @@ GCODE.renderer = (function(){
 
         if (typeof(cmds[0].prevX) !== 'undefined' && typeof(cmds[0].prevY) !== 'undefined') {
             // command contains prevX/prevY values, use those
-            prevX = cmds[0].prevX * zoomFactor;
-            prevY = -1 * cmds[0].prevY * zoomFactor;
+            prevX = cmds[0].prevX; // * zoomFactor;
+            prevY = -1 * cmds[0].prevY; // * zoomFactor;
         } else if (fromProgress > 0) {
             // previous command in same layer exists, use x/y as prevX/prevY
-            prevX = cmds[fromProgress - 1].x * zoomFactor;
-            prevY = -cmds[fromProgress - 1].y * zoomFactor;
+            prevX = cmds[fromProgress - 1].x; // * zoomFactor;
+            prevY = -cmds[fromProgress - 1].y; // * zoomFactor;
         } else if (model[layerNum - 1]) {
             // previous layer exists, use last x/y as prevX/prevY
             prevX = undefined;
             prevY = undefined;
             for (i = model[layerNum-1].length-1; i >= 0; i--) {
-                if (typeof(prevX) === 'undefined' && typeof(model[layerNum - 1][i].x) !== 'undefined') prevX = model[layerNum - 1][i].x * zoomFactor;
-                if (typeof(prevY) === 'undefined' && typeof(model[layerNum - 1][i].y) !== 'undefined') prevY =- model[layerNum - 1][i].y * zoomFactor;
+                if (typeof(prevX) === 'undefined' && typeof(model[layerNum - 1][i].x) !== 'undefined') prevX = model[layerNum - 1][i].x; // * zoomFactor;
+                if (typeof(prevY) === 'undefined' && typeof(model[layerNum - 1][i].y) !== 'undefined') prevY =- model[layerNum - 1][i].y; // * zoomFactor;
             }
         }
 
@@ -393,20 +396,20 @@ GCODE.renderer = (function(){
 
             if (typeof(cmds[i].prevX) !== 'undefined' && typeof(cmds[i].prevY) !== 'undefined') {
                 // override new (prevX, prevY)
-                prevX = cmds[i].prevX * zoomFactor;
-                prevY = -1 * cmds[i].prevY * zoomFactor;
+                prevX = cmds[i].prevX; // * zoomFactor;
+                prevY = -1 * cmds[i].prevY; // * zoomFactor;
             }
 
             // new x
             if (typeof(cmds[i].x) === 'undefined' || isNaN(cmds[i].x)) {
-                x = prevX / zoomFactor;
+                x = prevX ;// / zoomFactor;
             } else {
                 x = cmds[i].x;
             }
 
             // new y
             if (typeof(cmds[i].y) === 'undefined' || isNaN(cmds[i].y)) {
-                y = prevY / zoomFactor;
+                y = prevY;// / zoomFactor;
             } else {
                 y = -cmds[i].y;
             }
@@ -441,8 +444,8 @@ GCODE.renderer = (function(){
                     // move => draw line from (prevX, prevY) to (x, y) in move color
                     ctx.strokeStyle = pusher.color(renderOptions["colorMove"]).shade(shade).alpha(alpha).html();
                     ctx.beginPath();
-                    ctx.moveTo(prevX, prevY);
-                    ctx.lineTo(x*zoomFactor,y*zoomFactor);
+                    ctx.moveTo(prevX*zoomFactor, (prevY+yShift)*zoomFactor);
+                    ctx.lineTo(x*zoomFactor,(y+yShift)*zoomFactor);
                     ctx.stroke();
                 }
             } else if(cmds[i].extrude || cmds[i].laser > 0) {
@@ -451,8 +454,8 @@ GCODE.renderer = (function(){
                     ctx.strokeStyle = pusher.color(renderOptions["colorLine"][tool]).shade(shade).alpha(alpha).html();
                     ctx.lineWidth = renderOptions['extrusionWidth'];
                     ctx.beginPath();
-                    ctx.moveTo(prevX, prevY);
-                    ctx.lineTo(x*zoomFactor,y*zoomFactor);
+                    ctx.moveTo(prevX*zoomFactor, (prevY+yShift)*zoomFactor);
+                    ctx.lineTo(x*zoomFactor,(y+yShift)*zoomFactor);
                     ctx.stroke();
                 } else {
                     // we were previously retracting, now we are restarting => draw dot if configured to do so
@@ -460,7 +463,7 @@ GCODE.renderer = (function(){
                         ctx.strokeStyle = pusher.color(renderOptions["colorRestart"]).shade(shade).alpha(alpha).html();
                         ctx.fillStyle = pusher.color(renderOptions["colorRestart"]).shade(shade).alpha(alpha).html();
                         ctx.beginPath();
-                        ctx.arc(prevX, prevY, renderOptions["sizeRetractSpot"], 0, Math.PI*2, true);
+                        ctx.arc(prevX*zoomFactor, prevY*zoomFactor, renderOptions["sizeRetractSpot"], 0, Math.PI*2, true);
                         ctx.stroke();
                         ctx.fill();
                     }
@@ -468,13 +471,14 @@ GCODE.renderer = (function(){
             }
 
             // set new (prevX, prevY)
-            prevX = x * zoomFactor;
-            prevY = y * zoomFactor;
+            prevX = x ;
+            prevY = y ;
         }
         ctx.stroke();
     };
 
     var applyOffsets = function(mdlInfo) {
+		console.log("applyOffsets", mdlInfo);
         var canvasCenter;
 
         // determine bed and model offsets
@@ -707,5 +711,5 @@ GCODE.renderer = (function(){
             return '-1';
         }
 
-}
+	}
 }());
