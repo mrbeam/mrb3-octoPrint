@@ -21,6 +21,7 @@ function WorkingAreaViewModel(params) {
 	self.availableHeight = ko.observable(undefined);
 	self.availableWidth = ko.observable(undefined);
 	self.px2mm_factor = 1; // initial value
+	self.svgDPI = ko.observable(90); // TODO fetch from settings
 	self.workingAreaWidthMM = ko.observable(undefined);
 	self.workingAreaHeightMM = ko.observable(undefined);
 	self.hwRatio = ko.computed(function(){
@@ -68,7 +69,7 @@ function WorkingAreaViewModel(params) {
 	
 	self.scaleMatrix = ko.computed(function(){
 		var m = new Snap.Matrix();
-		m.scale(25.4/90 * 1/self.px2mm_factor());
+		m.scale(25.4/self.svgDPI() * 1/self.px2mm_factor());
 		return m;
 	});
 	
@@ -112,6 +113,10 @@ function WorkingAreaViewModel(params) {
 		return val / self.px2mm_factor();
 	};
 	
+	self.mm2svgUnits = function(val){
+		return val * self.svgDPI()/25.4;
+	}
+	
 	//self.getDivDimensions(); // init
 	
 	self.placeSVG = function(file) {
@@ -135,7 +140,7 @@ function WorkingAreaViewModel(params) {
 			var newSvg = f.select("g");
 			newSvg.attr(namespaces);
 			var id = self.generateId(url);
-			snap.select("#scaleGroup").append(newSvg);
+			snap.select("#userContent").append(newSvg);
 			
 			newSvg.drag();// Making croc draggable. Go ahead drag it around!
 			// Obviously drag could take event handlers too
@@ -150,7 +155,52 @@ function WorkingAreaViewModel(params) {
 	self.init = function(){
 		// init snap.svg
 		snap = Snap('#area_preview');
+		self.px2mm_factor.subscribe(function(newVal){
+			if(!isNaN(newVal))
+				self.draw_coord_grid();
+		});
+	};
+	
+	self.draw_coord_grid = function(){
+		if(!snap.select('#gridpattern')){
+			var w = self.mm2svgUnits(self.workingAreaWidthMM());
+			var h = self.mm2svgUnits(self.workingAreaHeightMM());
+			var max_lines = 20;
+			
+			var linedistMM = Math.floor(Math.max(self.workingAreaWidthMM(), self.workingAreaHeightMM()) / (max_lines * 10))*10;
+			var yPatternOffset = self.mm2svgUnits(self.workingAreaHeightMM % linedistMM);
+			var linedist = self.mm2svgUnits(linedistMM);
 
+			var p = snap.circle(linedist/2, linedist/2, 1).attr({
+				fill: "#000000",
+				stroke: "none",
+				strokeWidth: 1
+			});
+			
+			// To create pattern,
+			// just specify dimensions in pattern method:
+			p = p.pattern(0, 0, linedist, linedist);
+			p.attr({
+				x: linedist/2,
+				y: linedist/2 + yPatternOffset
+			});
+
+			var rect = snap.rect(0,0,w,h);
+			rect.attr({
+				id: 'gridpattern',
+				fill: p,
+				stroke: "#000",
+				strokeWidth: 1
+			});
+			snap.select('#coordGrid').append(rect);
+
+//		var x = 0;
+//		while(x < w){
+//			
+//			snap.
+//			x += linedist;
+//		}
+		}
 	};
 	
 	self.generateId = function(url){
@@ -162,6 +212,17 @@ function WorkingAreaViewModel(params) {
 			id = idBase + suffix;
 		}
 		return id;
+	};
+	
+	self.getCompositionSVG = function(){
+		// TODO use lasercutterprofiles
+		var dpiFactor = self.svgDPI()/25.4; // convert mm to pix with 90dpi (inkscape default - TODO use 72 for illustrator svg and fetch from settings) 
+		var w = dpiFactor * self.settings.printerProfiles.currentProfileData().volume.width; 
+		var h = dpiFactor * self.settings.printerProfiles.currentProfileData().volume.depth; 
+		
+		var tmpsvg = snap.select("#userContent").innerSVG(); // get working area 
+		var svg = '<svg height="'+ h +'" version="1.1" width="'+ w +'" xmlns="http://www.w3.org/2000/svg"><defs/>'+ tmpsvg +'</svg>';
+		return svg;
 	};
 	
 	self.onStartup = function(){

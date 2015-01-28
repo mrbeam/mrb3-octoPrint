@@ -296,10 +296,12 @@
 											backgroundPosition: crosshairX()+'px'+' '+crosshairY()+'px',
 											width: workingAreaWidthPx()+'px',
 											height: workingAreaHeightPx()+'px'
-										},
-										attr: { transform: scaleMatrix() }
+										}
 									 ">
-								<g id="scaleGroup" data-bind="attr: { transform: scaleMatrix() }"></g>
+									<g id="scaleGroup" data-bind="attr: { transform: scaleMatrix() }">
+										<g id="coordGrid"></g>
+										<g id="userContent"></g>
+									</g>
 								</svg>
 
 							</div>

@@ -34,13 +34,8 @@ function VectorConversionViewModel(params) {
 	
 	// shows conversion dialog and extracts svg first
     self.show_conversion_dialog = function() {
-		var tmpsvg = snap.select("#scaleGroup").innerSVG(); // get working area 
-		// TODO use lasercutterprofiles
-		var dpiFactor = 90/25.4; // convert mm to pix with 90dpi (inkscape default - TODO use 72 for illustrator svg and fetch from settings) 
-		var w = dpiFactor * self.settings.printerProfiles.currentProfileData().volume.width; 
-		var h = dpiFactor * self.settings.printerProfiles.currentProfileData().volume.depth; 
-		
-		self.svg = '<svg height="'+ h +'" version="1.1" width="'+ w +'" xmlns="http://www.w3.org/2000/svg"><defs/>'+ tmpsvg +'</svg>';
+		self.svg = self.workingArea.getCompositionSVG();
+
 		// TODO: js svg conversion
         self.title(gettext("Converting"));
 		var gcodeFile = self.create_gcode_filename(self.workingArea.placedDesigns());
