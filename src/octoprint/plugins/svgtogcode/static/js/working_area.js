@@ -81,8 +81,10 @@ function WorkingAreaViewModel(params) {
 	};
 
 	self.move_laser = function(el){
+		console.log(event);
 		var x = self.px2mm(event.offsetX);
-		var y = self.px2mm(event.toElement.offsetHeight - event.offsetY);
+//		var y = self.px2mm(event.toElement.offsetHeight - event.offsetY); // toElement.offsetHeight is always 0 on svg>* elements ???
+		var y = self.px2mm(event.toElement.ownerSVGElement.offsetHeight - event.offsetY); // hopefully this works across browsers
 		console.log("move_laser", y, event.toElement.id, event.toElement.offsetHeight, event.offsetY);
 		$.ajax({
 			url: API_BASEURL + "printer/printhead",
