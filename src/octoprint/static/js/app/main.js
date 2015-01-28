@@ -70,10 +70,7 @@ $(function() {
         var temperatureViewModel = new TemperatureViewModel(loginStateViewModel, settingsViewModel);
         var terminalViewModel = new TerminalViewModel(loginStateViewModel, settingsViewModel);
 
-		//var workingAreaViewModel = new WorkingAreaViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel);
         var slicingViewModel = new SlicingViewModel(loginStateViewModel, printerProfilesViewModel);
-        //var vectorConversionViewModel = new VectorConversionViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel, workingAreaViewModel);
-        //var gcodeFilesViewModel = new GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicingViewModel, vectorConversionViewModel, workingAreaViewModel);
         var gcodeFilesViewModel = new GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicingViewModel, null, null);
 		var controlViewModel = new ControlViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel);
         var navigationViewModel = new NavigationViewModel(loginStateViewModel, appearanceViewModel, settingsViewModel, usersViewModel);
@@ -97,8 +94,6 @@ $(function() {
             navigationViewModel: navigationViewModel,
             logViewModel: logViewModel,
             slicingViewModel: slicingViewModel,
-            //vectorConversionViewModel: vectorConversionViewModel,
-            //workingAreaViewModel: workingAreaViewModel
         };
 
         var allViewModels = _.values(viewModelMap);

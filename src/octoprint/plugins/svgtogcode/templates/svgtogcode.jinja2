@@ -7,7 +7,7 @@
         <p>{{ _('Please select your laser intensity and speed:') }}</p>
         <form class="form-horizontal">
             <div class="control-group">
-                <label class="control-label">{{ _('Laser intensity (1-1000)') }}</label>
+                <label class="control-label">{{ _('Laser intensity') }} (1-1000)</label>
                 <div class="controls">
                     <div class="input-append">
                         <input id="svgtogcode_intensity" type="text" data-bind="slicerValue: laserIntensity">
@@ -15,10 +15,10 @@
                 </div>
             </div>
             <div class="control-group">
-                <label class="control-label">{{ _('Speed (30 - 3000)') }}</label>
+                <label class="control-label">{{ _('Speed') }} (<span data-bind="text: minSpeed">30</span> - <span data-bind="text: maxSpeed">3000</span>)</label>
                 <div class="controls">
                     <div class="input-append">
-                        <input id="svgtogcode_feedrate" type="text" data-bind="value: laserSpeed">
+                        <input id="svgtogcode_feedrate" class="uninitialized" type="text" data-bind="value: laserSpeed">
                     </div>
                 </div>
             </div>

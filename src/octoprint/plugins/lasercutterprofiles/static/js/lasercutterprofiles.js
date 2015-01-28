@@ -5,6 +5,7 @@ $(function() {
 	
 	self.workingarea = params[0];
 	self.control = params[1];
+	self.conversion = params[2];
 
     self._cleanProfile = function() {
         return {
@@ -109,6 +110,8 @@ $(function() {
 		
 		self.workingarea.workingAreaWidthMM(self.currentProfileData().volume.width());
 		self.workingarea.workingAreaHeightMM(self.currentProfileData().volume.depth());
+		var maxSpeed = Math.min(self.currentProfileData().axes.x.speed(), self.currentProfileData().axes.y.speed());
+		self.conversion.maxSpeed(maxSpeed);
     };
 
     self.addProfile = function(callback) {
@@ -256,7 +259,7 @@ $(function() {
 	
     // view model class, identifier, parameters for constructor, container to bind to
     ADDITIONAL_VIEWMODELS.push([LaserCutterProfilesViewModel, "laserCutterProfilesViewModel",
-		["workingAreaViewModel", "controlViewModel"], 
+		["workingAreaViewModel", "controlViewModel", "vectorConversionViewModel"], 
 		document.getElementById("laserCutterProfiles")]);
 	
 });

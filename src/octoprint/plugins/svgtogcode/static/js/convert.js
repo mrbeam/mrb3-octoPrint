@@ -15,14 +15,20 @@ function VectorConversionViewModel(params) {
     self.defaultProfile = undefined;
 
     self.gcodeFilename = ko.observable();
-	self.settingValues = ko.observable(self.settings.settings);
     self.laserIntensity = ko.observable(undefined);
 	self.laserSpeed = ko.observable(undefined);
+	self.maxSpeed = ko.observable(3000);
+	self.minSpeed = ko.observable(30);
     self.title = ko.observable(undefined);
     self.slicer = ko.observable();
     self.slicers = ko.observableArray();
     self.profile = ko.observable();
     self.profiles = ko.observableArray();
+	
+	self.maxSpeed.subscribe(function(val){
+		console.log("maxSpeed changed", val);
+		self._configureFeedrateSlider();
+	});
 	
 	// TODO check if still in use
     self.show = function(target, file) {
@@ -39,7 +45,7 @@ function VectorConversionViewModel(params) {
 		var speed = self.settings.settings.plugins.svgtogcode.defaultIntensity();
 		self.laserIntensity(intensity);
 		self.laserSpeed(speed);
-
+		
 		self.svg = self.workingArea.getCompositionSVG();
 
 		// TODO: js svg conversion
@@ -93,7 +99,7 @@ function VectorConversionViewModel(params) {
             var tmpGcodeFilename = self.gcodeFilename().trim();
             return tmpGcodeFilename !== ""
                 && tmpIntensity > 0 && tmpIntensity <= 1000 // TODO no magic numbers here!
-                && tmpSpeed >= 30 && tmpSpeed <= 3000;
+                && tmpSpeed >= self.minSpeed() && tmpSpeed <= self.maxSpeed();
         }
     });
 
@@ -242,19 +248,34 @@ function VectorConversionViewModel(params) {
             reversed: false,
             selection: "after",
             orientation: "horizontal",
-            min: 30,
-            max: 3000, // TODO no magic numbers here.
-            step: 10,
+            min: 0,
+            max: 1000,
+            step: 1,
             value: 300,
             enabled: true,
-            formatter: function(value) { return "" + (value) +"mm/min"; }
-        }).on("slideStop", function(ev){
-			self.laserSpeed(ev.value);
-		});
+            formatter: function(value) { return "" + Math.round(self._calcRealSpeed(value)) +"mm/min"; }
+        });
 		
-		self.laserSpeed.subscribe(function(newVal){
-			self.feedrateSlider.slider('setValue', parseInt(newVal));
+		// use the class as a flag to avoid double binding of the slideStop event
+		if($("#svgtogcode_feedrate").attr('class') === 'uninitialized'){
+			self.feedrateSlider.on("slideStop", function(ev){
+				self.laserSpeed(self._calcRealSpeed(ev.value));
+			});
+			$("#svgtogcode_feedrate").removeClass('uninitialized');
+		}
+		
+		
+		
+		var speedSubscription = self.laserSpeed.subscribe(function(realVal){
+			var val = (parseInt(realVal) - self.minSpeed()) / (self.maxSpeed() - self.minSpeed());
+			self.feedrateSlider.slider('setValue', val);
+			speedSubscription.dispose(); // only do it once
 		});
     };
+	
+	self._calcRealSpeed = function(sliderVal){
+		console.log();
+		return self.minSpeed() + sliderVal/1000 * (self.maxSpeed() - self.minSpeed());
+	};
 	
 }
