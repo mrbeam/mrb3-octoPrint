@@ -15,15 +15,20 @@ function VectorConversionViewModel(params) {
     self.defaultProfile = undefined;
 
     self.gcodeFilename = ko.observable();
-    self.laserIntensity = ko.observable("800"); // TODO fetch from settings
-    self.laserSpeed = ko.observable("300");
-
+	self.settingValues = ko.observable(self.settings.settings);
+    self.laserIntensity = ko.observable(undefined);
+	self.laserSpeed = ko.observable(undefined);
     self.title = ko.observable(undefined);
     self.slicer = ko.observable();
     self.slicers = ko.observableArray();
     self.profile = ko.observable();
     self.profiles = ko.observableArray();
 	
+	self.laserIntensity.subscribe(function(newVal){
+		console.log("laserInt new Val", newVal);
+	});
+	
+	// TODO check if still in use
     self.show = function(target, file) {
         self.target = target;
         self.file = file;
@@ -34,6 +39,11 @@ function VectorConversionViewModel(params) {
 	
 	// shows conversion dialog and extracts svg first
     self.show_conversion_dialog = function() {
+		var intensity = self.settings.settings.plugins.svgtogcode.defaultIntensity();
+		var speed = self.settings.settings.plugins.svgtogcode.defaultIntensity();
+		self.laserIntensity(intensity);
+		self.laserSpeed(speed);
+
 		self.svg = self.workingArea.getCompositionSVG();
 
 		// TODO: js svg conversion
@@ -78,16 +88,17 @@ function VectorConversionViewModel(params) {
         self.profilesForSlicer(newValue);
     });
 
+// TODO check if still necessary...
     self.enableConvertButton = ko.computed(function() {
         if (self.laserIntensity() === undefined || self.laserSpeed() === undefined || self.gcodeFilename() === undefined) {
             return false;
         } else {
-            var tmpIntensity = parseInt(self.laserIntensity().trim());
-            var tmpSpeed = parseInt(self.laserSpeed().trim());
+            var tmpIntensity = self.laserIntensity();
+            var tmpSpeed = self.laserSpeed();
             var tmpGcodeFilename = self.gcodeFilename().trim();
             return tmpGcodeFilename !== ""
                 && tmpIntensity > 0 && tmpIntensity <= 1000
-                && tmpSpeed >= 30 && tmpSpeed <= 2000;
+                && tmpSpeed >= 30 && tmpSpeed <= 3000;
         }
     });
 
@@ -210,7 +221,7 @@ function VectorConversionViewModel(params) {
     };
 	
 	self._configureIntensitySlider = function() {
-        self.layerSlider = $("#svgtogcode_intensity").slider({
+        self.intensitySlider = $("#svgtogcode_intensity").slider({
             id: "svgtogcode_intensity_slider",
             reversed: false,
             selection: "after",
@@ -221,11 +232,17 @@ function VectorConversionViewModel(params) {
             value: 500,
             enabled: true,
             formatter: function(value) { return "" + (value/10) +"%"; }
-        }).on("slideStop", self.changeIntensity);
+        }).on("slideStop", function(ev){
+			self.laserIntensity(ev.value);
+		});
+		
+		self.laserIntensity.subscribe(function(newVal){
+			self.intensitySlider.slider('setValue', parseInt(newVal));
+		});
     };
 
 	self._configureFeedrateSlider = function() {
-        self.layerSlider = $("#svgtogcode_feedrate").slider({
+        self.feedrateSlider = $("#svgtogcode_feedrate").slider({
             id: "svgtogcode_feedrate_slider",
             reversed: false,
             selection: "after",
@@ -236,7 +253,13 @@ function VectorConversionViewModel(params) {
             value: 300,
             enabled: true,
             formatter: function(value) { return "" + (value) +"mm/min"; }
-        }).on("slideStop", self.changeFeedrate);
+        }).on("slideStop", function(ev){
+			self.laserSpeed(ev.value);
+		});
+		
+		self.laserSpeed.subscribe(function(newVal){
+			self.feedrateSlider.slider('setValue', parseInt(newVal));
+		});
     };
 	
 }
