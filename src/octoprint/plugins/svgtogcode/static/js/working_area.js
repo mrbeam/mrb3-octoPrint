@@ -83,6 +83,7 @@ function WorkingAreaViewModel(params) {
 	self.move_laser = function(el){
 		var x = self.px2mm(event.offsetX);
 		var y = self.px2mm(event.toElement.offsetHeight - event.offsetY);
+		console.log("move_laser", y, event.toElement.id, event.toElement.offsetHeight, event.offsetY);
 		$.ajax({
 			url: API_BASEURL + "printer/printhead",
 			type: "POST",
@@ -162,44 +163,34 @@ function WorkingAreaViewModel(params) {
 	};
 	
 	self.draw_coord_grid = function(){
-		if(!snap.select('#gridpattern')){
+		var grid = snap.select('#coordGrid');
+		if(grid.attr('fill') === 'none'){
 			var w = self.mm2svgUnits(self.workingAreaWidthMM());
 			var h = self.mm2svgUnits(self.workingAreaHeightMM());
 			var max_lines = 20;
 			
 			var linedistMM = Math.floor(Math.max(self.workingAreaWidthMM(), self.workingAreaHeightMM()) / (max_lines * 10))*10;
-			var yPatternOffset = self.mm2svgUnits(self.workingAreaHeightMM % linedistMM);
+			var yPatternOffset = self.mm2svgUnits(self.workingAreaHeightMM() % linedistMM);
 			var linedist = self.mm2svgUnits(linedistMM);
 
-			var p = snap.circle(linedist/2, linedist/2, 1).attr({
+			var marker = snap.circle(linedist/2, linedist/2, 1).attr({
 				fill: "#000000",
 				stroke: "none",
 				strokeWidth: 1
 			});
-			
-			// To create pattern,
-			// just specify dimensions in pattern method:
-			p = p.pattern(0, 0, linedist, linedist);
+
+			// dot pattern
+			var p = marker.pattern(0, 0, linedist, linedist);
 			p.attr({
 				x: linedist/2,
 				y: linedist/2 + yPatternOffset
 			});
 
-			var rect = snap.rect(0,0,w,h);
-			rect.attr({
-				id: 'gridpattern',
-				fill: p,
-				stroke: "#000",
-				strokeWidth: 1
+			grid.attr({
+				width: w,
+				height: h,
+				fill: p
 			});
-			snap.select('#coordGrid').append(rect);
-
-//		var x = 0;
-//		while(x < w){
-//			
-//			snap.
-//			x += linedist;
-//		}
 		}
 	};
 	

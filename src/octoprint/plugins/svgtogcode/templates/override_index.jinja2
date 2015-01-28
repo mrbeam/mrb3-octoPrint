@@ -291,7 +291,7 @@
 
 							<div class="span8">
 								<svg id="area_preview" class="workingarea" 
-									 data-bind="click: move_laser, 
+									 data-bind="xclick: move_laser, 
 										style: {
 											backgroundPosition: crosshairX()+'px'+' '+crosshairY()+'px',
 											width: workingAreaWidthPx()+'px',
@@ -299,7 +299,9 @@
 										}
 									 ">
 									<g id="scaleGroup" data-bind="attr: { transform: scaleMatrix() }">
-										<g id="coordGrid"></g>
+										<rect data-bind="click: move_laser" 
+											  id="coordGrid" x="0" y="0" width="0" height="0" 
+											  stroke="none" fill="none"></rect>
 										<g id="userContent"></g>
 									</g>
 								</svg>
