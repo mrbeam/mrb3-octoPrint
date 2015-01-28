@@ -162,6 +162,7 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
     };
 
     self.loadFile = function(file, printAfterLoad) {
+		console.log("files loadFile", file);
         if (!file || !file.refs || !file.refs.hasOwnProperty("resource")) return;
 
         $.ajax({
@@ -351,16 +352,15 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
     };
 
     self.onSlicingDone = function(payload) {
+		console.log("files.js onSlicingDone", payload);
+		var url = API_BASEURL + "files/" + payload.gcode_location + "/" + payload.gcode;
+		var data = {refs: {resource: url}};
+		self.loadFile(data, false); // loads gcode into gcode viewer
+		
 		var callback = function(e) {
 			e.preventDefault(); 
-			var url = API_BASEURL + "files/" + payload.gcode_location + "/" + payload.gcode;
-			$.ajax({
-				url: url,
-				type: "POST",
-				dataType: "json",
-				contentType: "application/json; charset=UTF-8",
-				data: JSON.stringify({command: "select", print: true})
-			});
+			self.loadFile(data, true); // starts print
+
 		};
 		self.printerState.show_safety_glasses_warning(callback);
 		

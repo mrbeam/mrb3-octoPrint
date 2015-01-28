@@ -342,12 +342,12 @@ GCODE.renderer = (function(){
     };
 
     var drawLayer = function(layerNum, fromProgress, toProgress, isNotCurrentLayer){
-		
         var i;
 
 		var mdlInfo = GCODE.gCodeReader.getModelInfo();
 		var yShift = mdlInfo.min.y;
 
+//		console.log("drawLayer", mdlInfo, model);
         //~~ store current layer values
 
         isNotCurrentLayer = isNotCurrentLayer !== undefined ? isNotCurrentLayer : false;
@@ -478,7 +478,6 @@ GCODE.renderer = (function(){
     };
 
     var applyOffsets = function(mdlInfo) {
-		console.log("applyOffsets", mdlInfo);
         var canvasCenter;
 
         // determine bed and model offsets

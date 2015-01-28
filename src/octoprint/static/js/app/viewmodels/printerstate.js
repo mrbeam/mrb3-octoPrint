@@ -131,8 +131,8 @@ function PrinterStateViewModel(loginStateViewModel, timelapseViewModel, vectorCo
 	self._processPos = function(posStr) {
 		// example posStr: "X: 73.0000 Y: 192.0000 Z: 0.0000"
 		var parts = posStr.split(" ");
-		var x = parseFloat(parts[1]).toFixed(2)
-		var y = parseFloat(parts[3]).toFixed(2)
+		var x = parseFloat(parts[1]).toFixed(2);
+		var y = parseFloat(parts[3]).toFixed(2);
         self.currentPos({x:x, y:y});
     };
 
@@ -213,7 +213,7 @@ function PrinterStateViewModel(loginStateViewModel, timelapseViewModel, vectorCo
     };
 
 	self.show_safety_glasses_warning = function(callback){
-			
+		$('#confirmation_dialog .confirmation_dialog_message').html();
 		jQuery('<div/>', {
 			class: "safety_glasses_heads_up"
 		}).appendTo("#confirmation_dialog .confirmation_dialog_message");
