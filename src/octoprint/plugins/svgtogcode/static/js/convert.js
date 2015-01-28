@@ -24,10 +24,6 @@ function VectorConversionViewModel(params) {
     self.profile = ko.observable();
     self.profiles = ko.observableArray();
 	
-	self.laserIntensity.subscribe(function(newVal){
-		console.log("laserInt new Val", newVal);
-	});
-	
 	// TODO check if still in use
     self.show = function(target, file) {
         self.target = target;
@@ -88,7 +84,6 @@ function VectorConversionViewModel(params) {
         self.profilesForSlicer(newValue);
     });
 
-// TODO check if still necessary...
     self.enableConvertButton = ko.computed(function() {
         if (self.laserIntensity() === undefined || self.laserSpeed() === undefined || self.gcodeFilename() === undefined) {
             return false;
@@ -97,7 +92,7 @@ function VectorConversionViewModel(params) {
             var tmpSpeed = self.laserSpeed();
             var tmpGcodeFilename = self.gcodeFilename().trim();
             return tmpGcodeFilename !== ""
-                && tmpIntensity > 0 && tmpIntensity <= 1000
+                && tmpIntensity > 0 && tmpIntensity <= 1000 // TODO no magic numbers here!
                 && tmpSpeed >= 30 && tmpSpeed <= 3000;
         }
     });
@@ -247,8 +242,8 @@ function VectorConversionViewModel(params) {
             reversed: false,
             selection: "after",
             orientation: "horizontal",
-            min: 20,
-            max: 3000,
+            min: 30,
+            max: 3000, // TODO no magic numbers here.
             step: 10,
             value: 300,
             enabled: true,
