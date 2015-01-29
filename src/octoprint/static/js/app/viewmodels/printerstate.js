@@ -163,7 +163,7 @@ function PrinterStateViewModel(loginStateViewModel, timelapseViewModel, vectorCo
         if (data.file) {
             self.filename(data.file.name);
             self.filesize(data.file.size);
-            self.sd(data.file.origin == "sdcard");
+            self.sd(data.file.origin === "sdcard");
         } else {
             self.filename(undefined);
             self.filesize(undefined);
@@ -174,7 +174,7 @@ function PrinterStateViewModel(loginStateViewModel, timelapseViewModel, vectorCo
         self.lastPrintTime(data.lastPrintTime);
 
         var result = [];
-        if (data.filament && typeof(data.filament) == "object" && _.keys(data.filament).length > 0) {
+        if (data.filament && typeof(data.filament) === "object" && _.keys(data.filament).length > 0) {
             for (var key in data.filament) {
                 if (!_.startsWith(key, "tool") || !data.filament[key] || !data.filament[key].hasOwnProperty("length") || data.filament[key].length <= 0) continue;
 

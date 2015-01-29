@@ -65,7 +65,6 @@ function SettingsViewModel(loginStateViewModel, usersViewModel, printerProfilesV
     self.feature_sdAlwaysAvailable = ko.observable(undefined);
     self.feature_swallowOkAfterResend = ko.observable(undefined);
     self.feature_repetierTargetTemp = ko.observable(undefined);
-    self.feature_zaxis = ko.observable(undefined);
     self.feature_keyboardControl = ko.observable(undefined);
 
     self.serial_port = ko.observable();
@@ -89,9 +88,6 @@ function SettingsViewModel(loginStateViewModel, usersViewModel, printerProfilesV
     self.cura_enabled = ko.observable(undefined);
     self.cura_path = ko.observable(undefined);
     self.cura_config = ko.observable(undefined);
-
-	self.svgtogcode_defaultIntensity = ko.observable(undefined);
-	self.svgtogcode_defaultFeedrate = ko.observable(undefined);
 
     self.temperature_profiles = ko.observableArray(undefined);
 
@@ -150,7 +146,6 @@ function SettingsViewModel(loginStateViewModel, usersViewModel, printerProfilesV
         } else {
             ko.mapping.fromJS(response, self.settings);
         }
-		
         self.api_enabled(response.api.enabled);
         self.api_key(response.api.key);
         self.api_allowCrossOrigin(response.api.allowCrossOrigin);
@@ -176,7 +171,6 @@ function SettingsViewModel(loginStateViewModel, usersViewModel, printerProfilesV
         self.feature_sdAlwaysAvailable(response.feature.sdAlwaysAvailable);
         self.feature_swallowOkAfterResend(response.feature.swallowOkAfterResend);
         self.feature_repetierTargetTemp(response.feature.repetierTargetTemp);
-        self.feature_zaxis(response.feature.zaxis);
         self.feature_keyboardControl(response.feature.keyboardControl);
 
         self.serial_port(response.serial.port);
@@ -240,7 +234,6 @@ function SettingsViewModel(loginStateViewModel, usersViewModel, printerProfilesV
                 "sdAlwaysAvailable": self.feature_sdAlwaysAvailable(),
                 "swallowOkAfterResend": self.feature_swallowOkAfterResend(),
                 "repetierTargetTemp": self.feature_repetierTargetTemp(),
-                "zaxis": self.feature_zaxis(),
                 "keyboardControl": self.feature_keyboardControl()
             },
             "serial": {

@@ -20,7 +20,8 @@ import octoprint.settings
 default_settings = {
 	"defaultIntensity": 500,
 	"defaultFeedrate": 300,
-	"debug_logging": False
+	"debug_logging": False,
+	"svgDPI": 90
 }
 s = octoprint.plugin.plugin_settings("svgtogcode", defaults=default_settings)
 
@@ -142,7 +143,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 
 	def get_assets(self):
 		return {
-			"js": ["js/svgtogcode.js", "js/convert.js", "js/working_area.js", "js/lib/snap.svg-min.js"],
+			"js": [ "js/convert.js", "js/working_area.js", "js/lib/snap.svg-min.js"],
 			"less": ["less/svgtogcode.less"],
 			"css": ["css/svgtogcode.css", "css/mrbeam.css"]
 		}
@@ -153,14 +154,19 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 		return dict(
 			defaultIntensity=s.get(["defaultIntensity"]),
 			defaultFeedrate=s.get(["defaultFeedrate"]),
+			svgDPI=s.get(["svgDPI"]),
 			debug_logging=s.getBoolean(["debug_logging"])
 		)
 
 	def on_settings_save(self, data):
 		if "defaultIntensity" in data and data["defaultIntensity"]:
-			s.set(["defaultIntensity"], data["defaultIntensity"])
+			intensity = min(max(data["defaultIntensity"], 1), 1000)
+			s.set(["defaultIntensity"], intensity)
 		if "defaultFeedrate" in data and data["defaultFeedrate"]:
-			s.set(["defaultFeedrate"], data["defaultFeedrate"])
+			feedrate = max(1,data["defaultFeedrate"]) 
+			s.set(["defaultFeedrate"], feedrate)
+		if "svgDPI" in data and data["svgDPI"]:
+			s.set(["svgDPI"], data["svgDPI"])
 		if "debug_logging" in data:
 			old_debug_logging = s.getBoolean(["debug_logging"])
 			new_debug_logging = data["debug_logging"] in octoprint.settings.valid_boolean_trues
@@ -174,13 +180,15 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 	##~~ TemplatePlugin API
 
 	def get_template_vars(self):
-		return dict(
-			_settings_menu_entry="Svg GCode Converter"
-		)
+		return dict()
 
 	def get_template_folder(self):
-		import os
-		return os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates")
+		#import os
+		#return os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates")
+		return os.path.join(self._basefolder, "templates")
+
+	def get_template_configs(self):
+		return [dict(type = 'settings', name = "Svg Conversion", custom_bindings = False)]
 
 	##~~ SlicerPlugin API
 
