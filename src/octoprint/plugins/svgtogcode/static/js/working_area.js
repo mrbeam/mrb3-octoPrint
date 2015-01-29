@@ -89,16 +89,19 @@ $(function(){
 		};
 
 		self.move_laser = function(el){
-			var x = self.px2mm(event.offsetX);
-	//		var y = self.px2mm(event.toElement.offsetHeight - event.offsetY); // toElement.offsetHeight is always 0 on svg>* elements ???
-			var y = self.px2mm(event.toElement.ownerSVGElement.offsetHeight - event.offsetY); // hopefully this works across browsers
-			$.ajax({
-				url: API_BASEURL + "printer/printhead",
-				type: "POST",
-				dataType: "json",
-				contentType: "application/json; charset=UTF-8",
-				data: JSON.stringify({"command": "position", x:x, y:y})
-			});
+			console.log(self.state.isOperational(), self.state.isPrinting() , "OP");
+			if(self.state.isOperational() && !self.state.isPrinting()){
+				var x = self.px2mm(event.offsetX);
+		//		var y = self.px2mm(event.toElement.offsetHeight - event.offsetY); // toElement.offsetHeight is always 0 on svg>* elements ???
+				var y = self.px2mm(event.toElement.ownerSVGElement.offsetHeight - event.offsetY); // hopefully this works across browsers
+				$.ajax({
+					url: API_BASEURL + "printer/printhead",
+					type: "POST",
+					dataType: "json",
+					contentType: "application/json; charset=UTF-8",
+					data: JSON.stringify({"command": "position", x:x, y:y})
+				});
+			}
 		};
 
 

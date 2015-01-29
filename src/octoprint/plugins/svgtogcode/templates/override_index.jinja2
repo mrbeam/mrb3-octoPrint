@@ -288,8 +288,7 @@
 
 							<div class="span8">
 								<svg id="area_preview" class="workingarea" 
-									 data-bind="xclick: move_laser, 
-										style: {
+									 data-bind="style: {
 											backgroundPosition: crosshairX()+'px'+' '+crosshairY()+'px',
 											width: workingAreaWidthPx()+'px',
 											height: workingAreaHeightPx()+'px'
@@ -300,6 +299,7 @@
 											  id="coordGrid" x="0" y="0" width="0" height="0" 
 											  stroke="none" fill="none"></rect>
 										<g id="userContent"></g>
+										<g id="gCodePreview"></g>
 									</g>
 								</svg>
 
