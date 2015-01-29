@@ -27,7 +27,7 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
             return "-";
         return formatSize(self.freeSpace());
     });
-
+	
     // initialize list helper
     self.listHelper = new ItemListHelper(
         "gcodeFiles",
@@ -368,6 +368,6 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
 
     self.onMetadataAnalysisFinished = function(payload) {
         self.requestData();
-    };
+    };	
 }
 

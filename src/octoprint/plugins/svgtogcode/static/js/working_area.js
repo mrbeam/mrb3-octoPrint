@@ -75,17 +75,20 @@ function WorkingAreaViewModel(params) {
 	
 	self.placedDesigns = ko.observableArray([]);
 	
+	self.clear = function(){
+		snap.selectAll('#userContent>*').remove();
+		self.placedDesigns([]);
+	};
+	
 	self.trigger_resize = function(){
 		self.availableHeight(document.documentElement.clientHeight - $('body>nav').outerHeight()  - $('footer>*').outerHeight() - 39); // magic number
 		self.availableWidth($('#workingarea div.span8').innerWidth());
 	};
 
 	self.move_laser = function(el){
-		console.log(event);
 		var x = self.px2mm(event.offsetX);
 //		var y = self.px2mm(event.toElement.offsetHeight - event.offsetY); // toElement.offsetHeight is always 0 on svg>* elements ???
 		var y = self.px2mm(event.toElement.ownerSVGElement.offsetHeight - event.offsetY); // hopefully this works across browsers
-		console.log("move_laser", y, event.toElement.id, event.toElement.offsetHeight, event.offsetY);
 		$.ajax({
 			url: API_BASEURL + "printer/printhead",
 			type: "POST",
@@ -118,7 +121,7 @@ function WorkingAreaViewModel(params) {
 	
 	self.mm2svgUnits = function(val){
 		return val * self.svgDPI()/25.4;
-	}
+	};
 	
 	//self.getDivDimensions(); // init
 	

@@ -257,7 +257,7 @@ function VectorConversionViewModel(params) {
         });
 		
 		// use the class as a flag to avoid double binding of the slideStop event
-		if($("#svgtogcode_feedrate").attr('class') === 'uninitialized'){
+		if($("#svgtogcode_feedrate").attr('class') === 'uninitialized'){ // somehow hasClass(...) did not work ???
 			self.feedrateSlider.on("slideStop", function(ev){
 				self.laserSpeed(self._calcRealSpeed(ev.value));
 			});
