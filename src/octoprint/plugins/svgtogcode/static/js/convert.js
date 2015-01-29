@@ -43,7 +43,7 @@ $(function(){
 		// shows conversion dialog and extracts svg first
 		self.show_conversion_dialog = function() {
 			var intensity = self.settings.settings.plugins.svgtogcode.defaultIntensity();
-			var speed = self.settings.settings.plugins.svgtogcode.defaultIntensity();
+			var speed = self.settings.settings.plugins.svgtogcode.defaultFeedrate();
 			self.laserIntensity(intensity);
 			self.laserSpeed(speed);
 
@@ -250,7 +250,7 @@ $(function(){
 				selection: "after",
 				orientation: "horizontal",
 				min: 0,
-				max: 1000,
+				max: 100, // fixed values to avoid reinitializing after profile changes
 				step: 1,
 				value: 300,
 				enabled: true,
@@ -265,10 +265,9 @@ $(function(){
 				$("#svgtogcode_feedrate").removeClass('uninitialized');
 			}
 
-
-
-			var speedSubscription = self.laserSpeed.subscribe(function(realVal){
-				var val = (parseInt(realVal) - self.minSpeed()) / (self.maxSpeed() - self.minSpeed());
+			var speedSubscription = self.laserSpeed.subscribe(function(fromSettings){
+				var realVal = parseInt(fromSettings);
+				var val = 100*(realVal - self.minSpeed()) / (self.maxSpeed() - self.minSpeed());
 				self.feedrateSlider.slider('setValue', val);
 				speedSubscription.dispose(); // only do it once
 			});
@@ -276,7 +275,7 @@ $(function(){
 
 		self._calcRealSpeed = function(sliderVal){
 			console.log();
-			return self.minSpeed() + sliderVal/1000 * (self.maxSpeed() - self.minSpeed());
+			return self.minSpeed() + sliderVal/100 * (self.maxSpeed() - self.minSpeed());
 		};
 
 	}
