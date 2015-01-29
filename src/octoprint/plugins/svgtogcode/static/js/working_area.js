@@ -70,9 +70,25 @@ $(function(){
 			return self.workingAreaWidthMM() / self.workingAreaWidthPx();
 		});
 
+		// matrix scales svg units to display_pixels
 		self.scaleMatrix = ko.computed(function(){
 			var m = new Snap.Matrix();
-			m.scale(25.4/self.svgDPI() * 1/self.px2mm_factor());
+			var factor = 25.4/self.svgDPI() * 1/self.px2mm_factor();
+			if(!isNaN(factor)){
+				m.scale(factor);
+				return m;
+			}
+			return m;
+		});
+		
+		// matrix scales svg units to display_pixels
+		self.scaleMatrixMMtoDisplay = ko.computed(function(){
+			var m = new Snap.Matrix();
+			var factor = self.svgDPI()/25.4 ;
+			if(!isNaN(factor)){
+				m.scale(factor);
+				return m;
+			}
 			return m;
 		});
 
@@ -89,7 +105,6 @@ $(function(){
 		};
 
 		self.move_laser = function(el){
-			console.log(self.state.isOperational(), self.state.isPrinting() , "OP");
 			if(self.state.isOperational() && !self.state.isPrinting()){
 				var x = self.px2mm(event.offsetX);
 		//		var y = self.px2mm(event.toElement.offsetHeight - event.offsetY); // toElement.offsetHeight is always 0 on svg>* elements ???
@@ -226,8 +241,20 @@ $(function(){
 			var svg = '<svg height="'+ h +'" version="1.1" width="'+ w +'" xmlns="http://www.w3.org/2000/svg"><defs/>'+ tmpsvg +'</svg>';
 			return svg;
 		};
+		
+		self.draw_gcode = function(points, intensity){
+			var stroke_color = intensity === 0 ? '#BBBBBB' : '#FF0000';
+			var d = 'M'+points.join(' ');
+			var p = snap.path(d).attr({
+				fill: "none",
+				stroke: stroke_color,
+				strokeWidth: 1
+			});
+			snap.select('#gCodePreview').append(p);
+		};
 
 		self.onStartup = function(){
+			GCODE.workingArea = self; // Temporary hack to use the gcode parser from the gCodeViewer
 			self.files.workingArea = self;
 			self.conversion.workingArea = self;
 			$(window).resize(function(){

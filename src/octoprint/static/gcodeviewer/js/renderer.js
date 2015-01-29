@@ -341,7 +341,89 @@ GCODE.renderer = (function(){
         ctx.stroke();
     };
 
-    var drawLayer = function(layerNum, fromProgress, toProgress, isNotCurrentLayer){
+var drawLayer = function(layerNum, fromProgress, toProgress, isNotCurrentLayer){
+	if(GCODE.workingArea){
+		if (!model || !model[layerNum]) return;
+
+        var cmds = model[layerNum];
+		var x, y;
+
+        //~~ find our initial prevX/prevY tuple
+
+        if (typeof(cmds[0].prevX) !== 'undefined' && typeof(cmds[0].prevY) !== 'undefined') {
+            // command contains prevX/prevY values, use those
+            prevX = cmds[0].prevX; // * zoomFactor;
+            prevY = -1 * cmds[0].prevY; // * zoomFactor;
+        } else if (fromProgress > 0) {
+            // previous command in same layer exists, use x/y as prevX/prevY
+            prevX = cmds[fromProgress - 1].x; // * zoomFactor;
+            prevY = -cmds[fromProgress - 1].y; // * zoomFactor;
+        } else if (model[layerNum - 1]) {
+            // previous layer exists, use last x/y as prevX/prevY
+            prevX = undefined;
+            prevY = undefined;
+            for (i = model[layerNum-1].length-1; i >= 0; i--) {
+                if (typeof(prevX) === 'undefined' && typeof(model[layerNum - 1][i].x) !== 'undefined') prevX = model[layerNum - 1][i].x; // * zoomFactor;
+                if (typeof(prevY) === 'undefined' && typeof(model[layerNum - 1][i].y) !== 'undefined') prevY =- model[layerNum - 1][i].y; // * zoomFactor;
+            }
+        }
+
+        // if we did not find prevX or prevY, set it to 0 (might be that we are on the first command of the first layer,
+        // or it's just a very weird model...)
+        if (typeof(prevX) === 'undefined') prevX = 0;
+        if (typeof(prevY) === 'undefined') prevY = 0;
+
+        //~~ render this layer's commands
+
+		var lastLaser = 0;
+		var points = [];
+        for (var i = fromProgress; i <= toProgress; i++) {
+            ctx.lineWidth = 1;
+
+            if (typeof(cmds[i]) === 'undefined') continue;
+
+            if (typeof(cmds[i].prevX) !== 'undefined' && typeof(cmds[i].prevY) !== 'undefined') {
+                // override new (prevX, prevY)
+                prevX = cmds[i].prevX; // * zoomFactor;
+                prevY = -1 * cmds[i].prevY; // * zoomFactor;
+            }
+
+            // new x
+            if (typeof(cmds[i].x) === 'undefined' || isNaN(cmds[i].x)) {
+                x = prevX ;// / zoomFactor;
+            } else {
+                x = cmds[i].x;
+            }
+
+            // new y
+            if (typeof(cmds[i].y) === 'undefined' || isNaN(cmds[i].y)) {
+                y = prevY;// / zoomFactor;
+            } else {
+                y = -cmds[i].y;
+            }
+			
+				console.log("cmd", cmds[i]);
+			if(lastLaser !== cmds[i].laser){
+			
+				GCODE.workingArea.draw_gcode(points, lastLaser);
+				console.log("points", points, lastLaser, cmds[i].laser);
+				points = [[prevX,prevY]];
+				lastLaser = cmds[i].laser;
+			} 
+			points.push([x,y]);
+				
+			
+
+			prevX = x ;
+            prevY = y ;
+        }
+		GCODE.workingArea.draw_gcode(points, lastLaser);
+		console.log("final", points, lastLaser);
+    
+	}
+};
+
+    var drawLayer2 = function(layerNum, fromProgress, toProgress, isNotCurrentLayer){
         var i;
 
 		var mdlInfo = GCODE.gCodeReader.getModelInfo();
