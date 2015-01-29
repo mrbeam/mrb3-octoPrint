@@ -1,11 +1,7 @@
 $(function(){
-	
 
 	function VectorConversionViewModel(params) {
 		var self = this;
-		
-				console.log('conversion', params);
-
 
 		self.loginState = params[0];
 		self.settings = params[1];

@@ -1,7 +1,6 @@
 $(function(){
 
 	function WorkingAreaViewModel(params) {
-		console.log('workingaera', params);
 		var self = this;
 
 		self.loginState = params[0];
@@ -204,7 +203,8 @@ $(function(){
 		};
 
 		self.generateId = function(url){
-			var idBase = '_'+url.substring(url.lastIndexOf('/')+1).replace('.', '-'); // _ at first place if filename starts with a digit
+			var idBase = '_'+url.substring(url.lastIndexOf('/')+1).replace(/[^a-zA-Z0-9_.]/ig, '-'); // _ at first place if filename starts with a digit
+			idBase = idBase.replace('')
 			var suffix = 0;
 			var id = idBase + "-" + suffix;
 			while(snap.select('#'+id) !== null){
@@ -215,8 +215,7 @@ $(function(){
 		};
 
 		self.getCompositionSVG = function(){
-			// TODO use lasercutterprofiles
-			var dpiFactor = self.svgDPI()/25.4; // convert mm to pix with 90dpi (inkscape default - TODO use 72 for illustrator svg and fetch from settings) 
+			var dpiFactor = self.svgDPI()/25.4; // convert mm to pix 90dpi for inkscape, 72 for illustrator 
 			var w = dpiFactor * self.settings.printerProfiles.currentProfileData().volume.width; 
 			var h = dpiFactor * self.settings.printerProfiles.currentProfileData().volume.depth; 
 
