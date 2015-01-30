@@ -85,7 +85,7 @@ $(function(){
 			var factor = self.svgDPI()/25.4; // scale mm to 90dpi pixels 
 			var yShift = self.workingAreaHeightMM(); // 0,0 origin of the gcode is bottom left. (top left in the svg)
 			if(!isNaN(factor)){
-				m.scale(factor).translate(0,yShift);
+				m.scale(factor, -factor).translate(0,-yShift);
 				return m;
 			}
 			return m;
@@ -245,7 +245,6 @@ $(function(){
 		};
 		
 		self.draw_gcode = function(points, intensity){
-			console.log("draw_gcode", points);
 			var stroke_color = intensity === 0 ? '#BBBBBB' : '#FF0000';
 			var d = 'M'+points.join(' ');
 			var p = snap.path(d).attr({
@@ -256,7 +255,7 @@ $(function(){
 			snap.select('#gCodePreview').append(p);
 		};
 		self.clear_gcode = function(){
-			snap.select('#gCodePreview>*').remove();
+			snap.select('#gCodePreview').clear();
 		};
 
 		self.onStartup = function(){

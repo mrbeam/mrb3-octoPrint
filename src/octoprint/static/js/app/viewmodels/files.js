@@ -352,7 +352,6 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
     };
 
     self.onSlicingDone = function(payload) {
-		console.log("files.js onSlicingDone", payload);
 		var url = API_BASEURL + "files/" + payload.gcode_location + "/" + payload.gcode;
 		var data = {refs: {resource: url}};
 		self.loadFile(data, false); // loads gcode into gcode viewer

@@ -354,11 +354,11 @@ var drawLayer = function(layerNum, fromProgress, toProgress, isNotCurrentLayer){
         if (typeof(cmds[0].prevX) !== 'undefined' && typeof(cmds[0].prevY) !== 'undefined') {
             // command contains prevX/prevY values, use those
             prevX = cmds[0].prevX; // * zoomFactor;
-            prevY = -1 * cmds[0].prevY; // * zoomFactor;
+            prevY = 1 * cmds[0].prevY; // * zoomFactor;
         } else if (fromProgress > 0) {
             // previous command in same layer exists, use x/y as prevX/prevY
             prevX = cmds[fromProgress - 1].x; // * zoomFactor;
-            prevY = -cmds[fromProgress - 1].y; // * zoomFactor;
+            prevY = cmds[fromProgress - 1].y; // * zoomFactor;
         } else if (model[layerNum - 1]) {
             // previous layer exists, use last x/y as prevX/prevY
             prevX = undefined;
@@ -386,7 +386,7 @@ var drawLayer = function(layerNum, fromProgress, toProgress, isNotCurrentLayer){
             if (typeof(cmds[i].prevX) !== 'undefined' && typeof(cmds[i].prevY) !== 'undefined') {
                 // override new (prevX, prevY)
                 prevX = cmds[i].prevX; // * zoomFactor;
-                prevY = -1 * cmds[i].prevY; // * zoomFactor;
+                prevY = 1 * cmds[i].prevY; // * zoomFactor;
             }
 
             // new x
@@ -400,7 +400,7 @@ var drawLayer = function(layerNum, fromProgress, toProgress, isNotCurrentLayer){
             if (typeof(cmds[i].y) === 'undefined' || isNaN(cmds[i].y)) {
                 y = prevY;// / zoomFactor;
             } else {
-                y = -cmds[i].y;
+                y = cmds[i].y;
             }
 			
 			if(lastLaser !== cmds[i].laser){

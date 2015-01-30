@@ -268,7 +268,6 @@ function SettingsViewModel(loginStateViewModel, usersViewModel, printerProfilesV
             "terminalFilters": self.terminalFilters()
         });
 		
-		console.log("data", data.terminalFilters);
 		return data;
 	};
 

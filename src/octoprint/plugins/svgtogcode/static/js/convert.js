@@ -274,7 +274,6 @@ $(function(){
 		};
 
 		self._calcRealSpeed = function(sliderVal){
-			console.log();
 			return self.minSpeed() + sliderVal/100 * (self.maxSpeed() - self.minSpeed());
 		};
 
