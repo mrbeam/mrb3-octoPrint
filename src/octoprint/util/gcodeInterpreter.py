@@ -242,7 +242,10 @@ class gcode(object):
 		for i in range(len(maxExtrusion)):
 			radius = self._filamentDiameter / 2
 			self.extrusionVolume[i] = (self.extrusionAmount[i] * (math.pi * radius * radius)) / 1000
-		self.totalMoveTimeMinute = totalMoveTimeMinute
+		if(math.isnan(totalMoveTimeMinute)):
+			self.totalMoveTimeMinute = totalMoveTimeMinute
+		else:
+			self.totalMoveTimeMinute = 0
 
 	def _parseCuraProfileString(self, comment, prefix):
 		return {key: value for (key, value) in map(lambda x: x.split("=", 1), zlib.decompress(base64.b64decode(comment[len(prefix):])).split("\b"))}

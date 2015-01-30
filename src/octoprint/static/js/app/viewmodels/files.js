@@ -125,10 +125,12 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
             method: "GET",
             dataType: "json",
             success: function(response) {
+
                 self.fromResponse(response, filenameToFocus, locationToFocus);
                 self._otherRequestInProgress = false;
             },
-            error: function() {
+            error: function(response) {
+				console.error("ajax/json error", response);
                 self._otherRequestInProgress = false;
             }
         });
@@ -162,7 +164,6 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
     };
 
     self.loadFile = function(file, printAfterLoad) {
-		console.log("files loadFile", file);
         if (!file || !file.refs || !file.refs.hasOwnProperty("resource")) return;
 
         $.ajax({
@@ -175,7 +176,6 @@ function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicing
     };
 	
 	self.startGcodeWithSafetyWarning = function(gcodeFile){
-		console.log("files.js startGcodeWithSafetyWarning", gcodeFile, BASEURL + "downloads/files/local/" + gcodeFile.name);
 		self.loadFile(gcodeFile, false);
 		
 		self.printerState.show_safety_glasses_warning(function(){

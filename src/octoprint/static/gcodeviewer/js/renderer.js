@@ -63,6 +63,7 @@ GCODE.renderer = (function(){
         var p1 = ctx.transformedPoint(0,0);
         var p2 = ctx.transformedPoint(canvas.width,canvas.height);
         ctx.clearRect(p1.x,p1.y,p2.x-p1.x,p2.y-p1.y);
+		GCODE.workingArea.clear_gcode();
         drawGrid();
         if(renderOptions['showNextLayer'] && layerNumStore < model.length - 1) {
             drawLayer(layerNumStore + 1, 0, GCODE.renderer.getLayerNumSegments(layerNumStore + 1), true);
@@ -402,11 +403,9 @@ var drawLayer = function(layerNum, fromProgress, toProgress, isNotCurrentLayer){
                 y = -cmds[i].y;
             }
 			
-				console.log("cmd", cmds[i]);
 			if(lastLaser !== cmds[i].laser){
 			
 				GCODE.workingArea.draw_gcode(points, lastLaser);
-				console.log("points", points, lastLaser, cmds[i].laser);
 				points = [[prevX,prevY]];
 				lastLaser = cmds[i].laser;
 			} 
@@ -418,7 +417,6 @@ var drawLayer = function(layerNum, fromProgress, toProgress, isNotCurrentLayer){
             prevY = y ;
         }
 		GCODE.workingArea.draw_gcode(points, lastLaser);
-		console.log("final", points, lastLaser);
     
 	}
 };
@@ -716,6 +714,7 @@ var drawLayer = function(layerNum, fromProgress, toProgress, isNotCurrentLayer){
             var p1 = ctx.transformedPoint(0, 0);
             var p2 = ctx.transformedPoint(canvas.width, canvas.height);
             ctx.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+			GCODE.workingArea.clear_gcode();
             drawGrid();
             if (model && model.length) {
                 if (layerNum < model.length) {
@@ -792,5 +791,5 @@ var drawLayer = function(layerNum, fromProgress, toProgress, isNotCurrentLayer){
             return '-1';
         }
 
-	}
+	};
 }());

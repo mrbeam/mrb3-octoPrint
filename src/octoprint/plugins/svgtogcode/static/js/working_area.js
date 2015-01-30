@@ -28,11 +28,9 @@ $(function(){
 		self.workingAreaWidthMM = ko.observable(undefined);
 		self.workingAreaHeightMM = ko.observable(undefined);
 		self.hwRatio = ko.computed(function(){
-			// y/x = 297/216 respectively 594/432
+			// y/x = 297/216 junior, respectively 594/432 senior
 			var w = self.workingAreaWidthMM();
 			var h = self.workingAreaHeightMM();
-	//		var h = self.settings.printerProfiles.currentProfileData().volume.depth();
-	//		var w = self.settings.printerProfiles.currentProfileData().volume.width();
 			var ratio = h / w;
 			return ratio;
 		}, self);
@@ -84,9 +82,10 @@ $(function(){
 		// matrix scales svg units to display_pixels
 		self.scaleMatrixMMtoDisplay = ko.computed(function(){
 			var m = new Snap.Matrix();
-			var factor = self.svgDPI()/25.4 ;
+			var factor = self.svgDPI()/25.4; // scale mm to 90dpi pixels 
+			var yShift = self.workingAreaHeightMM(); // 0,0 origin of the gcode is bottom left. (top left in the svg)
 			if(!isNaN(factor)){
-				m.scale(factor);
+				m.scale(factor).translate(0,yShift);
 				return m;
 			}
 			return m;
@@ -234,8 +233,11 @@ $(function(){
 
 		self.getCompositionSVG = function(){
 			var dpiFactor = self.svgDPI()/25.4; // convert mm to pix 90dpi for inkscape, 72 for illustrator 
-			var w = dpiFactor * self.settings.printerProfiles.currentProfileData().volume.width; 
-			var h = dpiFactor * self.settings.printerProfiles.currentProfileData().volume.depth; 
+			var w = dpiFactor * self.workingAreaWidthMM(); 
+			var h = dpiFactor * self.workingAreaHeightMM(); 
+//			var w = dpiFactor * self.settings.printerProfiles.currentProfileData().volume.width; 
+//			var h = dpiFactor * self.settings.printerProfiles.currentProfileData().volume.depth; 
+//			var yTranslation = "translate(0, "+h+")";
 
 			var tmpsvg = snap.select("#userContent").innerSVG(); // get working area 
 			var svg = '<svg height="'+ h +'" version="1.1" width="'+ w +'" xmlns="http://www.w3.org/2000/svg"><defs/>'+ tmpsvg +'</svg>';
@@ -243,6 +245,7 @@ $(function(){
 		};
 		
 		self.draw_gcode = function(points, intensity){
+			console.log("draw_gcode", points);
 			var stroke_color = intensity === 0 ? '#BBBBBB' : '#FF0000';
 			var d = 'M'+points.join(' ');
 			var p = snap.path(d).attr({
@@ -251,6 +254,9 @@ $(function(){
 				strokeWidth: 1
 			});
 			snap.select('#gCodePreview').append(p);
+		};
+		self.clear_gcode = function(){
+			snap.select('#gCodePreview>*').remove();
 		};
 
 		self.onStartup = function(){
