@@ -92,11 +92,60 @@ $(function(){
 		});
 
 		self.placedDesigns = ko.observableArray([]);
+		self.working_area_empty = ko.computed(function(){
+			return self.placedDesigns().length === 0;
+		});
 
 		self.clear = function(){
 			snap.selectAll('#userContent>*').remove();
 			self.placedDesigns([]);
 		};
+		
+		   // initialize list helper
+		self.listHelper = new ItemListHelper(
+			"gcodeFiles",
+			{
+				"name": function(a, b) {
+					// sorts ascending
+					if (a["name"].toLocaleLowerCase() < b["name"].toLocaleLowerCase()) return -1;
+					if (a["name"].toLocaleLowerCase() > b["name"].toLocaleLowerCase()) return 1;
+					return 0;
+				},
+				"upload": function(a, b) {
+					// sorts descending
+					if (b["date"] === undefined || a["date"] > b["date"]) return -1;
+					if (a["date"] < b["date"]) return 1;
+					return 0;
+				},
+				"size": function(a, b) {
+					// sorts descending
+					if (b["bytes"] === undefined || a["bytes"] > b["bytes"]) return -1;
+					if (a["bytes"] < b["bytes"]) return 1;
+					return 0;
+				}
+			},
+			{
+				"printed": function(file) {
+					return !(file["prints"] && file["prints"]["success"] && file["prints"]["success"] > 0);
+				},
+				"sd": function(file) {
+					return file["origin"] && file["origin"] == "sdcard";
+				},
+				"local": function(file) {
+					return !(file["origin"] && file["origin"] == "sdcard");
+				},
+				"machinecode": function(file) {
+					return file["type"] && file["type"] == "machinecode";
+				},
+				"model": function(file) {
+					return file["type"] && file["type"] == "model";
+				}
+			},
+			"name",
+			[],
+			[["sd", "local"], ["machinecode", "model"]],
+			0
+		);
 
 		self.trigger_resize = function(){
 			self.availableHeight(document.documentElement.clientHeight - $('body>nav').outerHeight()  - $('footer>*').outerHeight() - 39); // magic number
@@ -143,17 +192,10 @@ $(function(){
 			return val * self.svgDPI()/25.4;
 		};
 
-		//self.getDivDimensions(); // init
 
 		self.placeSVG = function(file) {
-			if (file && file["refs"] && file["refs"]["download"]) {
-				var url = file.refs.download.replace("downloads", "serve");
-				self.loadSVG(url);
-			}
-		};
-
-		self.loadSVG = function(url){
-			Snap.load(url, function (f) {
+			var url = self._getSVGserveUrl(file);
+			callback = function (f) {
 				var namespaces = {};
 				var root = f.select('svg').node.attributes;
 				for(var i = 0; i < root.length; i++){ 
@@ -165,17 +207,67 @@ $(function(){
 
 				var newSvg = f.select("g");
 				newSvg.attr(namespaces);
-				var id = self.generateId(url);
+//				var id = self.generateId(url);
+				var id = self.getEntryId(file); // works better on multiple instances.
+				newSvg.attr({id: id});
 				snap.select("#userContent").append(newSvg);
 
-				newSvg.drag();// Making croc draggable. Go ahead drag it around!
-				// Obviously drag could take event handlers too
-				var ref = {
-					id : id,
-					url : url
-				};
-				self.placedDesigns.push(ref);
-			});
+				newSvg.drag();// TODO debug drag. should not be affected by scale matrix
+
+				file.id = id;
+				file.url = url;
+				
+				self.placedDesigns.push(file);
+			};
+			self.loadSVG(url, callback);
+		};
+
+		self.loadSVG = function(url, callback){
+			Snap.load(url, callback);
+		};
+		
+		self.removeSVG = function(file){
+			var url = self._getSVGserveUrl(file);
+			for (var idx = 0; idx < self.placedDesigns().length; idx++) {
+				var svg = self.placedDesigns()[idx];
+				if(svg.url === url){
+					console.log("#ää", svg.id);
+					snap.select('#'+svg.id).remove();
+					self.placedDesigns().splice(idx,1);
+					break;
+				}
+			}
+		};
+		
+		self._getSVGserveUrl = function(file){
+			if (file && file["refs"] && file["refs"]["download"]) {
+				var url = file.refs.download.replace("downloads", "serve");
+				return url;
+			}
+			
+		};
+		
+		self.templateFor = function(data) {
+			var extension = data.name.split('.').pop().toLowerCase();
+			if (extension == "svg") {
+				return "wa_template_" + data.type + "_svg";
+			} else {
+				return "wa_template_" + data.type;
+			}
+		};
+		
+		self.getEntryId = function(data) {
+			return "wa_" + md5(data["origin"] + ":" + data["name"]);
+		};
+
+		self.getEntryElement = function(data) {
+			var entryId = self.getEntryId(data);
+			var entryElements = $("#" + entryId);
+			if (entryElements && entryElements[0]) {
+				return entryElements[0];
+			} else {
+				return undefined;
+			}
 		};
 
 		self.init = function(){
@@ -220,7 +312,7 @@ $(function(){
 		};
 
 		self.generateId = function(url){
-			var idBase = '_'+url.substring(url.lastIndexOf('/')+1).replace(/[^a-zA-Z0-9_.]/ig, '-'); // _ at first place if filename starts with a digit
+			var idBase = '_'+url.substring(url.lastIndexOf('/')+1).replace(/[^a-zA-Z0-9]/ig, '-'); // _ at first place if filename starts with a digit
 			idBase = idBase.replace('')
 			var suffix = 0;
 			var id = idBase + "-" + suffix;
@@ -274,6 +366,6 @@ $(function(){
     // view model class, parameters for constructor, container to bind to
     ADDITIONAL_VIEWMODELS.push([WorkingAreaViewModel, "workingAreaViewModel",
 		["loginStateViewModel", "settingsViewModel", "printerStateViewModel",  "gcodeFilesViewModel", "vectorConversionViewModel"], 
-		document.getElementById("area_preview")]);
+		[document.getElementById("area_preview"), document.getElementById("working_area_files")]]);
 
 });
