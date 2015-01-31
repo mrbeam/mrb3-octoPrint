@@ -231,9 +231,8 @@ $(function(){
 			for (var idx = 0; idx < self.placedDesigns().length; idx++) {
 				var svg = self.placedDesigns()[idx];
 				if(svg.url === url){
-					console.log("#ää", svg.id);
 					snap.select('#'+svg.id).remove();
-					self.placedDesigns().splice(idx,1);
+					self.placedDesigns.remove(file);
 					break;
 				}
 			}
