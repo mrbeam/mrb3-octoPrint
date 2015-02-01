@@ -42,19 +42,25 @@ $(function(){
 
 		// shows conversion dialog and extracts svg first
 		self.show_conversion_dialog = function() {
-			var intensity = self.settings.settings.plugins.svgtogcode.defaultIntensity();
-			var speed = self.settings.settings.plugins.svgtogcode.defaultFeedrate();
-			self.laserIntensity(intensity);
-			self.laserSpeed(speed);
-
 			self.svg = self.workingArea.getCompositionSVG();
 			self.gcodeFilesToAppend = self.workingArea.getPlacedGcodes();
-
-			// TODO: js svg conversion
-			self.title(gettext("Converting"));
 			var gcodeFile = self.create_gcode_filename(self.workingArea.placedDesigns());
 			self.gcodeFilename(gcodeFile);
-			$("#dialog_vector_graphics_conversion").modal("show"); // calls self.convert afterwards
+			
+			if(self.svg !== undefined){
+				var intensity = self.settings.settings.plugins.svgtogcode.defaultIntensity();
+				var speed = self.settings.settings.plugins.svgtogcode.defaultFeedrate();
+				self.laserIntensity(intensity);
+				self.laserSpeed(speed);
+
+
+				// TODO: js svg conversion
+				self.title(gettext("Converting"));
+				$("#dialog_vector_graphics_conversion").modal("show"); // calls self.convert() afterwards
+			} else {
+				// just gcodes were placed. Start lasering right away.
+				self.convert();
+			}
 		};
 
 		self.create_gcode_filename = function(placedDesigns){
@@ -136,7 +142,7 @@ $(function(){
 				});
 			});
 
-			if (selectedSlicer != undefined) {
+			if (selectedSlicer !== undefined) {
 				self.slicer(selectedSlicer);
 			}
 
@@ -144,10 +150,10 @@ $(function(){
 		};
 
 		self.profilesForSlicer = function(key) {
-			if (key == undefined) {
+			if (key === undefined) {
 				key = self.slicer();
 			}
-			if (key == undefined || !self.data.hasOwnProperty(key)) {
+			if (key === undefined || !self.data.hasOwnProperty(key)) {
 				return;
 			}
 			var slicer = self.data[key];
@@ -156,7 +162,7 @@ $(function(){
 			self.profiles.removeAll();
 			_.each(_.values(slicer.profiles), function(profile) {
 				var name = profile.displayName;
-				if (name == undefined) {
+				if (name === undefined) {
 					name = profile.key;
 				}
 
@@ -167,10 +173,10 @@ $(function(){
 				self.profiles.push({
 					key: profile.key,
 					name: name
-				})
+				});
 			});
 
-			if (selectedProfile != undefined) {
+			if (selectedProfile !== undefined) {
 				self.profile(selectedProfile);
 			}
 
@@ -195,6 +201,8 @@ $(function(){
 
 			if(self.svg !== undefined){
 				data.svg = self.svg;
+			} else {
+				data.svg = '<svg height="0" version="1.1" width="0" xmlns="http://www.w3.org/2000/svg"><defs/></svg>';
 			}
 			if(self.gcodeFilesToAppend !== undefined){
 				data.gcodeFilesToAppend = self.gcodeFilesToAppend;
@@ -211,6 +219,7 @@ $(function(){
 			$("#dialog_vector_graphics_conversion").modal("hide");
 
 			self.gcodeFilename(undefined);
+			self.svg = undefined;
 			//self.slicer(self.defaultSlicer);
 			//self.profile(self.defaultProfile);
 		};

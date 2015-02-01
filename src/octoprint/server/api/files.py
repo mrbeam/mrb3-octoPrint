@@ -473,6 +473,11 @@ def gcodeConvertCommand():
 			import os
 			name, _ = os.path.splitext(filename)
 			gcode_name = name + ".gco"
+			
+		i = 1;
+		while(fileManager.file_exists(target, gcode_name)):
+			name, ext = os.path.splitext(filename)
+			gcode_name = name+'.'+str(i)+'.'+ext
 
 		# prohibit overwriting the file that is currently being printed
 		currentOrigin, currentFilename = _getCurrentFile()

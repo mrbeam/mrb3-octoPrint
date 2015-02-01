@@ -100,6 +100,7 @@ $(function(){
 
 		self.clear = function(){
 			snap.selectAll('#userContent>*').remove();
+			snap.selectAll('#placedGcodes>*').remove();
 			self.placedDesigns([]);
 		};
 		
@@ -339,16 +340,19 @@ $(function(){
 		};
 
 		self.getCompositionSVG = function(){
-			var dpiFactor = self.svgDPI()/25.4; // convert mm to pix 90dpi for inkscape, 72 for illustrator 
-			var w = dpiFactor * self.workingAreaWidthMM(); 
-			var h = dpiFactor * self.workingAreaHeightMM(); 
-//			var w = dpiFactor * self.settings.printerProfiles.currentProfileData().volume.width; 
-//			var h = dpiFactor * self.settings.printerProfiles.currentProfileData().volume.depth; 
-//			var yTranslation = "translate(0, "+h+")";
-
 			var tmpsvg = snap.select("#userContent").innerSVG(); // get working area 
-			var svg = '<svg height="'+ h +'" version="1.1" width="'+ w +'" xmlns="http://www.w3.org/2000/svg"><defs/>'+ tmpsvg +'</svg>';
-			return svg;
+			if(tmpsvg !== ''){
+				var dpiFactor = self.svgDPI()/25.4; // convert mm to pix 90dpi for inkscape, 72 for illustrator 
+				var w = dpiFactor * self.workingAreaWidthMM(); 
+				var h = dpiFactor * self.workingAreaHeightMM(); 
+	//			var w = dpiFactor * self.settings.printerProfiles.currentProfileData().volume.width; 
+	//			var h = dpiFactor * self.settings.printerProfiles.currentProfileData().volume.depth; 
+
+				var svg = '<svg height="'+ h +'" version="1.1" width="'+ w +'" xmlns="http://www.w3.org/2000/svg"><defs/>'+ tmpsvg +'</svg>';
+				return svg;
+			} else {
+				return;
+			}
 		};
 		
 		self.getPlacedGcodes = ko.computed(function() {

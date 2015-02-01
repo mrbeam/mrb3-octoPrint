@@ -416,7 +416,7 @@ var drawLayer = function(layerNum, fromProgress, toProgress, isNotCurrentLayer){
 			prevX = x ;
             prevY = y ;
         }
-		GCODE.workingArea.draw_gcode(points, lastLaser);
+		GCODE.workingArea.draw_gcode(points, lastLaser, '#gCodePreview');
     
 	}
 };
