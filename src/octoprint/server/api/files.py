@@ -430,7 +430,6 @@ def gcodeConvertCommand():
 		with open(output_path,'ab') as wfd:
 			for f in sources:
 				path = fileManager.get_absolute_path(f['origin'], f['name'])
-				print("files.py appendCallback", path)
 				wfd.write( "\n; "+ f['name'] + "\n")
 				
 				with open(path,'rb') as fd:
@@ -438,7 +437,6 @@ def gcodeConvertCommand():
 
 				wfd.write( "\nM05\n") # ensure that the laser is off.
 		
-			print("files.py join done", output_path)
 		
 	if command == "convert":
 		

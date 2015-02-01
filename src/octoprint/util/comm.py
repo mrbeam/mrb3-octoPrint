@@ -403,6 +403,13 @@ class MachineCom(object):
 		self._pauseWaitTimeLost = 0.0
 
 		try:
+			# TODO fetch init sequence from machine profile
+			self.sendCommand("$H")
+			self.sendCommand("G92X0Y0Z0")
+			self.sendCommand("G90")
+			self.sendCommand("M08")
+			self.sendCommand("G21")
+			
 			self._currentFile.start()
 
 			wasPaused = self.isPaused()
@@ -1135,7 +1142,7 @@ class MachineCom(object):
 						"remote": remote,
 						"time": self.getPrintTime()
 					}
-
+					
 					self._currentFile = None
 					self._changeState(self.STATE_OPERATIONAL)
 					self._callback.mcFileTransferDone(remote)
@@ -1151,6 +1158,12 @@ class MachineCom(object):
 					self._callback.mcPrintjobDone()
 					self._changeState(self.STATE_OPERATIONAL)
 					eventManager().fire(Events.PRINT_DONE, payload)
+
+				# TODO fetch finish sequence from machine profiles
+				self.sendCommand("M05");
+				self.sendCommand("G0X0Y0");
+				self.sendCommand("M09");
+				self.sendCommand("M02");
 				return
 
 			self._sendCommand(line, True)
