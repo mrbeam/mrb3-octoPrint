@@ -405,7 +405,7 @@ var drawLayer = function(layerNum, fromProgress, toProgress, isNotCurrentLayer){
 			
 			if(lastLaser !== cmds[i].laser){
 			
-				GCODE.workingArea.draw_gcode(points, lastLaser);
+				GCODE.workingArea.draw_gcode(points, lastLaser, '#gCodePreview');
 				points = [[prevX,prevY]];
 				lastLaser = cmds[i].laser;
 			} 

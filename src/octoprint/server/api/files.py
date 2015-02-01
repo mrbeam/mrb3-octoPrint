@@ -15,6 +15,7 @@ from octoprint.server.util.flask import restricted_access
 from octoprint.server.api import api
 from octoprint.events import Events
 import octoprint.filemanager
+import shutil
 
 
 #~~ GCODE file handling
@@ -421,6 +422,23 @@ def gcodeConvertCommand():
 	svg = data['svg']
 	del data['svg']
 	
+	appendGcodeFiles = data['gcodeFilesToAppend']
+	del data['gcodeFilesToAppend']
+	
+	def appendCallback(location, path, sources):
+		output_path = fileManager.get_absolute_path(location, path)
+		with open(output_path,'ab') as wfd:
+			for f in sources:
+				path = fileManager.get_absolute_path(f['origin'], f['name'])
+				print("files.py appendCallback", path)
+				wfd.write( "\n; "+ f['name'] + "\n")
+				
+				with open(path,'rb') as fd:
+					shutil.copyfileobj(fd, wfd, 1024*1024*10)
+
+				wfd.write( "\n")
+		
+			print("files.py join done", output_path)
 		
 	if command == "convert":
 		
@@ -474,7 +492,9 @@ def gcodeConvertCommand():
 		for key in override_keys:
 			overrides[key[len("profile."):]] = data[key]
 
-		ok, result = fileManager.slice(slicer, target, filename, target, gcode_name, profile=profile, overrides=overrides)
+		ok, result = fileManager.slice(slicer, target, filename, target, gcode_name, profile=profile, overrides=overrides, 
+			callback=appendCallback, callback_args=[target, gcode_name, appendGcodeFiles])
+		
 		if ok:
 			files = {}
 			location = url_for(".readGcodeFile", target=target, filename=gcode_name, _external=True)

@@ -177,7 +177,7 @@
 												
 
 												<div class="row-fluid print-control" style="display: none;" data-bind="visible: loginState.isUser">
-													<button class="btn btn-danger span4" data-bind="click: conversion.show_conversion_dialog, enable: isOperational() && isReady() && !isPrinting() && loginState.isUser(), attr: {title: titlePrintButton}" id="job_print">
+													<button class="btn btn-danger span4" data-bind="click: conversion.show_conversion_dialog, enable: isOperational() && isReady() && !isPrinting() && loginState.isUser() && !workingArea.working_area_empty(), attr: {title: titlePrintButton}" id="job_print">
 														<i class="icon-white" data-bind="css: {'icon-fire': !isPaused(), 'icon-undo': isPaused(), 'wobble': isPrinting()}"></i> <span data-bind="text: (isPaused() ? '{{ _('Restart') }}' : '{{ _('Laser') }}')">{{ _('Laser') }}</span>
 													</button>
 													<button class="btn span4" id="job_pause" data-bind="click: pause, enable: isOperational() && (isPrinting() || isPaused()) && loginState.isUser(), css: {active: isPaused()}, attr: {title: titlePauseButton}"><i data-bind="css: {'icon-pause': !isPaused(), 'icon-play': isPaused()}"></i> <span data-bind="visible: !isPaused()">{{ _('Pause') }}</span><span data-bind="visible: isPaused()">{{ _('Resume') }}</span></button>
@@ -195,7 +195,7 @@
 								
 								
 								<div class="accordion-group" id="working_area_files">
-									<div class="">
+									<div class="" data-bind="visible: !working_area_empty()">
 										<div class="accordion-heading">
 											<a class="accordion-toggle" data-toggle="collapse" href="#wa_filelist"><i class="icon-list"></i> {{ _('Files') }}</a>
 											<a class="pull-right btn btn-small" data-bind="click: clear" style="margin-right: 1em; margin-top: 4px;" ><i class="icon-remove-sign"></i> {{ _('Clear') }}</a>
@@ -209,9 +209,9 @@
 
 												<script type="text/html" id="wa_template_machinecode">
 													<div class="file_list_entry">
-														<div class="title" data-bind="css: $root.getSuccessClass($data), style: { 'font-weight': $root.listHelper.isSelected($data) ? 'bold' : 'normal' }, text: name"></div>
+														<div class="title muted" data-bind="text: name" style="color:#ADADAD;"></div>
 														<div class="btn-group action-buttons">
-															<div class="btn btn-mini" data-bind="click: function() { if ($root.enableRemove($data)) { $root.removeFile($data); } else { return; } }"><i class="icon-remove" title="{{ _('Remove') }}"></i></div>
+															<div class="btn btn-mini" data-bind="click: function(){ $root.removeGcode($data); }"><i class="icon-remove" title="{{ _('Remove') }}"></i></div>
 														</div>
 													</div>
 												</script>
@@ -257,24 +257,21 @@
 											x="396.81018"
 											y="592.36218"
 											id="add_designs_hint"
-											><tspan
-											  id="tspan2987"
-											  x="368.571426"
-											  y="532.36218"
-											  style="text-anchor:middle;text-align:center">add designs via </tspan><tspan
-											  x="368.571426"
-											  y="592.36218"
-											  id="tspan2989"
-											  style="text-anchor:middle;text-align:center">the design library </tspan><tspan
-											  x="368.571426"
-											  y="652.36218"
-											  id="tspan2993"
-											  style="text-anchor:middle;text-align:center">or drag 'n' drop </tspan><tspan
-											  x="368.571426"
-											  y="712.36218"
-											  id="tspan2991"
+											>
+										<tspan
+											  id="tspan2987" x="368.571426" y="532.36218"
+											  style="text-anchor:middle;text-align:center">add designs via </tspan>
+										<tspan
+											  x="368.571426" y="592.36218" id="tspan2989"
+											  style="text-anchor:middle;text-align:center">the design library </tspan>
+										<tspan
+											  x="368.571426" y="652.36218" id="tspan2993"
+											  style="text-anchor:middle;text-align:center">or drag 'n' drop </tspan>
+										<tspan
+											  x="368.571426" y="712.36218" id="tspan2991"
 											  style="text-anchor:middle;text-align:center" /></text>
 										<g id="userContent"></g>
+										<g id="placedGcodes" data-bind="attr: { transform: scaleMatrixMMtoDisplay() }"></g>
 										<g id="gCodePreview" data-bind="attr: { transform: scaleMatrixMMtoDisplay() }"></g>
 									</g>
 								</svg>
@@ -322,9 +319,8 @@
 								</ul>
 								<div class="">
 									<div class="accordion-heading">
-										<a class="accordion-toggle" data-toggle="collapse" href="#files"><i class="icon-list"></i> {{ _('Files') }}</a>
+										<a class="accordion-toggle" ><i class="icon-list"></i> {{ _('Files') }}</a>
 										<a class="accordion-toggle" data-toggle="collapse" href="#files_search" style="text-decoration: none;"><i class="icon-search dropdown-toggle"></i><span class="caret" style="margin: .5em;"></span></a>
-										<a class="pull-right btn btn-small" data-bind="click: workingArea.clear" style="margin-right: 1em; margin-top: 4px;" ><i class="icon-remove-sign"></i> {{ _('Clear') }}</a>
 									</div>
 
 									<div class="settings-trigger accordion-heading-button btn-group" style="display: none;">
@@ -386,7 +382,8 @@
 															<div class="btn-group action-buttons">
 																<a class="btn btn-mini" data-bind="attr: {href: $root.downloadLink($data), css: {disabled: !$root.downloadLink($data)}}"><i class="icon-download-alt" title="{{ _('Download') }}"></i></a>
 																<div class="btn btn-mini" data-bind="click: function() { if ($root.enableRemove($data)) { $root.removeFile($data); } else { return; } }, css: {disabled: !$root.enableRemove($data)}"><i class="icon-trash" title="{{ _('Remove') }}"></i></div>
-																<div class="btn btn-mini"  data-bind="click: function() { if ($root.enableSelect($data)) { $root.startGcodeWithSafetyWarning($data); } else { return; } }, css: {disabled: !$root.enableSelect($data)}"><i class="icon-fire" title="{{ _('Load and Laser') }}"></i></div>
+																<!--<div class="btn btn-mini"  data-bind="click: function() { if ($root.enableSelect($data)) { $root.startGcodeWithSafetyWarning($data); } else { return; } }, css: {disabled: !$root.enableSelect($data)}"><i class="icon-fire" title="{{ _('Load and Laser') }}"></i></div>-->
+																<div class="btn btn-mini"  data-bind="click: function() { $root.workingArea.placeGcode($data); }"><i class="icon-ok" title="{{ _('Use') }}"></i></div>
 															</div>
 														</div>
 													</script>

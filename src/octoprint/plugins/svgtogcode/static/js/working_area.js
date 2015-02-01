@@ -2,6 +2,8 @@ $(function(){
 
 	function WorkingAreaViewModel(params) {
 		var self = this;
+		
+		self.parser = new gcParser();
 
 		self.loginState = params[0];
 		self.settings = params[1];
@@ -101,51 +103,6 @@ $(function(){
 			self.placedDesigns([]);
 		};
 		
-		   // initialize list helper
-		self.listHelper = new ItemListHelper(
-			"gcodeFiles",
-			{
-				"name": function(a, b) {
-					// sorts ascending
-					if (a["name"].toLocaleLowerCase() < b["name"].toLocaleLowerCase()) return -1;
-					if (a["name"].toLocaleLowerCase() > b["name"].toLocaleLowerCase()) return 1;
-					return 0;
-				},
-				"upload": function(a, b) {
-					// sorts descending
-					if (b["date"] === undefined || a["date"] > b["date"]) return -1;
-					if (a["date"] < b["date"]) return 1;
-					return 0;
-				},
-				"size": function(a, b) {
-					// sorts descending
-					if (b["bytes"] === undefined || a["bytes"] > b["bytes"]) return -1;
-					if (a["bytes"] < b["bytes"]) return 1;
-					return 0;
-				}
-			},
-			{
-				"printed": function(file) {
-					return !(file["prints"] && file["prints"]["success"] && file["prints"]["success"] > 0);
-				},
-				"sd": function(file) {
-					return file["origin"] && file["origin"] == "sdcard";
-				},
-				"local": function(file) {
-					return !(file["origin"] && file["origin"] == "sdcard");
-				},
-				"machinecode": function(file) {
-					return file["type"] && file["type"] == "machinecode";
-				},
-				"model": function(file) {
-					return file["type"] && file["type"] == "model";
-				}
-			},
-			"name",
-			[],
-			[["sd", "local"], ["machinecode", "model"]],
-			0
-		);
 
 		self.trigger_resize = function(){
 			self.availableHeight(document.documentElement.clientHeight - $('body>nav').outerHeight()  - $('footer>*').outerHeight() - 39); // magic number
@@ -192,6 +149,62 @@ $(function(){
 			return val * self.svgDPI()/25.4;
 		};
 
+		self.placeGcode = function(file){
+			console.log(file);
+			var previewId = self.getEntryId(file);
+			
+			if(snap.select('#'+previewId)){
+				console.error("working_area placeGcode: file already placed.");
+				return;
+			} else {
+				var g = snap.group();
+				g.attr({id: previewId});
+				snap.select('#placedGcodes').append(g);
+				self.placedDesigns.push(file);
+			}
+			
+			self.loadGcode(file, function(gcode){
+				self.parser.parse(gcode, /(m0?3)|(m0?5)/i, function(block){
+					var points = [];
+					var intensity = -1;
+					for (var idx = 0; idx < block.length; idx++) {
+						var item = block[idx];
+						points.push( [ item.x, item.y ] );
+						intensity = item.laser;
+					}
+					if(points.length > 0)
+					self.draw_gcode(points, intensity, '#'+previewId);
+					
+				});
+			});
+		};
+		
+		self.loadGcode = function(file, callback){
+			var url = file.refs.download;
+			var date = file.date;
+			$.ajax({
+                url: url,
+                data: { "ctime": date },
+                type: "GET",
+                success: function(response, rstatus) {
+                    if(rstatus === 'success'){
+						if(typeof(callback) === 'function'){
+							callback(response);
+						}
+                    }
+                },
+                error: function() {
+					console.error("working_area.js placeGcode: unable to load ", url);
+                }
+            });
+			
+		};
+
+		self.removeGcode = function(file){
+			var previewId = self.getEntryId(file);
+			snap.select('#' + previewId).remove();
+			self.placedDesigns.remove(file);
+		};
 
 		self.placeSVG = function(file) {
 			var url = self._getSVGserveUrl(file);
@@ -207,14 +220,15 @@ $(function(){
 
 				var newSvg = f.select("g");
 				newSvg.attr(namespaces);
-//				var id = self.generateId(url);
-				var id = self.getEntryId(file); // works better on multiple instances.
-				newSvg.attr({id: id});
+				var id = self.getEntryId(file); 
+				var previewId = self.generateUniqueId(id); // appends -# if multiple times the same design is placed.
+				newSvg.attr({id: previewId});
 				snap.select("#userContent").append(newSvg);
 
 				newSvg.drag();// TODO debug drag. should not be affected by scale matrix
 
-				file.id = id;
+				file.id = previewId;
+				file.previewId = previewId;
 				file.url = url;
 				
 				self.placedDesigns.push(file);
@@ -227,17 +241,20 @@ $(function(){
 		};
 		
 		self.removeSVG = function(file){
-			var url = self._getSVGserveUrl(file);
-			for (var idx = 0; idx < self.placedDesigns().length; idx++) {
-				var svg = self.placedDesigns()[idx];
-				if(svg.url === url){
-					snap.select('#'+svg.id).remove();
-					self.placedDesigns.remove(file);
-					break;
-				}
-			}
+			console.log("removeSVG", file.previewId, self.placedDesigns.indexOf(file));
+			snap.select('#'+file.previewId).remove();
+			self.placedDesigns.remove(file); 
+			// TODO debug why remove always clears all items of this type.
+//			self.placedDesigns.remove(function(item){ 
+//				console.log("item", item.previewId );
+//				//return false;
+//				if(item.previewId === file.previewId){ 
+//					console.log("match", item.previewId );
+//					return true;
+//				} else return false;
+//			});
 		};
-		
+				
 		self._getSVGserveUrl = function(file){
 			if (file && file["refs"] && file["refs"]["download"]) {
 				var url = file.refs.download.replace("downloads", "serve");
@@ -247,8 +264,9 @@ $(function(){
 		};
 		
 		self.templateFor = function(data) {
+			console.log("data", data);
 			var extension = data.name.split('.').pop().toLowerCase();
-			if (extension == "svg") {
+			if (extension === "svg") {
 				return "wa_template_" + data.type + "_svg";
 			} else {
 				return "wa_template_" + data.type;
@@ -310,14 +328,12 @@ $(function(){
 			}
 		};
 
-		self.generateId = function(url){
-			var idBase = '_'+url.substring(url.lastIndexOf('/')+1).replace(/[^a-zA-Z0-9]/ig, '-'); // _ at first place if filename starts with a digit
-			idBase = idBase.replace('')
+		self.generateUniqueId = function(idBase){
 			var suffix = 0;
 			var id = idBase + "-" + suffix;
 			while(snap.select('#'+id) !== null){
 				suffix += 1;
-				id = idBase + suffix;
+				id = idBase + "-" + suffix;
 			}
 			return id;
 		};
@@ -335,7 +351,16 @@ $(function(){
 			return svg;
 		};
 		
-		self.draw_gcode = function(points, intensity){
+		self.getPlacedGcodes = ko.computed(function() {
+			var gcodeFiles = [];
+			ko.utils.arrayForEach(self.placedDesigns(), function(design) {
+				if(design.type === 'machinecode') gcodeFiles.push(design);
+			});
+			return gcodeFiles;
+		}, self);
+	
+		
+		self.draw_gcode = function(points, intensity, target){
 			var stroke_color = intensity === 0 ? '#BBBBBB' : '#FF0000';
 			var d = 'M'+points.join(' ');
 			var p = snap.path(d).attr({
@@ -343,14 +368,17 @@ $(function(){
 				stroke: stroke_color,
 				strokeWidth: 1
 			});
-			snap.select('#gCodePreview').append(p);
+			console.log("target", target);
+			snap.select(target).append(p);
 		};
 		self.clear_gcode = function(){
+//			console.log("gcodeprev clear");
 			snap.select('#gCodePreview').clear();
 		};
 
 		self.onStartup = function(){
 			GCODE.workingArea = self; // Temporary hack to use the gcode parser from the gCodeViewer
+			self.state.workingArea = self;
 			self.files.workingArea = self;
 			self.conversion.workingArea = self;
 			$(window).resize(function(){

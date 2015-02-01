@@ -48,12 +48,13 @@ $(function(){
 			self.laserSpeed(speed);
 
 			self.svg = self.workingArea.getCompositionSVG();
+			self.gcodeFilesToAppend = self.workingArea.getPlacedGcodes();
 
 			// TODO: js svg conversion
 			self.title(gettext("Converting"));
 			var gcodeFile = self.create_gcode_filename(self.workingArea.placedDesigns());
 			self.gcodeFilename(gcodeFile);
-			$("#dialog_vector_graphics_conversion").modal("show");
+			$("#dialog_vector_graphics_conversion").modal("show"); // calls self.convert afterwards
 		};
 
 		self.create_gcode_filename = function(placedDesigns){
@@ -61,9 +62,8 @@ $(function(){
 				var filemap = {};
 				for(var idx in placedDesigns){
 					var design = placedDesigns[idx];
-					var start = design.url.lastIndexOf('/')+1;
-					var end = design.url.lastIndexOf('.');
-					var name = design.url.substring(start, end);
+					var end = design.name.lastIndexOf('.');
+					var name = design.name.substring(0, end);
 					if(filemap[name] !== undefined) filemap[name] += 1;
 					else filemap[name] = 1;
 				}
@@ -83,7 +83,9 @@ $(function(){
 				}
 				return gcode_name + ".gco";
 			} else { 
-				return "tmp"+Date.now()+".gco"; // TODO: user should not deal with gcode anymore. go and laser it.
+//				return "tmp"+Date.now()+".gco"; 
+				console.error("no designs placed.");
+				return;
 			}
 		};
 
@@ -193,6 +195,9 @@ $(function(){
 
 			if(self.svg !== undefined){
 				data.svg = self.svg;
+			}
+			if(self.gcodeFilesToAppend !== undefined){
+				data.gcodeFilesToAppend = self.gcodeFilesToAppend;
 			}
 
 			$.ajax({
