@@ -436,7 +436,7 @@ def gcodeConvertCommand():
 				with open(path,'rb') as fd:
 					shutil.copyfileobj(fd, wfd, 1024*1024*10)
 
-				wfd.write( "\n")
+				wfd.write( "\nM05\n") # ensure that the laser is off.
 		
 			print("files.py join done", output_path)
 		
