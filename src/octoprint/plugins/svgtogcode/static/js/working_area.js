@@ -15,13 +15,13 @@ $(function(){
 
 		self.command = ko.observable(undefined);
 
-		self.isErrorOrClosed = ko.observable(undefined);
-		self.isOperational = ko.observable(undefined);
-		self.isPrinting = ko.observable(undefined);
-		self.isPaused = ko.observable(undefined);
-		self.isError = ko.observable(undefined);
-		self.isReady = ko.observable(undefined);
-		self.isLoading = ko.observable(undefined);
+//		self.isErrorOrClosed = ko.observable(undefined);
+//		self.isOperational = ko.observable(undefined);
+//		self.isPrinting = ko.observable(undefined);
+//		self.isPaused = ko.observable(undefined);
+//		self.isError = ko.observable(undefined);
+//		self.isReady = ko.observable(undefined);
+//		self.isLoading = ko.observable(undefined);
 
 		self.availableHeight = ko.observable(undefined);
 		self.availableWidth = ko.observable(undefined);
@@ -151,7 +151,6 @@ $(function(){
 		};
 
 		self.placeGcode = function(file){
-			console.log(file);
 			var previewId = self.getEntryId(file);
 			
 			if(snap.select('#'+previewId)){
@@ -242,7 +241,6 @@ $(function(){
 		};
 		
 		self.removeSVG = function(file){
-			console.log("removeSVG", file.previewId, self.placedDesigns.indexOf(file));
 			snap.select('#'+file.previewId).remove();
 			self.placedDesigns.remove(file); 
 			// TODO debug why remove always clears all items of this type.
@@ -265,7 +263,6 @@ $(function(){
 		};
 		
 		self.templateFor = function(data) {
-			console.log("data", data);
 			var extension = data.name.split('.').pop().toLowerCase();
 			if (extension === "svg") {
 				return "wa_template_" + data.type + "_svg";
@@ -372,7 +369,6 @@ $(function(){
 				stroke: stroke_color,
 				strokeWidth: 1
 			});
-			console.log("target", target);
 			snap.select(target).append(p);
 		};
 		self.clear_gcode = function(){

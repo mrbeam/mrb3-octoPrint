@@ -184,44 +184,48 @@ $(function(){
 		};
 
 		self.convert = function() {
-			var gcodeFilename = self._sanitize(self.gcodeFilename());
-			if (!_.endsWith(gcodeFilename.toLowerCase(), ".gco")
-				&& !_.endsWith(gcodeFilename.toLowerCase(), ".gcode")
-				&& !_.endsWith(gcodeFilename.toLowerCase(), ".g")) {
-				gcodeFilename = gcodeFilename + ".gco";
-			}
-
-			var data = {
-				command: "convert",
-				"profile.speed": self.laserSpeed(),
-				"profile.intensity": self.laserIntensity(),
-				slicer: "svgtogcode",
-				gcode: gcodeFilename
-			};
-
-			if(self.svg !== undefined){
-				data.svg = self.svg;
+			if(self.gcodeFilesToAppend.length === 1 && self.svg === undefined){
+				self.files.startGcodeWithSafetyWarning(self.gcodeFilesToAppend[0]);
 			} else {
-				data.svg = '<svg height="0" version="1.1" width="0" xmlns="http://www.w3.org/2000/svg"><defs/></svg>';
+				var gcodeFilename = self._sanitize(self.gcodeFilename());
+				if (!_.endsWith(gcodeFilename.toLowerCase(), ".gco")
+					&& !_.endsWith(gcodeFilename.toLowerCase(), ".gcode")
+					&& !_.endsWith(gcodeFilename.toLowerCase(), ".g")) {
+					gcodeFilename = gcodeFilename + ".gco";
+				}
+
+				var data = {
+					command: "convert",
+					"profile.speed": self.laserSpeed(),
+					"profile.intensity": self.laserIntensity(),
+					slicer: "svgtogcode",
+					gcode: gcodeFilename
+				};
+
+				if(self.svg !== undefined){
+					data.svg = self.svg;
+				} else {
+					data.svg = '<svg height="0" version="1.1" width="0" xmlns="http://www.w3.org/2000/svg"><defs/></svg>';
+				}
+				if(self.gcodeFilesToAppend !== undefined){
+					data.gcodeFilesToAppend = self.gcodeFilesToAppend;
+				}
+
+				$.ajax({
+					url: API_BASEURL + "files/convert",
+					type: "POST",
+					dataType: "json",
+					contentType: "application/json; charset=UTF-8",
+					data: JSON.stringify(data)
+				});
+
+				$("#dialog_vector_graphics_conversion").modal("hide");
+
+				self.gcodeFilename(undefined);
+				self.svg = undefined;
+				//self.slicer(self.defaultSlicer);
+				//self.profile(self.defaultProfile);
 			}
-			if(self.gcodeFilesToAppend !== undefined){
-				data.gcodeFilesToAppend = self.gcodeFilesToAppend;
-			}
-
-			$.ajax({
-				url: API_BASEURL + "files/convert",
-				type: "POST",
-				dataType: "json",
-				contentType: "application/json; charset=UTF-8",
-				data: JSON.stringify(data)
-			});
-
-			$("#dialog_vector_graphics_conversion").modal("hide");
-
-			self.gcodeFilename(undefined);
-			self.svg = undefined;
-			//self.slicer(self.defaultSlicer);
-			//self.profile(self.defaultProfile);
 		};
 
 		self._sanitize = function(name) {

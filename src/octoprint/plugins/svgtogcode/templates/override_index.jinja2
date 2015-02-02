@@ -270,9 +270,9 @@
 										<tspan
 											  x="368.571426" y="712.36218" id="tspan2991"
 											  style="text-anchor:middle;text-align:center" /></text>
-										<g id="userContent"></g>
-										<g id="placedGcodes" data-bind="attr: { transform: scaleMatrixMMtoDisplay() }"></g>
-										<g id="gCodePreview" data-bind="attr: { transform: scaleMatrixMMtoDisplay() }"></g>
+										<g id="userContent" data-bind="visible: !state.isPrinting() && !state.isPaused()"></g>
+										<g id="placedGcodes" data-bind="visible: !state.isPrinting() && !state.isPaused(), attr: { transform: scaleMatrixMMtoDisplay() }"></g>
+										<g id="gCodePreview" data-bind="visible: state.isPrinting() || state.isPaused(), attr: { transform: scaleMatrixMMtoDisplay() }"></g>
 									</g>
 								</svg>
 
