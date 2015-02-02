@@ -1163,7 +1163,7 @@ class MachineCom(object):
 				self.sendCommand("M05");
 				self.sendCommand("G0X0Y0");
 				self.sendCommand("M09");
-				self.sendCommand("M02");
+				#self.sendCommand("M02");
 				return
 
 			self._sendCommand(line, True)

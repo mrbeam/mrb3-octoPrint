@@ -370,7 +370,7 @@ class Printer():
 			#commands = ["M84"]
 			#commands.extend(map(lambda x: "M104 T%d S0" % x, range(extruder_count)))
 			#commands.extend(["M140 S0", "M106 S0"])
-			commands = ["M05", "G0X0Y0", "M09", "M02"]
+			commands = ["M05", "G0X0Y0", "M09"]
 			self.commands(commands)
 
 		# reset progress, height, print time
