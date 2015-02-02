@@ -404,8 +404,8 @@ class MachineCom(object):
 
 		try:
 			# TODO fetch init sequence from machine profile
-			self.sendCommand("$H")
-			self.sendCommand("G92X0Y0Z0")
+			#self.sendCommand("$H") # homing here results in invalid GCode ID33 on G02/03 commands. WTF?
+			#self.sendCommand("G92X0Y0Z0")
 			self.sendCommand("G90")
 			self.sendCommand("M08")
 			self.sendCommand("G21")
