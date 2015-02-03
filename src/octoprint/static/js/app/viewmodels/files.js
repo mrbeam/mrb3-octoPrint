@@ -1,11 +1,11 @@
-function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicingViewModel, vectorConversionViewModel, workingAreaViewModel) {
+function GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicingViewModel) {
     var self = this;
 
     self.printerState = printerStateViewModel;
     self.loginState = loginStateViewModel;
     self.slicing = slicingViewModel;
-    //self.conversion = vectorConversionViewModel;
-	self.workingArea = workingAreaViewModel;
+	self.conversion = undefined;
+	self.workingArea = undefined;
 
     self.isErrorOrClosed = ko.observable(undefined);
     self.isOperational = ko.observable(undefined);

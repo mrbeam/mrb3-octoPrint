@@ -9,19 +9,10 @@ $(function(){
 		self.settings = params[1];
 		self.state = params[2];
 		self.files = params[3];
-		self.conversion = params[4];
 
 		self.log = [];
 
 		self.command = ko.observable(undefined);
-
-//		self.isErrorOrClosed = ko.observable(undefined);
-//		self.isOperational = ko.observable(undefined);
-//		self.isPrinting = ko.observable(undefined);
-//		self.isPaused = ko.observable(undefined);
-//		self.isError = ko.observable(undefined);
-//		self.isReady = ko.observable(undefined);
-//		self.isLoading = ko.observable(undefined);
 
 		self.availableHeight = ko.observable(undefined);
 		self.availableWidth = ko.observable(undefined);
@@ -380,7 +371,7 @@ $(function(){
 			GCODE.workingArea = self; // Temporary hack to use the gcode parser from the gCodeViewer
 			self.state.workingArea = self;
 			self.files.workingArea = self;
-			self.conversion.workingArea = self;
+			
 			$(window).resize(function(){
 				self.trigger_resize();
 			});
@@ -391,8 +382,8 @@ $(function(){
 
 
     // view model class, parameters for constructor, container to bind to
-    ADDITIONAL_VIEWMODELS.push([WorkingAreaViewModel, "workingAreaViewModel",
-		["loginStateViewModel", "settingsViewModel", "printerStateViewModel",  "gcodeFilesViewModel", "vectorConversionViewModel"], 
+    ADDITIONAL_VIEWMODELS.push([WorkingAreaViewModel, 
+		["loginStateViewModel", "settingsViewModel", "printerStateViewModel",  "gcodeFilesViewModel"], 
 		[document.getElementById("area_preview"), document.getElementById("working_area_files")]]);
 
 });

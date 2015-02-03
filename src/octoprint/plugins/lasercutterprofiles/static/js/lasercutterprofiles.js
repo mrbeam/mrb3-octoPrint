@@ -258,7 +258,7 @@ $(function() {
 
 	
     // view model class, identifier, parameters for constructor, container to bind to
-    ADDITIONAL_VIEWMODELS.push([LaserCutterProfilesViewModel, "laserCutterProfilesViewModel",
+    ADDITIONAL_VIEWMODELS.push([LaserCutterProfilesViewModel,
 		["workingAreaViewModel", "controlViewModel", "vectorConversionViewModel"], 
 		document.getElementById("laserCutterProfiles")]);
 	

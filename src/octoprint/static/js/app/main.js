@@ -71,7 +71,7 @@ $(function() {
         var terminalViewModel = new TerminalViewModel(loginStateViewModel, settingsViewModel);
 
         var slicingViewModel = new SlicingViewModel(loginStateViewModel, printerProfilesViewModel);
-        var gcodeFilesViewModel = new GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicingViewModel, null, null);
+        var gcodeFilesViewModel = new GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicingViewModel);
 		var controlViewModel = new ControlViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel);
         var navigationViewModel = new NavigationViewModel(loginStateViewModel, appearanceViewModel, settingsViewModel, usersViewModel);
         var logViewModel = new LogViewModel(loginStateViewModel);
@@ -96,31 +96,57 @@ $(function() {
             slicingViewModel: slicingViewModel,
         };
 
-        var allViewModels = _.values(viewModelMap);
-
-        var additionalViewModels = [];
-        _.each(ADDITIONAL_VIEWMODELS, function(viewModel) {
-            var viewModelClass = viewModel[0];
-            var viewModelId = viewModel[1];
-            var viewModelParameters = viewModel[2];
-            var viewModelBindTarget = viewModel[3];
+		var _createViewModelInstance = function(viewModel, viewModelMap){
+			var viewModelClass = viewModel[0];
+            var viewModelParameters = viewModel[1];
 
             var constructorParameters = [];
-            _.each(viewModelParameters, function(parameter) {
+            for (var idx = 0; idx < viewModelParameters.length; idx++) {
+				var parameter = viewModelParameters[idx];
+
                 if (_.has(viewModelMap, parameter)) {
                     constructorParameters.push(viewModelMap[parameter]);
                 } else {
-                    constructorParameters.push(undefined);
-                }
-            });
+					console.warn("postponing", viewModel[0].name, 'missing param: ', parameter);
+					return;
+				}
+			}
+			var viewModelInstance = new viewModelClass(constructorParameters);
+			return viewModelInstance;
+		};
+		
+		var _getViewModelId = function(viewModel){
+			var name = viewModel[0].name;
+			return name.substr(0, 1).toLowerCase() + name.substr(1);
+		};
+		
+		var vmtmp = ADDITIONAL_VIEWMODELS.slice();
+        var additionalViewModels = [];
+		var attempt = 0;
+		while(vmtmp.length > 0 && attempt < 3){
+			while(vmtmp.length > 0){
+				var viewModel = vmtmp.shift();
+				var viewModelInstance = _createViewModelInstance(viewModel, viewModelMap);
+				if(viewModelInstance !== undefined){
+					var viewModelBindTarget = viewModel[2];
+					var viewModelId = _getViewModelId(viewModel);
+					if(viewModelMap[viewModelId] !== undefined){
+						console.error("Duplicate class name while instantiating viewModel ", viewModelId);
+					} else {
+						additionalViewModels.push([viewModelInstance, viewModelBindTarget]);
+						viewModelMap[viewModelId] = viewModelInstance;
+					}
+				} else {
+					vmtmp.push(viewModel);
+				}
+			}
+			attempt++;
+		}
+		
 
-            var viewModelInstance = new viewModelClass(constructorParameters);
-            additionalViewModels.push([viewModelInstance, viewModelBindTarget]);
-            allViewModels.push(viewModelInstance);
-			viewModelMap[viewModelId] = viewModelInstance;
-        });
-
+        var allViewModels = _.values(viewModelMap);
         var dataUpdater = new DataUpdater(allViewModels);
+
 
         //~~ Temperature
 

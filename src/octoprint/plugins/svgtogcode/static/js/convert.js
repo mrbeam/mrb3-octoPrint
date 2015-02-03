@@ -297,7 +297,7 @@ $(function(){
 
 	}
 	
-    ADDITIONAL_VIEWMODELS.push([VectorConversionViewModel, "vectorConversionViewModel",
+    ADDITIONAL_VIEWMODELS.push([VectorConversionViewModel, 
 		["loginStateViewModel", "settingsViewModel", "printerStateViewModel", "workingAreaViewModel", "gcodeFilesViewModel"], 
 		document.getElementById("dialog_vector_graphics_conversion")]);
 	
