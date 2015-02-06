@@ -269,7 +269,6 @@ def _process_template_configs(name, implementation, configs, rules):
 		if not template_type in rules:
 			continue
 		rule = rules[template_type]
-
 		data = _process_template_config(name, implementation, rule, config=config, counter=counters[template_type])
 		if data is None:
 			continue
