@@ -48,7 +48,7 @@ class LaserSafetyNotesPlugin(octoprint.plugin.SettingsPlugin,
 
 	def on_settings_load(self):
 		cfg = dict(
-			current_profile_id=s.get(["agreed_to_safety_notes"]),
+			has_agreed = s.get(["agreed_to_safety_notes"]),
 		)
 		return cfg
 
@@ -60,7 +60,11 @@ class LaserSafetyNotesPlugin(octoprint.plugin.SettingsPlugin,
 	##~~ TemplatePlugin API
 
 	def get_template_vars(self):
-		d = dict()
+		clazz = "show"
+		if(s.get(["agreed_to_safety_notes"])):
+			clazz = "hide"
+		d = dict(has_agreed_class = clazz)
+		print("foo", d)
 		return d
 
 	def get_template_folder(self):
