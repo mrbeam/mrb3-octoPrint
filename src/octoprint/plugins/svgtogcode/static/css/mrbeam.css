@@ -1674,6 +1674,10 @@ input.search-query,
 	min-height:24px;
 }
 
+#working_area_files .entry {
+  height: 30px;
+}
+
 .safety_glasses_heads_up {
 	background-image:url(../img/safety_glasses_heads_up500.png);
 	background-repeat: no-repeat;
