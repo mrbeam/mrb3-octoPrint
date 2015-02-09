@@ -140,6 +140,15 @@ $(function(){
 		self.mm2svgUnits = function(val){
 			return val * self.svgDPI()/25.4;
 		};
+		
+		self.isPlaced = function(file){
+			if(file === undefined) return false;
+
+			var filePlaced = ko.utils.arrayFirst(this.placedDesigns(), function(d) {
+				return d.name === file.name; 
+			});
+			return filePlaced;
+		};
 
 		self.placeGcode = function(file){
 			var previewId = self.getEntryId(file);
