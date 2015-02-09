@@ -48,11 +48,14 @@ $(function(){
 			self.gcodeFilename(gcodeFile);
 			
 			if(self.svg !== undefined){
-				var intensity = self.settings.settings.plugins.svgtogcode.defaultIntensity();
-				var speed = self.settings.settings.plugins.svgtogcode.defaultFeedrate();
-				self.laserIntensity(intensity);
-				self.laserSpeed(speed);
-
+				if(self.laserIntensity() === undefined){
+					var intensity = self.settings.settings.plugins.svgtogcode.defaultIntensity();
+					self.laserIntensity(intensity);
+				} 
+				if(self.laserSpeed() === undefined){
+					var speed = self.settings.settings.plugins.svgtogcode.defaultFeedrate();
+					self.laserSpeed(speed);
+				}
 
 				// TODO: js svg conversion
 				self.title(gettext("Converting"));
