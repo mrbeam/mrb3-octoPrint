@@ -312,36 +312,32 @@
 					<div class="container-fluid">
 						<div class="row-fluid" id="files_accordion">
 							<div class="span4">
-								<ul>
+<!--								<ul>
 									<li>Local</li>
 									<li>Online Library</li>
 									
-								</ul>
+								</ul>-->
 								<div class="">
 									<div class="accordion-heading">
-										<a class="accordion-toggle" ><i class="icon-list"></i> {{ _('Files') }}</a>
-										<a class="accordion-toggle" data-toggle="collapse" href="#files_search" style="text-decoration: none;"><i class="icon-search dropdown-toggle"></i><span class="caret" style="margin: .5em;"></span></a>
+										<span class="accordion-toggle" ><i class="icon-list"></i> {{ _('Files') }}</span>
+										<!--<a class="accordion-toggle" data-toggle="collapse" href="#files_search" style="text-decoration: none;"><i class="icon-search dropdown-toggle"></i><span class="caret" style="margin: .5em;"></span></a>-->
+										
 									</div>
 
-									<div class="settings-trigger accordion-heading-button btn-group" style="display: none;">
-										<a class="dropdown-toggle" data-toggle="dropdown" href="#">
-											<span class="icon-wrench"></span>
-										</a>
-										<ul class="dropdown-menu">
-											<li><a href="#" data-bind="click: function() { $root.listHelper.changeSorting('name'); }"><i class="icon-ok" data-bind="style: {visibility: listHelper.currentSorting() == 'name' ? 'visible' : 'hidden'}"></i> {{ _('Sort by name') }} ({{ _('ascending') }})</a></li>
-											<li><a href="#" data-bind="click: function() { $root.listHelper.changeSorting('upload'); }"><i class="icon-ok" data-bind="style: {visibility: listHelper.currentSorting() == 'upload' ? 'visible' : 'hidden'}"></i> {{ _('Sort by upload date') }} ({{ _('descending') }})</a></li>
-											<li><a href="#" data-bind="click: function() { $root.listHelper.changeSorting('size'); }"><i class="icon-ok" data-bind="style: {visibility: listHelper.currentSorting() == 'size' ? 'visible' : 'hidden'}"></i> {{ _('Sort by file size') }} ({{ _('descending') }})</a></li>
-											<li class="divider"></li>
-											<li><a href="#" data-bind="click: function() { $root.listHelper.toggleFilter('machinecode'); }"><i class="icon-ok" data-bind="style: {visibility: _.contains(listHelper.currentFilters(), 'machinecode') ? 'visible' : 'hidden'}"></i> {{ _('Only show GCode files') }}</a></li>
-											<li><a href="#" data-bind="click: function() { $root.listHelper.toggleFilter('model'); }"><i class="icon-ok" data-bind="style: {visibility: _.contains(listHelper.currentFilters(), 'model') ? 'visible' : 'hidden'}"></i> {{ _('Only show STL files') }}</a></li>
-											<li class="divider"></li>
-										</ul>
-									</div>
-									<div id="files_search" class="collapse">
+									<div id="files_search" class="">
 										<form class="form-search">
-											<input type="text" class="input-block search-query" data-bind="value: searchQuery, valueUpdate: 'input'" placeholder="{{ _('Search...') }}">
+											<input type="text" style="width:90%;" class="input-block search-query" data-bind="value: searchQuery, valueUpdate: 'input'" placeholder="{{ _('Search...') }}">
 										</form>
 									</div>
+									<ul class="file_list_filter">
+										<li><a href="#" data-bind="click: function() { $root.listHelper.changeSorting('name'); }"><i class="icon-ok" data-bind="style: {visibility: listHelper.currentSorting() == 'name' ? 'visible' : 'hidden'}"></i> {{ _('Sort by name') }} ({{ _('ascending') }})</a></li>
+										<li><a href="#" data-bind="click: function() { $root.listHelper.changeSorting('upload'); }"><i class="icon-ok" data-bind="style: {visibility: listHelper.currentSorting() == 'upload' ? 'visible' : 'hidden'}"></i> {{ _('Sort by upload date') }} ({{ _('descending') }})</a></li>
+										<li><a href="#" data-bind="click: function() { $root.listHelper.changeSorting('size'); }"><i class="icon-ok" data-bind="style: {visibility: listHelper.currentSorting() == 'size' ? 'visible' : 'hidden'}"></i> {{ _('Sort by file size') }} ({{ _('descending') }})</a></li>
+										<li class="divider"></li>
+										<li><a href="#" data-bind="click: function() { $root.listHelper.toggleFilter('machinecode'); }"><i class="icon-ok" data-bind="style: {visibility: _.contains(listHelper.currentFilters(), 'machinecode') ? 'visible' : 'hidden'}"></i> {{ _('Only show GCode files') }}</a></li>
+										<li><a href="#" data-bind="click: function() { $root.listHelper.toggleFilter('model'); }"><i class="icon-ok" data-bind="style: {visibility: _.contains(listHelper.currentFilters(), 'model') ? 'visible' : 'hidden'}"></i> {{ _('Only show non GCode files') }}</a></li>
+										<li class="divider"></li>
+									</ul>
 									<div class="muted text-right">
 										<small>{{ _('Free') }}: <span data-bind="text: freeSpaceString"></span></small>
 									</div>

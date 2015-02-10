@@ -1682,6 +1682,15 @@ input.search-query,
 	margin-top: 8px;
 }
 
+.file_list_filter li {
+	list-style-type: none
+}
+
+.file_list_filter li.divider {
+	border-bottom: 1px dotted #ADADAD;
+	height: 1px;
+}
+
 .safety_glasses_heads_up {
 	background-image:url(../img/safety_glasses_heads_up500.png);
 	background-repeat: no-repeat;
