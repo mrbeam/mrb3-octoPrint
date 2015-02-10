@@ -1678,6 +1678,10 @@ input.search-query,
   height: 30px;
 }
 
+.print-control {
+	margin-top: 8px;
+}
+
 .safety_glasses_heads_up {
 	background-image:url(../img/safety_glasses_heads_up500.png);
 	background-repeat: no-repeat;

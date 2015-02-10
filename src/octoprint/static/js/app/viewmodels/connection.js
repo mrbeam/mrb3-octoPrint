@@ -29,6 +29,7 @@ function ConnectionViewModel(loginStateViewModel, settingsViewModel, printerProf
     self.autoconnect = ko.observable(undefined);
 
     self.isErrorOrClosed = ko.observable(undefined);
+    self.isConnecting = ko.observable(undefined);
     self.isOperational = ko.observable(undefined);
     self.isLocked = ko.observable(undefined);
     self.isPrinting = ko.observable(undefined);
@@ -88,10 +89,10 @@ function ConnectionViewModel(loginStateViewModel, settingsViewModel, printerProf
 
     self._processStateData = function(data) {
         self.previousIsOperational = self.isOperational();
-
         self.isErrorOrClosed(data.flags.closedOrError);
         self.isOperational(data.flags.operational);
-        self.isOperational(data.flags.locked);
+        self.isLocked(data.flags.locked);
+        self.isConnecting(data.text === "Connecting" || data.text === "Opening serial port");
         self.isPaused(data.flags.paused);
         self.isPrinting(data.flags.printing);
         self.isError(data.flags.error);
