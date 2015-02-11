@@ -339,6 +339,7 @@ $(function() {
 		
 
         $(document).bind("dragover", function (e) {
+		console.log("dragover");
             var dropOverlay = $("#drop_overlay");
             var dropZone = $("#drop");
             var dropZoneLocal = $("#drop_locally");
@@ -392,7 +393,7 @@ $(function() {
                 if (dropZoneLocal) dropZoneLocalBackground.removeClass("hover");
                 if (dropZoneSd) dropZoneSdBackground.removeClass("hover");
                 if (dropZone) dropZoneBackground.removeClass("hover");
-            }, 100);
+            }, 1000);
         });
 
         //~~ Underscore setup
@@ -607,6 +608,7 @@ $(function() {
         });
 
         $(document).bind("drop dragover", function (e) {
+		console.log("drop dragover");
             e.preventDefault();
         });
 
