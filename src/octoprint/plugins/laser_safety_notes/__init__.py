@@ -64,7 +64,6 @@ class LaserSafetyNotesPlugin(octoprint.plugin.SettingsPlugin,
 		if(s.get(["agreed_to_safety_notes"])):
 			clazz = "hide"
 		d = dict(has_agreed_class = clazz)
-		print("foo", d)
 		return d
 
 	def get_template_folder(self):

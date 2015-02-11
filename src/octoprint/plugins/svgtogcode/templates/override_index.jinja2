@@ -12,7 +12,7 @@
     </head>
     <body>
 		<div class="container octoprint-container">
-		<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+		<nav class="navbar navbar-default navbar-fixed-top" role="navigation" id="navbar">
 			<div class="container">
 				<div class="navbar-header brand" style="min-width: 272px;">
 					<a class="navbar-brand" href="#">
@@ -25,11 +25,6 @@
 					<!--<li><a href="#gcode" data-toggle="tab">gcode</a></li>-->
 					<li><a href="#focus" data-toggle="tab">focus</a></li>
 					<li><a href="#term" data-toggle="tab">terminal</a></li>
-					<li xstyle="display: none;" xdata-bind="visible: loginState.isAdmin">
-						<a id="navbar_show_settings" class="pull-right" href="#settings" data-toggle="tab"><i class="icon-gear"></i></a>
-					</li>
-				</ul>
-				<ul class="nav pull-right">
 					{% if enableSystemMenu %}
 					<li class="dropdown" style="display: none" data-bind="visible: loginState.isAdmin">
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
@@ -41,28 +36,17 @@
 						</ul>
 					</li>
 					{% endif %}
-					{% if enableAccessControl %}
-					<li class="dropdown">
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-							<i class="icon-user"></i> <span data-bind="text: loginState.userMenuText">{{ _('Login') }}</span>
-							<b class="caret"></b>
-						</a>
-						<div id="login_dropdown_loggedout" style="padding: 15px" class="dropdown-menu" data-bind="css: {hide: loginState.loggedIn(), 'dropdown-menu': !loginState.loggedIn()}">
-							<label for="login_user">{{ _('Username') }}</label>
-							<input type="text" id="login_user" placeholder="{{ _('Username') }}" autocapitalize="none">
-							<label for="login_pass">{{ _('Password') }}</label>
-							<input type="password" id="login_pass" placeholder="{{ _('Password') }}">
-							<label class="checkbox">
-								<input type="checkbox" id="login_remember"> {{ _('Remember me') }}
-							</label>
-							<button class="btn btn-block btn-primary" id="login_button" data-bind="click: loginState.login">{{ _('Login') }}</button>
-						</div>
-						<ul id="login_dropdown_loggedin" class="hide" data-bind="css: {hide: !loginState.loggedIn(), 'dropdown-menu': loginState.loggedIn()}">
-							<li><a href="#" id="change_password_button" data-bind="click: function() { users.showChangePasswordDialog(loginState.currentUser()); }">{{ _('Change Password') }}</a></li>
-							<li><a href="#" id="logout_button" data-bind="click: loginState.logout">{{ _('Logout') }}</a></li>
-						</ul>
-					</li>
-					{% endif %}
+					 {% for data in navbarEntries %}
+						{% if "custom_bindings" not in data or data["custom_bindings"] %}<!-- ko allowBindings: false -->{% endif %}
+						<li id="{{ data._div }}"
+							{% if "data_bind" in data %}data-bind="{{ data.data_bind }}"{% endif %}
+							{% if "classes" in data %}class="{{ data.classes|join(' ') }}"{% endif %}
+							{% if "styles" in data %}style="{{ data.styles|join(', ') }}"{% endif %}
+								>
+							{% include data.template ignore missing %}
+						</li>
+						{% if "custom_bindings" not in data or data["custom_bindings"] %}<!-- /ko -->{% endif %}
+					{% endfor %}
 				</ul>
 			</div>
 		</nav>

@@ -507,7 +507,7 @@ $(function() {
                 gcodeViewModel.initialize();
                 ko.applyBindings(gcodeViewModel, gcode);
             }
-//            ko.applyBindings(navigationViewModel, document.getElementById("navbar"));
+            ko.applyBindings(navigationViewModel, document.getElementById("navbar"));
 //            ko.applyBindings(appearanceViewModel, document.getElementsByTagName("head")[0]);
 //            ko.applyBindings(printerStateViewModel, document.getElementById("drop_overlay"));
 //            ko.applyBindings(logViewModel, document.getElementById("logs"));
