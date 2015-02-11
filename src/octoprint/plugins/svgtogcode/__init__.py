@@ -287,6 +287,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 		self._logger.info("Running %r in %s" % (command, working_dir))
 		try:
 			p = sarge.run(command, cwd=working_dir, async=True, stdout=sarge.Capture(), stderr=sarge.Capture())
+			p.wait_events()
 			try:
 				with self._slicing_commands_mutex:
 					self._slicing_commands[machinecode_path] = p.commands[0]
