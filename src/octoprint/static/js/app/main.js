@@ -339,7 +339,6 @@ $(function() {
 		
 
         $(document).bind("dragover", function (e) {
-		console.log("dragover");
             var dropOverlay = $("#drop_overlay");
             var dropZone = $("#drop");
             var dropZoneLocal = $("#drop_locally");
@@ -608,7 +607,6 @@ $(function() {
         });
 
         $(document).bind("drop dragover", function (e) {
-		console.log("drop dragover");
             e.preventDefault();
         });
 
