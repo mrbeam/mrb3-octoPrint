@@ -25,17 +25,7 @@
 					<!--<li><a href="#gcode" data-toggle="tab">gcode</a></li>-->
 					<li><a href="#focus" data-toggle="tab">focus</a></li>
 					<li><a href="#term" data-toggle="tab">terminal</a></li>
-					{% if enableSystemMenu %}
-					<li class="dropdown" style="display: none" data-bind="visible: loginState.isAdmin">
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-							<i class="icon-off"></i> {{ _('System') }}
-							<b class="caret"></b>
-						</a>
-						<ul class="dropdown-menu" data-bind="foreach: systemActions">
-							<li><a href="#" data-bind="click: $root.triggerAction, text: name"></a></li>
-						</ul>
-					</li>
-					{% endif %}
+					
 					 {% for data in navbarEntries %}
 						{% if "custom_bindings" not in data or data["custom_bindings"] %}<!-- ko allowBindings: false -->{% endif %}
 						<li id="{{ data._div }}"
