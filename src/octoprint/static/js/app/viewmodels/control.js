@@ -141,13 +141,14 @@ function ControlViewModel(loginStateViewModel, settingsViewModel, printerStateVi
 				function(e) {
 					e.preventDefault(); 
 					$("#confirmation_dialog").modal("hide"); 
-					self.sendCustomCommand({type:'command',command:'M3S10'});
+					self.sendCustomCommand({type:'commands', commands:['M8', 'M3S7']});
 				});
 		$("#confirmation_dialog").modal("show");
 	};
 	
 	self.focus_off = function(){
-		self.sendCustomCommand({type:'command',command:'M5'});
+//		self.sendCustomCommand({type:'command',command:'M5'});
+		self.sendCustomCommand({type:'commands', commands:['M5', 'M9']});
 	};
 
     self.sendJogCommand = function(axis, multiplier, distance) {
