@@ -222,6 +222,18 @@ $(function() {
                 $("#gcode_upload_progress").removeClass("progress-striped").removeClass("active");
                 $("#gcode_upload_progress .bar").text("");
             }
+			
+			if(data.result.files.hasOwnProperty("local")){
+				var f = data.result.files.local;
+				if(_.endsWith(filename.toLowerCase(), ".svg")){
+					f.type = "model"
+					viewModelMap['workingAreaViewModel'].placeSVG(f);
+				}
+				if(_.endsWith(filename.toLowerCase(), ".gco")){
+					f.type = "machinecode"
+					viewModelMap['workingAreaViewModel'].placeGcode(f);
+				}
+			}
         }
 
         function gcode_upload_fail(e, data) {
