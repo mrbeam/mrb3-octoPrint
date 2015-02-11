@@ -1,6 +1,6 @@
 <div id="laser_safety_overlay" class="modal hide fade" data-backdrop="static" data-keyboard="false">
     <div class="modal-header">
-        <h3><i class="icon-warning-sign"></i> {{ _('Laser Safety') }}</h3>
+        <h3><i class="icon-warning-sign" style="color:red;"></i> {{ _('Laser Safety') }}</h3>
     </div>
     <div class="modal-body">
         {% trans %}<p>
@@ -14,6 +14,7 @@
 			According to IEC60825 this is a class 4 laser which is capable of causing injury to both 
 			the eye and skin and will also present a fire hazard if sufficiently high output powers are used.  
         </p>
+		<img src="/plugin_assets/laser_safety_notes/img/laser_class4_labels.png" alt="safety labels"/>
 		
 		<h3>Safety Advisory:</h3>
         <p>
