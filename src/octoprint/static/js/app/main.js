@@ -509,8 +509,8 @@ $(function() {
             }
             ko.applyBindings(navigationViewModel, document.getElementById("navbar"));
 //            ko.applyBindings(appearanceViewModel, document.getElementsByTagName("head")[0]);
-//            ko.applyBindings(printerStateViewModel, document.getElementById("drop_overlay"));
-//            ko.applyBindings(logViewModel, document.getElementById("logs"));
+            ko.applyBindings(printerStateViewModel, document.getElementById("drop_overlay"));
+            ko.applyBindings(logViewModel, document.getElementById("logs"));
 
 //            var timelapseElement = document.getElementById("timelapse");
 //            if (timelapseElement) {
@@ -518,9 +518,6 @@ $(function() {
 //            }
 //
 //            ko.applyBindings(slicingViewModel, document.getElementById("slicing_configuration_dialog"));
-//            vectorConversionViewModel.init();
-			//ko.applyBindings(vectorConversionViewModel, document.getElementById("dialog_vector_graphics_conversion"));
-//			ko.applyBindings(workingAreaViewModel, document.getElementById("area_preview"));
 
             // apply bindings and signal startup
             _.each(additionalViewModels, function(additionalViewModel) {
