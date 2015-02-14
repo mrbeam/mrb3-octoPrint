@@ -142,6 +142,9 @@ function ControlViewModel(loginStateViewModel, settingsViewModel, printerStateVi
 					e.preventDefault(); 
 					$("#confirmation_dialog").modal("hide"); 
 					self.sendCustomCommand({type:'commands', commands:['M8', 'M3S7']});
+					setTimeout(function(){ // switch focus off after 30 seconds for safety reasons.
+						self.focus_off();
+					}, 30000);
 				});
 		$("#confirmation_dialog").modal("show");
 	};
