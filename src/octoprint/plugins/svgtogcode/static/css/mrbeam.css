@@ -1620,6 +1620,23 @@ input.search-query,
 }
 */
 
+.file_list_entry .title {
+	margin-left: 3.3em;
+}
+
+.file_list_icon {
+  color: #999;
+  font-size: 3em;
+  display: block;
+  float: left;
+  margin-right: 12px;
+  min-width: 1.1em;
+}
+
+.file_list_entry_gcode {
+	color: #CCC;
+}
+
 #area_preview {
 	background-image: url(../img/crosshair.png); 
 	background-repeat: no-repeat;
