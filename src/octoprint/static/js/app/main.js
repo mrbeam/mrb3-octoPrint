@@ -191,7 +191,7 @@ $(function() {
         //~~ File list
 
         $(".gcode_files").slimScroll({
-            height: "306px",
+            height: "80vh",
             size: "5px",
             distance: "0",
             railVisible: true,
