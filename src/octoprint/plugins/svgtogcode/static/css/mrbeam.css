@@ -1620,7 +1620,7 @@ input.search-query,
 }
 */
 
-.file_list_entry .title {
+#files .file_list_entry .title {
 	margin-left: 3.3em;
 }
 

@@ -44,8 +44,6 @@ $(function(){
 		self.show_conversion_dialog = function() {
 			self.svg = self.workingArea.getCompositionSVG();
 			self.gcodeFilesToAppend = self.workingArea.getPlacedGcodes();
-			var gcodeFile = self.create_gcode_filename(self.workingArea.placedDesigns());
-			self.gcodeFilename(gcodeFile);
 			
 			if(self.svg !== undefined){
 				if(self.laserIntensity() === undefined){
@@ -58,6 +56,9 @@ $(function(){
 				}
 
 				// TODO: js svg conversion
+				var gcodeFile = self.create_gcode_filename(self.workingArea.placedDesigns());
+				self.gcodeFilename(gcodeFile);
+				
 				self.title(gettext("Converting"));
 				$("#dialog_vector_graphics_conversion").modal("show"); // calls self.convert() afterwards
 			} else {
@@ -90,13 +91,21 @@ $(function(){
 				if(uniqueDesigns > 1){
 					gcode_name += "_"+(uniqueDesigns-1)+"more";
 				}
-				return gcode_name + ".gco";
+				
+				return gcode_name;
 			} else { 
 //				return "tmp"+Date.now()+".gco"; 
 				console.error("no designs placed.");
 				return;
 			}
 		};
+		
+		self.settingsString = ko.computed(function(){
+			var intensity = self.laserIntensity();
+			var feedrate = self.laserSpeed();
+			var settingsString = "_i" + intensity + "s" + Math.round(feedrate);
+			return settingsString;
+		});
 
 		self.slicer.subscribe(function(newValue) {
 			self.profilesForSlicer(newValue);
@@ -190,12 +199,8 @@ $(function(){
 			if(self.gcodeFilesToAppend.length === 1 && self.svg === undefined){
 				self.files.startGcodeWithSafetyWarning(self.gcodeFilesToAppend[0]);
 			} else {
-				var gcodeFilename = self._sanitize(self.gcodeFilename());
-				if (!_.endsWith(gcodeFilename.toLowerCase(), ".gco")
-					&& !_.endsWith(gcodeFilename.toLowerCase(), ".gcode")
-					&& !_.endsWith(gcodeFilename.toLowerCase(), ".g")) {
-					gcodeFilename = gcodeFilename + ".gco";
-				}
+				var filename = self.gcodeFilename() + self.settingsString() + '.gco';
+				var gcodeFilename = self._sanitize(filename);
 
 				var data = {
 					command: "convert",

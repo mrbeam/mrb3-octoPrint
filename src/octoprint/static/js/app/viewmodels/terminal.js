@@ -99,10 +99,10 @@ function TerminalViewModel(loginStateViewModel, settingsViewModel) {
         }
 
         //var re = /^([gmt][0-9]+)(\s.*)?/;
-        var re = /^(([gmtfs][0-9]+)|(\$[cinhgx#$])|([?~!]))(\s.*)?/; // grbl style
+        var re = /^([gmtfs][0-9]+|\$[cinhgx#$]|[?~!])(.*)?/; // grbl style
         var commandMatch = command.match(re);
         if (commandMatch != null) {
-            command = commandMatch[1].toUpperCase() + ((commandMatch[2] !== undefined) ? commandMatch[2] : "");
+            command = commandMatch[1].toUpperCase() + ((commandMatch[2] !== undefined) ? commandMatch[2].toUpperCase() : "");
         }
 
         if (command) {
