@@ -773,32 +773,35 @@ class MachineCom(object):
 							pass
 
 				# GRBL Position update
-				if self._grbl and 'MPos:' in line:
+				if self._grbl :
+					if 'MPos:' in line:
 
-					if grblLastStatus == line:
-						grblMoving = False
-					else:
-						grblMoving = True
+						if grblLastStatus == line:
+							grblMoving = False
+						else:
+							grblMoving = True
 
-					grblLastStatus = line
-					
-					if("Alarm" in line):
-						self._changeState(self.STATE_LOCKED)
-					if("Idle" in line and self._state == self.STATE_LOCKED):
-						self._changeState(self.STATE_OPERATIONAL)
+						grblLastStatus = line
+
+						if("Alarm" in line):
+							self._changeState(self.STATE_LOCKED)
+						if("Idle" in line and self._state == self.STATE_LOCKED):
+							self._changeState(self.STATE_OPERATIONAL)
 					
 						
-					parts = line.strip("\r\n").split(":")
+						parts = line.strip("\r\n").split(":")
 
-					pos = parts[1].split(",")
-					MPos = (float(pos[0]), float(pos[1]), float(pos[2]))
+						pos = parts[1].split(",")
+						MPos = (float(pos[0]), float(pos[1]), float(pos[2]))
 
-					pos = parts[2].split(",")
-					WPos = (float(pos[0]), float(pos[1]), float( pos[2].strip(">") ))
+						pos = parts[2].split(",")
+						WPos = (float(pos[0]), float(pos[1]), float( pos[2].strip(">") ))
 					
-					
-					self._callback.mcPosUpdate(MPos, WPos)
+						self._callback.mcPosUpdate(MPos, WPos)
 
+					if("ALARM: Hard/soft limit" in line):
+						self._log("Machine Limit Hit. Please reconnect.")
+						self.close()
 
 				##~~ SD Card handling
 				elif 'SD init fail' in line or 'volume.init failed' in line or 'openRoot failed' in line:
