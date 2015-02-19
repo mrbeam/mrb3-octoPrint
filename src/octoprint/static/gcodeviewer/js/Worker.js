@@ -809,7 +809,8 @@
             sb += "Radius to end of arc differs from radius to start:\n";
             sb += "r1=" + radius + "\n";
             sb += "r2=" + r2 + "\n";
-            console.error("Worker.js convertG2G3", sb);
+			var command = (clockwise ? 'G2' : 'G3') + ' X' + x  + ' Y' + y  + ' Z' + z  + ' I' + i  + ' J' + j  + ' p' + p 
+            console.error("Worker.js convertG2G3", sb, " command was: ", command, " lastPos: ", lastPos);
         }
 
         // this is the real line calculation.
