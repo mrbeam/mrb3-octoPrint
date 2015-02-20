@@ -7,7 +7,7 @@ $(function() {
 		self.s = ko.observable(self.settings.settings);
 		
 		self.agreed_to_safety_notes = ko.computed(function(){
-			console.log(self.s());
+//			console.log(self.s());
 //			if(self.s && self.s().plugins)
 //					return self.s.plugins.laser_safety_notes;
 			return false;
@@ -15,7 +15,7 @@ $(function() {
 
 		self.onStartup = function(){
 			$('#laser_safety_overlay').modal("show");
-			console.log("settings", self.settings.settings);
+//			console.log("settings", self.settings.settings);
 		};
 		
 		self.agree = function(){
