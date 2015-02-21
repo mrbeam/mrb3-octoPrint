@@ -644,7 +644,7 @@ class Server():
 			},
 			"loggers": {
 				"SERIAL": {
-					"level": "DEBUG",
+					"level": "CRITICAL",
 					"handlers": ["serialFile"],
 					"propagate": False
 				},
