@@ -237,7 +237,7 @@ $(function() {
         }
 
         function gcode_upload_fail(e, data) {
-            var error = "<p>" + gettext("Could not upload the file. Make sure that it is a GCODE file and has the extension \".gcode\" or \".gco\" or that it is an STL file with the extension \".stl\" and slicing support is enabled and configured.") + "</p>";
+            var error = "<p>" + gettext("Could not upload the file. Make sure that it is a SVG file and has the extension \".svg\" or a GCode file and has extension \".gco\" or \".gcode\" ") + "</p>";
             error += pnotifyAdditionalInfo("<pre>" + data.jqXHR.responseText + "</pre>");
             new PNotify({
                 title: "Upload failed",
