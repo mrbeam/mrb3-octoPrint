@@ -249,8 +249,8 @@ $(function(){
 		};
 
 		self._configureIntensitySlider = function() {
-			self.intensitySlider = $("#svgtogcode_intensity").slider({
-				id: "svgtogcode_intensity_slider",
+			self.intensitySlider = $("#svgtogcode_intensity_slider").slider({
+				id: "svgtogcode_intensity_slider_impl",
 				reversed: false,
 				selection: "after",
 				orientation: "horizontal",
@@ -270,8 +270,8 @@ $(function(){
 		};
 
 		self._configureFeedrateSlider = function() {
-			self.feedrateSlider = $("#svgtogcode_feedrate").slider({
-				id: "svgtogcode_feedrate_slider",
+			self.feedrateSlider = $("#svgtogcode_feedrate_slider").slider({
+				id: "svgtogcode_feedrate_slider_impl",
 				reversed: false,
 				selection: "after",
 				orientation: "horizontal",
@@ -284,23 +284,24 @@ $(function(){
 			});
 
 			// use the class as a flag to avoid double binding of the slideStop event
-			if($("#svgtogcode_feedrate").attr('class') === 'uninitialized'){ // somehow hasClass(...) did not work ???
+			if($("#svgtogcode_feedrate_slider").attr('class') === 'uninitialized'){ // somehow hasClass(...) did not work ???
 				self.feedrateSlider.on("slideStop", function(ev){
+					$('#svgtogcode_feedrate').val(self._calcRealSpeed(ev.value));
 					self.laserSpeed(self._calcRealSpeed(ev.value));
 				});
-				$("#svgtogcode_feedrate").removeClass('uninitialized');
+				$("#svgtogcode_feedrate_slider").removeClass('uninitialized');
 			}
 
 			var speedSubscription = self.laserSpeed.subscribe(function(fromSettings){
 				var realVal = parseInt(fromSettings);
 				var val = 100*(realVal - self.minSpeed()) / (self.maxSpeed() - self.minSpeed());
 				self.feedrateSlider.slider('setValue', val);
-				speedSubscription.dispose(); // only do it once
+				//speedSubscription.dispose(); // only do it once
 			});
 		};
 
 		self._calcRealSpeed = function(sliderVal){
-			return self.minSpeed() + sliderVal/100 * (self.maxSpeed() - self.minSpeed());
+			return Math.round(self.minSpeed() + sliderVal/100 * (self.maxSpeed() - self.minSpeed()));
 		};
 
 	}

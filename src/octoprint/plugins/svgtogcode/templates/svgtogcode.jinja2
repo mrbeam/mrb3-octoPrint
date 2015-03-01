@@ -10,7 +10,8 @@
                 <label class="control-label">{{ _('Laser intensity') }} (1-1000)</label>
                 <div class="controls">
                     <div class="input-append">
-                        <input id="svgtogcode_intensity" type="text" data-bind="slicerValue: laserIntensity">
+                        <input id="svgtogcode_intensity_slider" type="text" data-bind="slicerValue: laserIntensity">
+                        <input id="svgtogcode_intensity" class="slider_manual_input" type="text" data-bind="value: laserIntensity, valueUpdate: 'keyup'">
                     </div>
                 </div>
             </div>
@@ -18,7 +19,8 @@
                 <label class="control-label">{{ _('Speed') }} (<span data-bind="text: minSpeed">30</span> - <span data-bind="text: maxSpeed">3000</span>)</label>
                 <div class="controls">
                     <div class="input-append">
-                        <input id="svgtogcode_feedrate" class="uninitialized" type="text" data-bind="value: laserSpeed">
+                        <input id="svgtogcode_feedrate_slider" class="uninitialized" type="text" data-bind="value: laserSpeed">
+                        <input id="svgtogcode_feedrate" class="slider_manual_input" type="text" data-bind="value: laserSpeed, valueUpdate: 'keyup'">
                     </div>
                 </div>
             </div>
