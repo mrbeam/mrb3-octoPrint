@@ -1724,6 +1724,15 @@ input.search-query,
 	font-weight: bold;
 }
 
+#navbar_login>a>span {
+	max-width: 120px;
+	overflow: hidden;
+	display: inline-block;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+
 #settingsTabs li.saveInProgress a:after {
 	content:"\f021";
 	font-family: FontAwesome;
