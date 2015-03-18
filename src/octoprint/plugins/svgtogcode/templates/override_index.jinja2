@@ -384,7 +384,7 @@
 								<pre id="terminal-output" class="pre-scrollable"></pre>
 								<div class="input-append" style="display: none;" data-bind="visible: loginState.isUser">
 									<input type="text" id="terminal-command" style="width:88%;" data-bind="value: command, event: { keyup: function(d,e) { return handleKeyUp(e); }, keydown: function(d,e) { return handleKeyDown(e); } }, enable: (isOperational() || isLocked()) && loginState.isUser()">
-									<button class="btn" type="button" id="terminal-send" data-bind="click: sendCommand, enable: (isOperational() || isLocked()) && loginState.isUser()">{{ _('Send') }}</button>
+									<button class="btn" type="button" id="terminal-send" data-bind="click: sendCommandWithSafetyPopup, enable: (isOperational() || isLocked()) && loginState.isUser()">{{ _('Send') }}</button>
 								</div>
 							</div>
 

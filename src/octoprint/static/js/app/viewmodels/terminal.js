@@ -91,6 +91,33 @@ function TerminalViewModel(loginStateViewModel, settingsViewModel) {
             container.scrollTop(container[0].scrollHeight - container.height())
         }
     };
+	
+	self.sendCommandWithSafetyPopup = function(){
+		var command = self.command().split(' ').join('');
+		if (!command) {
+            return;
+        }
+		
+		console.log(command);
+		var parts = command.match(/^(M3|M03)(S[0-9.]+)?/i);
+		if(parts !== null){
+		
+			$("#confirmation_dialog .confirmation_dialog_message").text(gettext("The laser will now be enabled. Protect yourself and everybody in the room appropriately before proceeding!"));
+			$("#confirmation_dialog .confirmation_dialog_acknowledge").unbind("click");
+			$("#confirmation_dialog .confirmation_dialog_acknowledge").click(
+					function(e) {
+						e.preventDefault(); 
+						$("#confirmation_dialog").modal("hide"); 
+						self.sendCommand();
+					});
+			$("#confirmation_dialog").modal("show");
+		
+			
+				
+		} else {
+			self.sendCommand();
+		}
+	};
 
     self.sendCommand = function() {
         var command = self.command();
@@ -104,7 +131,7 @@ function TerminalViewModel(loginStateViewModel, settingsViewModel) {
         if (commandMatch != null) {
             command = commandMatch[1].toUpperCase() + ((commandMatch[2] !== undefined) ? commandMatch[2].toUpperCase() : "");
         }
-
+		
         if (command) {
             $.ajax({
                 url: API_BASEURL + "printer/command",
@@ -147,7 +174,7 @@ function TerminalViewModel(loginStateViewModel, settingsViewModel) {
 
     self.handleKeyUp = function(event) {
         if (event.keyCode == 13) {
-            self.sendCommand();
+            self.sendCommandWithSafetyPopup();
         }
 
         // do not prevent default action
