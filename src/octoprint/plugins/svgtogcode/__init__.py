@@ -257,7 +257,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 		homedir = expanduser("~")
 		executable = homedir + "/mrbeam-inkscape-ext/mrbeam.py"
 		log_path = homedir + "/.octoprint/logs/svgtogcode.log"
-		log_enabled = "true"
+		log_enabled = s.get(["debug_logging"])
 		
 		# debugging stuff. TODO remove
 		hostname = socket.gethostname()
