@@ -217,8 +217,8 @@ $(function(){
 						namespaces[attr.name] = attr.value;
 					}
 				}
-
-				var newSvg = f.select("g");
+				
+				var newSvg = snap.group(f.selectAll("svg>*"));
 				newSvg.attr(namespaces);
 				var id = self.getEntryId(file); 
 				var previewId = self.generateUniqueId(id); // appends -# if multiple times the same design is placed.
