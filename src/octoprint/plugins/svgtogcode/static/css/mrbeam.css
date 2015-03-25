@@ -1038,6 +1038,10 @@ table td.settings_logs_action a.disabled {
 .tab-pane {
   overflow: visible;
 }
+
+#mrbeam-tabs .tab-pane {
+	min-height: 70vh;
+}
 .tempInput {
   width: 50px;
 }
@@ -1229,7 +1233,7 @@ ul.dropdown-menu li a {
 }
 /** Terminal output */
 #term #terminal-output {
-  min-height: 340px;
+  min-height: 70vh;
 }
 /** Settings dialog */
 /** Footer */

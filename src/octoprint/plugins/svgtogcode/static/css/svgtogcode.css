@@ -10,6 +10,8 @@ table th.settings_plugin_svgtogcode_profiles_key,table td.settings_plugin_svgtog
 
 #gcode_reference ul {
 	margin-left: 0;
+	max-height: 60vh;
+	overflow: auto;
 }
 #gcode_reference ul li {
 	list-style: none;
