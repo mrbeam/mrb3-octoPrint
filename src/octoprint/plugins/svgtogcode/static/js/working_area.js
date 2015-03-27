@@ -209,17 +209,33 @@ $(function(){
 		self.placeSVG = function(file) {
 			var url = self._getSVGserveUrl(file);
 			callback = function (f) {
-				var namespaces = {};
-				var root = f.select('svg').node.attributes;
-				for(var i = 0; i < root.length; i++){ 
-					var attr = root[i];
+				var newSvgAttrs = {};
+				var root_attrs = f.select('svg').node.attributes;
+				var doc_width = null;
+				var doc_height = null;
+				var doc_viewbox = null;
+				
+				// iterate svg tag attributes
+				for(var i = 0; i < root_attrs.length; i++){ 
+					var attr = root_attrs[i];
+					
+					// get dimensions
+					if(attr.name === "width") doc_width = attr.value;
+					if(attr.name === "height") doc_height = attr.value;
+					if(attr.name === "viewBox") doc_viewbox = attr.value;
+
+					// copy namespaces into group
 					if(attr.name.indexOf("xmlns") === 0){
-						namespaces[attr.name] = attr.value;
+						newSvgAttrs[attr.name] = attr.value;
 					}
 				}
 				
+				var mat = self.getDocumentViewBoxMatrix(doc_width, doc_height, doc_viewbox);
+				var scaleMatrixStr = new Snap.Matrix(mat[0][0],mat[0][1],mat[1][0],mat[1][1],mat[0][2],mat[1][2]).toTransformString();
+				newSvgAttrs['transform'] = scaleMatrixStr;
+				
 				var newSvg = snap.group(f.selectAll("svg>*"));
-				newSvg.attr(namespaces);
+				newSvg.attr(newSvgAttrs);
 				var id = self.getEntryId(file); 
 				var previewId = self.generateUniqueId(id); // appends -# if multiple times the same design is placed.
 				newSvg.attr({id: previewId});
@@ -252,6 +268,100 @@ $(function(){
 //					return true;
 //				} else return false;
 //			});
+		};
+		
+		self.getDocumentDimensionsInPt = function(doc_width, doc_height, doc_viewbox){
+			if(doc_width === null){
+				// assume defaults if not set
+				if(doc_viewbox !== null ){
+					var parts = doc_viewbox.split(' ');
+					if(parts.length === 4){
+						doc_width = parts[3];
+					}
+				}
+				if(doc_width === "100%"){
+					doc_width = 744.09; // 210mm @ 90dpi
+				}
+				if(doc_width === null){
+					doc_width = 744.09; // 210mm @ 90dpi
+				}
+			}
+			if(doc_height === null){
+				// assume defaults if not set
+				if(doc_viewbox !== null ){
+					var parts = doc_viewbox.split(' ');
+					if(parts.length === 4){
+						doc_height = parts[3];
+					}
+				}
+				if(doc_height === "100%"){
+					doc_height = 1052.3622047 // 297mm @ 90dpi
+				}
+				if(doc_height === null){
+					doc_height = 1052.3622047 // 297mm @ 90dpi
+				}
+			}
+			
+			var widthPt = self.unittouu(doc_width);
+			var heightPt = self.unittouu(doc_height);
+			
+			return [widthPt, heightPt];
+		};
+		
+		self.getDocumentViewBoxMatrix = function(widthStr, heightStr, vbox){
+			var dim = self.getDocumentDimensionsInPt(widthStr, heightStr, vbox)
+			if(vbox !== null ){
+				var widthPx = dim[0];
+				var heightPx = dim[1];
+				var parts = vbox.split(' ');
+				if(parts.length === 4){
+					var offsetVBoxX = parseFloat(parts[0]);
+					var offsetVBoxY = parseFloat(parts[1]);
+					var widthVBox = parseFloat(parts[2]) - parseFloat(parts[0]);
+					var heightVBox = parseFloat(parts[3]) - parseFloat(parts[1]);
+
+					var fx = widthPx / widthVBox;
+					var fy = heightPx / heightVBox;
+					var dx = offsetVBoxX * fx;
+					var dy = offsetVBoxY * fy;
+					return [[fx,0,0],[0,fy,0], [dx,dy,1]];
+
+				}
+			}
+			return [[1,0,0],[0,1,0], [0,0,1]]
+		};
+		
+		//a dictionary of unit to user unit conversion factors
+		self.uuconv = {
+			'in':90.0,
+			'pt':1.25, 
+			'px':1, 
+			'mm':3.5433070866, 
+			'cm':35.433070866, 
+			'm':3543.3070866,
+			'km':3543307.0866, 
+			'pc':15.0, 
+			'yd':3240 , 
+			'ft':1080
+		};
+					
+		// Returns userunits given a string representation of units in another system'''
+		self.unittouu = function(string){
+			var unit_re = new RegExp('(' + Object.keys(self.uuconv).join('|') +')$');
+			
+			var unit_factor = 1;
+			var u_match = string.match(unit_re);
+			if(u_match !== null){
+				var unit = string.substring(u_match.index);
+				string = string.substring(0,u_match.index);
+				if(self.uuconv[unit])
+					unit_factor = self.uuconv[unit];
+			}
+
+			var p = parseFloat(string);
+			if(p)
+				return p * unit_factor;
+			return 0;
 		};
 				
 		self._getSVGserveUrl = function(file){
