@@ -367,6 +367,7 @@ $(function(){
 		self._getSVGserveUrl = function(file){
 			if (file && file["refs"] && file["refs"]["download"]) {
 				var url = file.refs.download.replace("downloads", "serve");
+				console.log(url);
 				return url;
 			}
 			
