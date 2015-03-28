@@ -54,7 +54,7 @@
 									</div>
 									<div id="statusbox">
 										
-									<div id="control" class="accordion-inner" >
+									<div id="control" class="accordion-inner" data-bind="visible: (isReady() || isLocked()) && !isPrinting() ">
 										<div data-bind="visible: isLocked ">
 											Mr Beam is in a locked state as it does not know its position.
 											First remove any objects blocking the gantry's travel range.

@@ -800,8 +800,19 @@ class MachineCom(object):
 						self._callback.mcPosUpdate(MPos, WPos)
 
 					if("ALARM: Hard/soft limit" in line):
-						self._log("Machine Limit Hit. Please reconnect.")
+						errorMsg = "Machine Limit Hit. Please reset the machine and do a homing cycle"
+						self._log(errorMsg)
+						self._errorValue = errorMsg
+						self._changeState(self.STATE_ERROR)
+						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 						self.close()
+						
+					if("Invalid gcode" in line and self._state == self.STATE_PRINTING):
+						errorMsg = line
+						self._log(errorMsg)
+						self._errorValue = errorMsg
+						self._changeState(self.STATE_ERROR)
+						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
 				##~~ SD Card handling
 				elif 'SD init fail' in line or 'volume.init failed' in line or 'openRoot failed' in line:
@@ -963,7 +974,7 @@ class MachineCom(object):
 				elif self._state == self.STATE_CONNECTING:
 					if self._grbl:
 						if "Grbl" in line:
-								self._changeState(self.STATE_OPERATIONAL)
+								self._changeState(self.STATE_LOCKED)
 					else:
 						if (line == "" or "wait" in line) and startSeen:
 							self._sendCommand("M105")
@@ -993,7 +1004,10 @@ class MachineCom(object):
 							else:
 								self._sendCommand("M105")
 								
-						tempRequestTimeout = getNewTimeout("detection") if self._grbl else getNewTimeout("position")
+						if self._grbl:
+							tempRequestTimeout = getNewTimeout("position")
+						else:
+							tempRequestTimeout = getNewTimeout("detection") 
 						###print(tempRequestTimeout)
 						
 					# resend -> start resend procedure from requested line
@@ -1021,8 +1035,10 @@ class MachineCom(object):
 						# Even when printing request the temperature every 5 seconds.
 						if time.time() > tempRequestTimeout and not self.isStreaming():
 							if self._grbl:
-								self._commandQueue.put("?")
-								tempRequestTimeout = getNewTimeout("position")
+								# disabled, caused race conditions during streaming resulting in a Invalid Gcode ID24
+								#self._commandQueue.put("?")
+								#tempRequestTimeout = getNewTimeout("position")
+								pass
 							else:
 								self._commandQueue.put("M105")
 								tempRequestTimeout = getNewTimeout("temperature")
