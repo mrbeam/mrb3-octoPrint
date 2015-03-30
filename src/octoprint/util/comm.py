@@ -1019,8 +1019,11 @@ class MachineCom(object):
 				### Printing
 				elif self._state == self.STATE_PRINTING:
 					if line == "" and time.time() > self._timeout:
-						self._log("Communication timeout during printing, forcing a line")
-						line = 'ok'
+						if not self._grbl:
+							self._log("Communication timeout during printing, forcing a line")
+							line = 'ok'
+						else:
+							line = ""
 
 					if self.isSdPrinting():
 						if time.time() > tempRequestTimeout and not heatingUp:
