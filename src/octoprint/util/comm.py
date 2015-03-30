@@ -814,6 +814,20 @@ class MachineCom(object):
 						self._changeState(self.STATE_ERROR)
 						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
+					if("[" in line):
+						versionMatch = re.search("\[(?P<grbl>.+)\.(?P<git>[0-9a-f]{7})(?P<dirty>-dirty)?:(?P<minor>.*)\]", line)
+						if(versionMatch):
+							# write grbl version to file
+							versionDict = versionMatch.groupdict()
+							if versionDict['dirty'] == '-dirty':
+								versionDict['dirty'] = True
+							versionDict['lastConnect'] = time.time()	
+							import yaml
+							versionFile = os.path.join(settings().getBaseFolder("logs"),'grbl_version.yml')
+							with open(versionFile, 'w') as outfile:
+								outfile.write( yaml.dump(versionDict, default_flow_style=True) )
+							logging.info("updated firmware version file " + versionFile)
+
 				##~~ SD Card handling
 				elif 'SD init fail' in line or 'volume.init failed' in line or 'openRoot failed' in line:
 					self._sdAvailable = False
@@ -973,6 +987,8 @@ class MachineCom(object):
 				### Connection attempt
 				elif self._state == self.STATE_CONNECTING:
 					if self._grbl:
+						# TODO get version string to detect connection
+						self._sendCommand('$I');
 						if "Grbl" in line:
 								self._changeState(self.STATE_LOCKED)
 					else:
@@ -1108,7 +1124,7 @@ class MachineCom(object):
 				self._serial.parity = serial.PARITY_NONE
 				self._serial.open()
 				if self._grbl :
-					self._serial.setDTR(False) # Drop DTR
+					self._serial.setDTR(False) # Drop DTR to reset grbl. TODO init connection status by requesting version.
 			except:
 				self._log("Unexpected error while connecting to serial port: %s %s" % (self._port, getExceptionString()))
 				self._errorValue = "Failed to open serial port, permissions correct?"
