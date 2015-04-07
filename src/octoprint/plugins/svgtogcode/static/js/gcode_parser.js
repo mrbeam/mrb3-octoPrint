@@ -63,6 +63,7 @@ $(function() {
 									y = prevY + Number(args[j].slice(1)) + offset.y;
 								} else {
 									y = Number(args[j].slice(1)) + offset.y;
+//									console.log('#', gcode_lines[i-2], gcode_lines[i-1], line, y);
 								}
 
 								break;
@@ -346,8 +347,8 @@ $(function() {
 						z = 0;
 					}
 				}
-
-				if (addToModel) {
+				
+				if (addToModel && !isNaN(x) && !isNaN(y)) { // TODO: hack. unclear why y sometimes is undefined.
 					model.push({
 						x: x,
 						y: y,
@@ -403,7 +404,7 @@ $(function() {
 
 				if (typeof (blockCallback) === 'function' && typeof (blockDelimiter) !== 'undefined' && blockDelimiter.test(line)) {
 					blockCallback(model);
-					model = [];
+					model = model.slice(-1); // keep the last element as start of the next block
 				}
 			}
 
