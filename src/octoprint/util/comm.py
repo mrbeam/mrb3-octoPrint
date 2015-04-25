@@ -814,6 +814,13 @@ class MachineCom(object):
 						self._changeState(self.STATE_ERROR)
 						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
+					if("error:" in line and self._state == self.STATE_PRINTING):
+						errorMsg = line
+						self._log(errorMsg)
+						self._errorValue = errorMsg
+						self._changeState(self.STATE_ERROR)
+						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+
 					if("[" in line):
 						versionMatch = re.search("\[(?P<grbl>.+)\.(?P<git>[0-9a-f]{7})(?P<dirty>-dirty)?:(?P<minor>.*)\]", line)
 						if(versionMatch):
