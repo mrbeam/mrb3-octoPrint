@@ -276,7 +276,7 @@ $(function(){
 				if(doc_viewbox !== null ){
 					var parts = doc_viewbox.split(' ');
 					if(parts.length === 4){
-						doc_width = parts[3];
+						doc_width = parts[2];
 					}
 				}
 				if(doc_width === "100%"){
