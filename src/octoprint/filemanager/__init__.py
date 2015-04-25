@@ -177,7 +177,7 @@ class FileManager(object):
 
 						def save(self, absolute_dest_path):
 							with open(absolute_dest_path, "w") as d:
-								d.write(";Generated from {stl_name} {hash}\r".format(**vars(self)))
+								d.write("; Generated from\n; {stl_name}\n; {hash}\r".format(**vars(self)))
 								with open(tmp_path, "r") as s:
 									import shutil
 									shutil.copyfileobj(s, d)
