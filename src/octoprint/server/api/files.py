@@ -418,8 +418,9 @@ def gcodeConvertCommand():
 	if response is not None:
 		return response
 	
+	# TODO stripping non-ascii is a hack - svg contains lots of non-ascii in <text> tags. Fix this!
 	import re
-	svg = data['svg']
+	svg = ''.join(i for i in data['svg'] if ord(i)<128) # strip non-ascii chars like € 
 	del data['svg']
 	
 	appendGcodeFiles = data['gcodeFilesToAppend']
