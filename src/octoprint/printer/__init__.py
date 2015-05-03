@@ -8,7 +8,7 @@ import copy
 import os
 import logging
 
-import octoprint.util.comm as comm
+import octoprint.util.comm_acc as comm
 import octoprint.util as util
 
 from octoprint.settings import settings
