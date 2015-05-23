@@ -143,7 +143,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 
 	def get_assets(self):
 		return {
-			"js": [ "js/convert.js", "js/working_area.js", "js/gcode_parser.js", "js/lib/snap.svg-min.js"],
+			"js": [ "js/convert.js", "js/working_area.js", "js/gcode_parser.js", "js/lib/snap.svg-min.js", "js/bake_snap_plugin.js"],
 			"less": ["less/svgtogcode.less"],
 			"css": ["css/svgtogcode.css", "css/mrbeam.css"]
 		}

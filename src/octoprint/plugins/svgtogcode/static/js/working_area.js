@@ -230,16 +230,20 @@ $(function(){
 					}
 				}
 				
+				// scale matrix
 				var mat = self.getDocumentViewBoxMatrix(doc_width, doc_height, doc_viewbox);
 				var scaleMatrixStr = new Snap.Matrix(mat[0][0],mat[0][1],mat[1][0],mat[1][1],mat[0][2],mat[1][2]).toTransformString();
 				newSvgAttrs['transform'] = scaleMatrixStr;
 				
 				var newSvg = snap.group(f.selectAll("svg>*"));
+				newSvg.bake();
 				newSvg.attr(newSvgAttrs);
 				var id = self.getEntryId(file); 
 				var previewId = self.generateUniqueId(id); // appends -# if multiple times the same design is placed.
 				newSvg.attr({id: previewId});
 				snap.select("#userContent").append(newSvg);
+				//flatten(document.getElementById(previewId), false, true, false, 4)
+				//newSvg.attr({transform: scaleMatrixStr});
 
 				newSvg.drag();// TODO debug drag. should not be affected by scale matrix
 
