@@ -236,16 +236,18 @@ $(function(){
 				newSvgAttrs['transform'] = scaleMatrixStr;
 				
 				var newSvg = snap.group(f.selectAll("svg>*"));
-				newSvg.bake();
+				var hasText = newSvg.selectAll('text,tspan');
+				if(hasText !== null && hasText.length > 0){
+					self.svg_contains_text_warning(newSvg);
+				}
+				newSvg.bake(); // remove transforms
 				newSvg.attr(newSvgAttrs);
 				var id = self.getEntryId(file); 
 				var previewId = self.generateUniqueId(id); // appends -# if multiple times the same design is placed.
 				newSvg.attr({id: previewId});
 				snap.select("#userContent").append(newSvg);
-				//flatten(document.getElementById(previewId), false, true, false, 4)
-				//newSvg.attr({transform: scaleMatrixStr});
-
 				newSvg.drag();// TODO debug drag. should not be affected by scale matrix
+
 
 				file.id = previewId;
 				file.previewId = previewId;
@@ -272,6 +274,18 @@ $(function(){
 //					return true;
 //				} else return false;
 //			});
+		};
+		
+		self.svg_contains_text_warning = function(svg){
+            var error = "<p>" + gettext("The svg file contains text elements.<br/>Please convert them to paths.<br/>Otherwise they will be ignored.") + "</p>";
+            //error += pnotifyAdditionalInfo("<pre>" + data.jqXHR.responseText + "</pre>");
+            new PNotify({
+                title: "Text elements found",
+                text: error,
+                type: "warn",
+                hide: false
+            });
+			svg.selectAll('text,tspan').remove();
 		};
 		
 		self.getDocumentDimensionsInPt = function(doc_width, doc_height, doc_viewbox){
