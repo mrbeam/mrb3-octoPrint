@@ -20,7 +20,7 @@ $(function(){
 		self.laserIntensity = ko.observable(undefined);
 		self.laserSpeed = ko.observable(undefined);
 		self.maxSpeed = ko.observable(3000);
-		self.minSpeed = ko.observable(30);
+		self.minSpeed = ko.observable(20);
 		self.title = ko.observable(undefined);
 		self.slicer = ko.observable();
 		self.slicers = ko.observableArray();
