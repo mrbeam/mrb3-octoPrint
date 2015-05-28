@@ -54,8 +54,8 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			elem.type !== "polyline" &&
 			elem.type !== "path"){
 			
-			if(elem.type !== 'g' && elem.type !== 'desc' && elem.type !== 'defs')
-				console.log('skipping unsupported element ', elem.type);
+//			if(elem.type !== 'g' && elem.type !== 'desc' && elem.type !== 'defs')
+//				console.log('skipping unsupported element ', elem.type);
 			return;
 		}
 
@@ -389,7 +389,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			var attrName = attrs[attrIdx];
 			var attrValue;
 			if(attrName === 'transform') {
-				attrValue = old_element.attr('transform').toString();
+				attrValue = old_element.transform()['localMatrix'];
 			} else {
 				attrValue = old_element.attr(attrName);
 			}
@@ -444,6 +444,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 				d = 'M' + old_element.attr('points') + 'Z';
 				break;
 			case 'rect':
+				// TODO ... 
 				var rx = parseFloat(old_element.attr('rx')),
 					ry = parseFloat(old_element.attr('ry')),
 					x = parseFloat(old_element.attr('x')),
