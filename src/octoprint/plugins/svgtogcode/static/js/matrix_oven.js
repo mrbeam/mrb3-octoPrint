@@ -355,10 +355,6 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 	 */
 	Element.prototype.convertToPath = function(){
 		var old_element = this;
-		if(old_element.type === 'path'){
-			return old_element;
-		} 
-		
 		var path = old_element.toPath();
 		old_element.before(path);
 		old_element.remove(); 
