@@ -246,8 +246,8 @@ $(function(){
 				var previewId = self.generateUniqueId(id); // appends -# if multiple times the same design is placed.
 				newSvg.attr({id: previewId});
 				snap.select("#userContent").append(newSvg);
+				newSvg.transformable();
 				newSvg.drag();// TODO debug drag. should not be affected by scale matrix
-
 
 				file.id = previewId;
 				file.previewId = previewId;
