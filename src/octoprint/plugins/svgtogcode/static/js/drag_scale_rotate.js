@@ -31,51 +31,13 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		if (!elem || !elem.paper) // don't handle unplaced elements. this causes double handling.
 			return;
 
-		elem.add_fill();
 		// add invisible fill for better dragging.
-
-		
+		elem.add_fill();
+		elem.click(function(){ elem.ftCreateHandles() });
 		return elem;
 
 		
 	};
-	
-	Element.prototype.limitDrag = function() {
-		var limitBBox = this.paper.select('#scaleGroup').getBBox();
-		this.data('minx', limitBBox.x ); this.data('miny', limitBBox.y );
-		this.data('maxx', limitBBox.x2 ); this.data('maxy', limitBBox.y2 );
-		this.data('x', limitBBox.x );    this.data('y', limitBBox.y );
-		this.data('ibb', this.getBBox() );
-		this.data('ot', this.transform().local );
-		this.drag( _limitMoveDrag, _limitStartDrag );
-		return this;    
-	};
-
-	// this code is old and clunky now, and transform possibly in wrong order, so only use for simple cases
-	function _limitMoveDrag( dx, dy ) {
-			var tdx, tdy;
-			var sInvMatrix = this.transform().globalMatrix.invert();
-			sInvMatrix.e = sInvMatrix.f = 0; 
-			tdx = sInvMatrix.x( dx,dy ); tdy = sInvMatrix.y( dx,dy );
-
-			this.data('x', +this.data('ox') + tdx);
-			this.data('y', +this.data('oy') + tdy);
-			if( this.data('x') > this.data('maxx') - this.data('ibb').width  ) 
-					{ this.data('x', this.data('maxx') - this.data('ibb').width  ) };
-			if( this.data('y') > this.data('maxy') - this.data('ibb').height ) 
-					{ this.data('y', this.data('maxy') - this.data('ibb').height ) };
-			if( this.data('x') < this.data('minx') ) { this.data('x', this.data('minx') ) };
-			if( this.data('y') < this.data('miny') ) { this.data('y', this.data('miny') ) };
-			this.transform( this.data('ot') + "t" + [ this.data('x'), this.data('y') ]  );
-	};
-
-	function _limitStartDrag( x, y, ev ) {
-			this.data('ox', this.data('x')); this.data('oy', this.data('y'));
-	};
-
-
-
-
 	
 	/**
 	 * Adds transparent fill if not present. 
@@ -104,7 +66,217 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 
 	
 
-
-
 });
+
+	
+/**
+ * Free transform plugin heavily inspired by http://svg.dabbles.info
+ */
+(function() {
+
+	Snap.plugin( function( Snap, Element, Paper, global ) {
+
+		var ftOption = {
+			handleFill: "red",
+			handleStrokeDash: "5,5",
+			handleStrokeWidth: "2",
+			handleLength: 12,
+			handleRadius: "12",
+			handleLineWidth: 2
+		};
+
+		Element.prototype.ftCreateHandles = function(container) {
+			this.ftInit();
+			var freetransEl = this;
+			var bb = freetransEl.getBBox();
+			var rotateDragger = this.paper.select('#userContent').circle(bb.cx + bb.width/2 + ftOption.handleLength, bb.cy, ftOption.handleRadius ).attr({ fill: ftOption.handleFill });
+			var translateDragger = this.paper.select('#userContent').circle(bb.cx, bb.cy, ftOption.handleRadius ).attr({ fill: ftOption.handleFill });
+
+			var joinLine = freetransEl.ftDrawJoinLine( rotateDragger );
+			var handlesGroup = this.paper.select('#userContent').g( joinLine, rotateDragger, translateDragger );
+
+			freetransEl.data( "handlesGroup", handlesGroup );
+			freetransEl.data( "joinLine", joinLine);
+
+			freetransEl.data( "scaleFactor", calcDistance( bb.cx, bb.cy, rotateDragger.attr('cx'), rotateDragger.attr('cy') ) );
+
+			translateDragger.drag( 	
+				elementDragMove.bind(  translateDragger, freetransEl ), 
+				elementDragStart.bind( translateDragger, freetransEl ),
+				elementDragEnd.bind( translateDragger, freetransEl ) 
+			);
+
+			freetransEl.unclick();
+			freetransEl.data("click", freetransEl.click( function() {  this.ftRemoveHandles() } ) );
+
+			rotateDragger.drag( 
+				dragHandleRotateMove.bind( rotateDragger, freetransEl ), 
+				dragHandleRotateStart.bind( rotateDragger, freetransEl  ),
+				dragHandleRotateEnd.bind( rotateDragger, freetransEl  ) 
+			);
+			freetransEl.ftStoreInitialTransformMatrix();
+
+			freetransEl.ftHighlightBB();
+			return this;
+		};
+
+		Element.prototype.ftInit = function() {
+			this.data("angle", 0);
+			this.data("scale", 1);
+			this.data("tx", 0);
+			this.data("ty", 0);
+			this.attr({class:'_freeTransformInProgress'});
+			return this;
+		};
+
+		Element.prototype.ftCleanUp = function() {
+			var myClosureEl = this;
+			var myData = ["angle", "scale", "scaleFactor", "tx", "ty", "otx", "oty", "bb", "bbT", "initialTransformMatrix", "handlesGroup", "joinLine"];
+			myData.forEach( function( el ) { myClosureEl.removeData([el]) });
+			return this;
+		};
+
+		Element.prototype.ftStoreStartCenter = function() {
+			this.data('ocx', this.attr('cx') );
+			this.data('ocy', this.attr('cy') );
+			return this;
+		}
+		
+		Element.prototype.ftStoreInitialTransformMatrix = function() {
+			this.data('initialTransformMatrix', this.transform().localMatrix );
+			return this;
+		};
+
+		Element.prototype.ftGetInitialTransformMatrix = function() {
+			return this.data('initialTransformMatrix');
+		};
+
+		Element.prototype.ftRemoveHandles = function() {
+			this.unclick();
+			this.removeClass('_freeTransformInProgress');
+			this.data( "handlesGroup").remove();
+			this.data( "bbT" ) && this.data("bbT").remove();
+			this.data( "bb" ) && this.data("bb").remove();
+			this.click( function() { this.ftCreateHandles(); } ) ;
+			this.ftCleanUp();
+			return this;
+		};
+
+		Element.prototype.ftDrawJoinLine = function( handle ) {
+			var lineAttributes = { stroke: ftOption.handleFill, strokeWidth: ftOption.handleStrokeWidth, strokeDasharray: ftOption.handleStrokeDash };
+
+			var rotateHandle = handle.parent()[1];
+			//var dragHandle = handle.parent()[2];
+			var thisBB = this.getBBox();
+
+			//var objtps = this.ftTransformedPoint( thisBB.cx, thisBB.cy);
+
+			if( this.data("joinLine")) {
+				this.data("joinLine").attr({ x1: thisBB.cx, y1: thisBB.cy, x2: rotateHandle.attr('cx'), y2: rotateHandle.attr('cy') });
+			} else {
+				return this.paper.line( thisBB.cx, thisBB.cy, handle.attr('cx'), handle.attr('cy') ).attr( lineAttributes );
+			};
+
+			return this;
+		};
+
+//		Element.prototype.ftTransformedPoint = function( x, y ) {
+//			var transform = this.transform().diffMatrix;
+//			return { x:  transform.x( x,y ) , y:  transform.y( x,y ) };
+//		};
+		
+		Element.prototype.ftUpdateTransform = function() {
+			var tstring = "t" + this.data("tx") + "," + this.data("ty") + this.ftGetInitialTransformMatrix().toTransformString() + "r" + this.data("angle") + 'S' + this.data("scale" );		
+			this.attr({ transform: tstring });
+			this.data("bbT") && this.ftHighlightBB(this.paper.select('#userContent'));
+			return this;
+		};
+
+		Element.prototype.ftHighlightBB = function() {
+			this.data("bbT") && this.data("bbT").remove();
+			this.data("bb") && this.data("bb").remove();
+			
+			// transformed bbox
+			this.data("bbT", this.paper.rect( rectObjFromBB( this.getBBox(1) ) )
+							.attr({ fill: "none", stroke: ftOption.handleFill, strokeDasharray: ftOption.handleStrokeDash })
+							.transform( this.transform().global.toString() ) );
+			// outer bbox
+			//this.data("bb", this.paper.select('#userContent').rect( rectObjFromBB( this.getBBox() ) )
+			//				.attr({ fill: "none", stroke: ftOption.handleFill3, strokeDasharray: ftOption.handleStrokeDash }) );
+			return this;
+		};
+		
+	});
+
+	function rectObjFromBB ( bb ) {
+		return { x: bb.x, y: bb.y, width: bb.width, height: bb.height } 
+	}
+
+	function elementDragStart( mainEl, x, y, ev ) {
+		this.parent().selectAll('circle').forEach( function( el, i ) {
+				el.ftStoreStartCenter();
+		} );
+		mainEl.data("otx", mainEl.data("tx") || 0);
+		mainEl.data("oty", mainEl.data("ty") || 0);
+	};
+
+	function elementDragMove( mainEl, dx, dy, x, y ) {
+		var dragHandle = this;
+
+		this.parent().selectAll('circle').forEach( function( el, i ) {
+			el.attr({ cx: +el.data('ocx') + dx, cy: +el.data('ocy') + dy });
+			
+		} );
+		mainEl.data("tx", mainEl.data("otx") + +dx);
+		mainEl.data("ty", mainEl.data("oty") + +dy);
+		mainEl.ftUpdateTransform();
+		mainEl.ftDrawJoinLine( dragHandle );
+	}
+
+	function elementDragEnd( mainEl, dx, dy, x, y ) {
+	};
+
+	function dragHandleRotateStart( mainElement ) {
+		this.ftStoreStartCenter();
+	};
+
+	function dragHandleRotateEnd( mainElement ) {
+	};
+	
+
+	function dragHandleRotateMove( mainEl, dx, dy, x, y, event ) {
+		var handle = this;
+		var mainBB = mainEl.getBBox();
+		handle.attr({ cx: +handle.data('ocx') + dx, cy: +handle.data('ocy') + dy });
+		
+		var angle;
+		if(event.ctrlKey){
+			angle = 0
+		} else {
+			angle = Snap.angle( mainBB.cx, mainBB.cy, handle.attr('cx'), handle.attr('cy') ) - 180;
+		}
+		mainEl.data("angle", angle );
+		
+		var scale;
+		if(event.shiftKey){
+			scale = 1;
+		} else {
+			var distance = calcDistance( mainBB.cx, mainBB.cy, handle.attr('cx'), handle.attr('cy') );
+			scale = distance / mainEl.data("scaleFactor");
+		}
+		mainEl.data("scale", scale );
+
+		mainEl.ftUpdateTransform();
+		mainEl.ftDrawJoinLine( handle );	
+	};
+
+	function calcDistance(x1,y1,x2,y2) {
+		return Math.sqrt( Math.pow( (x1 - x2), 2)  + Math.pow( (y1 - y2), 2)  );
+	}
+
+})();
+
+
+
+
 

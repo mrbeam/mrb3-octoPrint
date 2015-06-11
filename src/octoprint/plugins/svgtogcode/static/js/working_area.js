@@ -102,6 +102,7 @@ $(function(){
 		};
 
 		self.move_laser = function(el){
+			self.abortFreeTransforms();
 			if(self.state.isOperational() && !self.state.isPrinting()){
 				var x = self.px2mm(event.offsetX);
 		//		var y = self.px2mm(event.toElement.offsetHeight - event.offsetY); // toElement.offsetHeight is always 0 on svg>* elements ???
@@ -247,7 +248,6 @@ $(function(){
 				newSvg.attr({id: previewId});
 				snap.select("#userContent").append(newSvg);
 				newSvg.transformable();
-				newSvg.drag();// TODO debug drag. should not be affected by scale matrix
 
 				file.id = previewId;
 				file.previewId = previewId;
@@ -263,6 +263,7 @@ $(function(){
 		};
 		
 		self.removeSVG = function(file){
+			self.abortFreeTransforms();
 			snap.select('#'+file.previewId).remove();
 			self.placedDesigns.remove(file); 
 			// TODO debug why remove always clears all items of this type.
@@ -464,7 +465,16 @@ $(function(){
 			return id;
 		};
 
+		self.abortFreeTransforms = function(){
+			var tip = snap.selectAll('._freeTransformInProgress');
+			for (var i = 0; i < tip.length; i++) {
+				var el = tip[i];
+				el.ftRemoveHandles();
+			}
+		};
+
 		self.getCompositionSVG = function(){
+			self.abortFreeTransforms();
 			var tmpsvg = snap.select("#userContent").innerSVG(); // get working area 
 			if(tmpsvg !== ''){
 				var dpiFactor = self.svgDPI()/25.4; // convert mm to pix 90dpi for inkscape, 72 for illustrator 
