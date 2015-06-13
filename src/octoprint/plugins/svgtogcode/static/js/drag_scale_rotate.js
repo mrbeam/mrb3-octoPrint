@@ -78,21 +78,23 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 
 		var ftOption = {
 			handleFill: "red",
+			handleStrokeDashPreset: [5,5],
+			handleStrokeWidth: 2,
+			handleLength: 18,
+			handleRadius: 16, 
+			unscale: 1,
 			handleStrokeDash: "5,5",
-			handleStrokeWidth: "2",
-			handleLength: 12,
-			handleRadius: "12",
-			handleLineWidth: 2
 		};
 
-		Element.prototype.ftCreateHandles = function(container) {
+		Element.prototype.ftCreateHandles = function() {
 			this.ftInit();
 			var freetransEl = this;
 			var bb = freetransEl.getBBox();
-			var rotateDragger = this.paper.select('#userContent').circle(bb.cx + bb.width/2 + ftOption.handleLength, bb.cy, ftOption.handleRadius ).attr({ fill: ftOption.handleFill });
-			var translateDragger = this.paper.select('#userContent').circle(bb.cx, bb.cy, ftOption.handleRadius ).attr({ fill: ftOption.handleFill });
+			
+			var rotateDragger = this.paper.select('#userContent').circle(bb.cx + bb.width/2 + ftOption.handleLength * ftOption.unscale, bb.cy, ftOption.handleRadius * ftOption.unscale ).attr({ fill: ftOption.handleFill });
+			var translateDragger = this.paper.select('#userContent').circle(bb.cx, bb.cy, ftOption.handleRadius * ftOption.unscale).attr({ fill: ftOption.handleFill });
 
-			var joinLine = freetransEl.ftDrawJoinLine( rotateDragger );
+			var joinLine = freetransEl.ftDrawJoinLine( rotateDragger, ftOption.handleStrokeWidth * ftOption.unscale);
 			var handlesGroup = this.paper.select('#userContent').g( joinLine, rotateDragger, translateDragger );
 
 			freetransEl.data( "handlesGroup", handlesGroup );
@@ -126,6 +128,9 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			this.data("tx", 0);
 			this.data("ty", 0);
 			this.attr({class:'_freeTransformInProgress'});
+			
+			ftOption.unscale = 1 / this.paper.select('#scaleGroup').transform().localMatrix.a;
+			ftOption.handleStrokeDash = ftOption.handleStrokeDashPreset.map(function(v){ return v*ftOption.unscale; }).join(',');
 			return this;
 		};
 
@@ -163,7 +168,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		};
 
 		Element.prototype.ftDrawJoinLine = function( handle ) {
-			var lineAttributes = { stroke: ftOption.handleFill, strokeWidth: ftOption.handleStrokeWidth, strokeDasharray: ftOption.handleStrokeDash };
+			var lineAttributes = { stroke: ftOption.handleFill, strokeWidth: ftOption.handleStrokeWidth * ftOption.unscale, strokeDasharray: ftOption.handleStrokeDash };
 
 			var rotateHandle = handle.parent()[1];
 			//var dragHandle = handle.parent()[2];
@@ -198,7 +203,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			
 			// transformed bbox
 			this.data("bbT", this.paper.rect( rectObjFromBB( this.getBBox(1) ) )
-							.attr({ fill: "none", stroke: ftOption.handleFill, strokeDasharray: ftOption.handleStrokeDash })
+							.attr({ fill: "none", stroke: ftOption.handleFill, strokeWidth: ftOption.handleStrokeWidth, strokeDasharray: ftOption.handleStrokeDashPreset.join(',') })
 							.transform( this.transform().global.toString() ) );
 			// outer bbox
 			//this.data("bb", this.paper.select('#userContent').rect( rectObjFromBB( this.getBBox() ) )
