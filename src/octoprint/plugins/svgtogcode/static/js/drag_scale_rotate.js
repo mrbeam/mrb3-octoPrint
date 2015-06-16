@@ -64,7 +64,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		return elem;
 	};
 
-	
+
 
 });
 
@@ -103,7 +103,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			freetransEl.data( "scaleFactor", calcDistance( bb.cx, bb.cy, rotateDragger.attr('cx'), rotateDragger.attr('cy') ) );
 
 			translateDragger.drag( 	
-				elementDragMove.bind(  translateDragger, freetransEl ), 
+				elementDragMove.bind( translateDragger, freetransEl ), 
 				elementDragStart.bind( translateDragger, freetransEl ),
 				elementDragEnd.bind( translateDragger, freetransEl ) 
 			);

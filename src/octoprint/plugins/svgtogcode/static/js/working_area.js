@@ -241,6 +241,14 @@ $(function(){
 				if(hasText !== null && hasText.length > 0){
 					self.svg_contains_text_warning(newSvg);
 				}
+				// TODO debug. bounding boxes are always zero sized when not displayed.
+//				var misfitting = self.outsideWorkingArea(newSvg);
+//				if(misfitting.oversized || misfitting.outside){
+//					self.svg_misfitting_warning(newSvg, misfitting);
+//					newSvg.translate(misfitting.dx, misfitting.dy);
+//					newSvg.scale(misfitting.scale);
+//				}
+				
 				newSvg.bake(); // remove transforms
 				newSvg.attr(newSvgAttrs);
 				var id = self.getEntryId(file); 
@@ -277,6 +285,26 @@ $(function(){
 //			});
 		};
 		
+		self.outsideWorkingArea = function(svg){
+			var waBB = snap.select('#userContent').getBBox();
+			var svgBB = svg.getBBox();
+			var tooWide = svgBB.w > waBB.w;
+			var tooHigh = svgBB.h > waBB.h;
+			var scale = 1;
+			if(tooWide || tooHigh){
+				scale = Math.min(waBB.w / svgBB.w, waBB.h / svgBB.h);
+			}
+			var outside = svgBB.x < waBB.x || svgBB.x2 > waBB.x2 || svgBB.y < waBB.y || svgBB.y2 > waBB.y2;
+			var dx = 0;
+			var dy = 0;
+			if(outside){
+				dx = -svgBB.x;
+				dy = -svgBB.y;
+			}
+			
+			return { oversized: tooWide || tooHigh, outside: outside, scale: scale, dx: dx, dy: dy };
+		};
+		
 		self.svg_contains_text_warning = function(svg){
             var error = "<p>" + gettext("The svg file contains text elements.<br/>Please convert them to paths.<br/>Otherwise they will be ignored.") + "</p>";
             //error += pnotifyAdditionalInfo("<pre>" + data.jqXHR.responseText + "</pre>");
@@ -287,6 +315,20 @@ $(function(){
                 hide: false
             });
 			svg.selectAll('text,tspan').remove();
+		};
+
+		self.svg_misfitting_warning = function(svg, misfitting){
+			var outside = gettext("<br/>It has been moved to (0,0). ");
+			var oversized = gettext("<br/>It has resized to %d %. ", misfitting.scale);
+            var error = "<p>" + gettext("The design was originally not fitting into the working area.") 
+					+ outside + oversized + gettext("<br/>Please check the result.") + "</p>";
+            new PNotify({
+                title: "Design moved",
+                text: error,
+                type: "warn",
+                hide: false
+            });
+			
 		};
 		
 		self.getDocumentDimensionsInPt = function(doc_width, doc_height, doc_viewbox){
