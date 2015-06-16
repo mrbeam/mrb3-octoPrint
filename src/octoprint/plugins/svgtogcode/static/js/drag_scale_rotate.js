@@ -93,7 +93,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			
 			var rotateDragger = this.paper.select('#userContent').circle(bb.cx + bb.width/2 + ftOption.handleLength * ftOption.unscale, bb.cy, ftOption.handleRadius * ftOption.unscale ).attr({ fill: ftOption.handleFill });
 			var translateDragger = this.paper.select('#userContent').circle(bb.cx, bb.cy, ftOption.handleRadius * ftOption.unscale).attr({ fill: ftOption.handleFill });
-
+			
 			var joinLine = freetransEl.ftDrawJoinLine( rotateDragger, ftOption.handleStrokeWidth * ftOption.unscale);
 			var handlesGroup = this.paper.select('#userContent').g( joinLine, rotateDragger, translateDragger );
 
@@ -117,6 +117,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 				dragHandleRotateEnd.bind( rotateDragger, freetransEl  ) 
 			);
 			freetransEl.ftStoreInitialTransformMatrix();
+			freetransEl.ftStoreGlobalScaling();
 
 			freetransEl.ftHighlightBB();
 			return this;
@@ -130,13 +131,14 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			this.attr({class:'_freeTransformInProgress'});
 			
 			ftOption.unscale = 1 / this.paper.select('#scaleGroup').transform().localMatrix.a;
+			this.data('unscale', ftOption.unscale);
 			ftOption.handleStrokeDash = ftOption.handleStrokeDashPreset.map(function(v){ return v*ftOption.unscale; }).join(',');
 			return this;
 		};
 
 		Element.prototype.ftCleanUp = function() {
 			var myClosureEl = this;
-			var myData = ["angle", "scale", "scaleFactor", "tx", "ty", "otx", "oty", "bb", "bbT", "initialTransformMatrix", "handlesGroup", "joinLine"];
+			var myData = ["angle", "scale", "scaleFactor", "tx", "ty", "otx", "oty", "bb", "bbT", "initialTransformMatrix", "globalScale", "handlesGroup", "joinLine"];
 			myData.forEach( function( el ) { myClosureEl.removeData([el]) });
 			return this;
 		};
@@ -151,6 +153,14 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			this.data('initialTransformMatrix', this.transform().localMatrix );
 			return this;
 		};
+
+		Element.prototype.ftStoreGlobalScaling = function() {
+			var scale = this.transform().globalMatrix.a;
+			this.data('globalScale', scale );
+			return this;
+		};
+		
+		
 
 		Element.prototype.ftGetInitialTransformMatrix = function() {
 			return this.data('initialTransformMatrix');
@@ -227,13 +237,17 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 
 	function elementDragMove( mainEl, dx, dy, x, y ) {
 		var dragHandle = this;
+		var unscale = mainEl.data('unscale');
+
+		var udx = dx*unscale;
+		var udy = dy*unscale;
 
 		this.parent().selectAll('circle').forEach( function( el, i ) {
-			el.attr({ cx: +el.data('ocx') + dx, cy: +el.data('ocy') + dy });
+			el.attr({ cx: +el.data('ocx') + udx, cy: +el.data('ocy') + udy });
 			
 		} );
-		mainEl.data("tx", mainEl.data("otx") + +dx);
-		mainEl.data("ty", mainEl.data("oty") + +dy);
+		mainEl.data("tx", mainEl.data("otx") + +udx);
+		mainEl.data("ty", mainEl.data("oty") + +udy);
 		mainEl.ftUpdateTransform();
 		mainEl.ftDrawJoinLine( dragHandle );
 	}
@@ -252,7 +266,8 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 	function dragHandleRotateMove( mainEl, dx, dy, x, y, event ) {
 		var handle = this;
 		var mainBB = mainEl.getBBox();
-		handle.attr({ cx: +handle.data('ocx') + dx, cy: +handle.data('ocy') + dy });
+		var unscale = mainEl.data('unscale');
+		handle.attr({ cx: +handle.data('ocx') + dx*unscale, cy: +handle.data('ocy') + dy*unscale });
 		
 		var angle;
 		if(event.ctrlKey){
