@@ -1624,6 +1624,14 @@ input.search-query,
 }
 */
 
+.file_list_entry {
+	margin-right: 0.5em;
+}
+.file_list_entry .title {
+	width: 90%;
+	float: left;
+}
+
 #files .file_list_entry .title {
 	margin-left: 3.3em;
 }
@@ -1697,6 +1705,14 @@ input.search-query,
 
 #working_area_files .entry {
   height: 30px;
+}
+
+#working_area_files {
+  height: 60vh;
+}
+
+#wa_filelist {
+	height: 55vh;
 }
 
 .print-control {
