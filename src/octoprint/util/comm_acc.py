@@ -226,6 +226,8 @@ class MachineCom(object):
 				self._sdFileList = False
 				self._sdFiles = []
 				self._callback.mcSdFiles([])
+			self._log("entered state closed / closed with error. reseting character counter.")
+			self.line_lengths = []
 
 		oldState = self.getStateString()
 		self._state = newState
@@ -791,6 +793,11 @@ class MachineCom(object):
 							self._changeState(self.STATE_LOCKED)
 						if("Idle" in line and self._state == self.STATE_LOCKED):
 							self._changeState(self.STATE_OPERATIONAL)
+						# TODO highly experimental. needs testing.
+						#if("Queue" in line and self._state == self.STATE_PRINTING):
+						#	self._changeState(self.STATE_PAUSED)
+						#if("Run" in line and self._state == self.STATE_PAUSED):
+						#	self._changeState(self.STATE_PRINTING)
 					
 						
 						parts = line.strip("\r\n").split(":")
@@ -816,6 +823,13 @@ class MachineCom(object):
 						self._log(errorMsg)
 						self._errorValue = errorMsg
 						self._changeState(self.STATE_ERROR)
+						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+						
+					if("Grbl" in line and self._state == self.STATE_PRINTING):
+						errorMsg = "Machine reset."
+						self._log(errorMsg)
+						self._errorValue = errorMsg
+						self._changeState(self.STATE_LOCKED)
 						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
 				##~~ SD Card handling
@@ -978,7 +992,10 @@ class MachineCom(object):
 				elif self._state == self.STATE_CONNECTING:
 					if self._grbl:
 						if "Grbl" in line:
-								self._changeState(self.STATE_LOCKED)
+							self._changeState(self.STATE_LOCKED)
+							self.line_lengths = []
+							self._log("connected. reseting character counter.")
+
 					else:
 						if (line == "" or "wait" in line) and startSeen:
 							self._sendCommand("M105")
