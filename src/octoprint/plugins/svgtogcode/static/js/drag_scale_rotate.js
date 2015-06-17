@@ -85,6 +85,14 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			unscale: 1,
 			handleStrokeDash: "5,5",
 		};
+		
+		Element.prototype.ftToggleHandles = function(){	
+			if(this.data('handlesGroup')){
+				this.ftRemoveHandles();
+			} else {
+				this.ftCreateHandles();
+			}
+		};
 
 		Element.prototype.ftCreateHandles = function() {
 			this.ftInit();
@@ -117,7 +125,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 				dragHandleRotateEnd.bind( rotateDragger, freetransEl  ) 
 			);
 			freetransEl.ftStoreInitialTransformMatrix();
-			freetransEl.ftStoreGlobalScaling();
+//			freetransEl.ftStoreGlobalScaling();
 
 			freetransEl.ftHighlightBB();
 			return this;
@@ -138,7 +146,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 
 		Element.prototype.ftCleanUp = function() {
 			var myClosureEl = this;
-			var myData = ["angle", "scale", "scaleFactor", "tx", "ty", "otx", "oty", "bb", "bbT", "initialTransformMatrix", "globalScale", "handlesGroup", "joinLine"];
+			var myData = ["angle", "scale", "scaleFactor", "tx", "ty", "otx", "oty", "bb", "bbT", "initialTransformMatrix", "handlesGroup", "joinLine"];
 			myData.forEach( function( el ) { myClosureEl.removeData([el]) });
 			return this;
 		};
@@ -154,11 +162,11 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			return this;
 		};
 
-		Element.prototype.ftStoreGlobalScaling = function() {
-			var scale = this.transform().globalMatrix.a;
-			this.data('globalScale', scale );
-			return this;
-		};
+//		Element.prototype.ftStoreGlobalScaling = function() {
+//			var scale = this.transform().globalMatrix.a;
+//			this.data('globalScale', scale );
+//			return this;
+//		};
 		
 		
 

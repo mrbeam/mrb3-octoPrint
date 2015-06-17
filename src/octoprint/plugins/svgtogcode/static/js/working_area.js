@@ -284,6 +284,13 @@ $(function(){
 //				} else return false;
 //			});
 		};
+		self.toggleTransformHandles = function(file){
+			//self.abortFreeTransforms();
+			var el = snap.select('#'+file.previewId);
+			if(el){
+				el.ftToggleHandles();
+			}
+		};
 		
 		self.outsideWorkingArea = function(svg){
 			var waBB = snap.select('#userContent').getBBox();

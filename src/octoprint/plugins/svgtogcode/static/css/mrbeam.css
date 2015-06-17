@@ -1628,7 +1628,7 @@ input.search-query,
 	margin-right: 0.5em;
 }
 #wa_filelist .file_list_entry .title {
-	width: 90%;
+	max-width: 80%;
 	float: left;
 }
 
