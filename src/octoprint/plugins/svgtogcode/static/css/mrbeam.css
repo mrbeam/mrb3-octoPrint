@@ -1624,10 +1624,10 @@ input.search-query,
 }
 */
 
-.file_list_entry {
+#wa_filelist .file_list_entry {
 	margin-right: 0.5em;
 }
-.file_list_entry .title {
+#wa_filelist .file_list_entry .title {
 	width: 90%;
 	float: left;
 }

@@ -180,6 +180,7 @@
 										<div class="accordion-inner">
 											<div class="gcode_files" data-bind="slimScrolledForeach: placedDesigns">
 												<div class="entry" data-bind="attr: { id: $root.getEntryId($data) }, template: { name: $root.templateFor($data), data: $data }"></div>
+											</div>
 
 												<script type="text/html" id="wa_template_machinecode">
 													<div class="file_list_entry">
@@ -200,7 +201,6 @@
 												</script>
 
 
-											</div>
 											
 										</div>
 									</div>
@@ -452,6 +452,7 @@
 								
 												<div class="gcode_files" data-bind="slimScrolledForeach: listHelper.paginatedItems" >
 													<div class="entry" data-bind="attr: { id: $root.getEntryId($data) }, template: { name: $root.templateFor($data), data: $data }"></div>
+												</div>
 
 													<script type="text/html" id="files_template_machinecode">
 														<div class="file_list_entry">
@@ -507,7 +508,6 @@
 													<script type="text/html" id="files_template_folder">
 														<div class="title" data-bind="text: name"></div>
 													</script>
-												</div>
 												
 											</div>
 										</div>
