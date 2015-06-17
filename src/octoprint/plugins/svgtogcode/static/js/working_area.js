@@ -285,7 +285,6 @@ $(function(){
 //			});
 		};
 		self.toggleTransformHandles = function(file){
-			//self.abortFreeTransforms();
 			var el = snap.select('#'+file.previewId);
 			if(el){
 				el.ftToggleHandles();
