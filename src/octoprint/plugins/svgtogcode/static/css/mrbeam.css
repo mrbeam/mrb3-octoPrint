@@ -1629,7 +1629,16 @@ input.search-query,
 }
 #wa_filelist .file_list_entry .title {
 	max-width: 80%;
-	float: left;
+	/*float: left;*/
+}
+#wa_filelist .file_list_entry .detail_information {
+	clear: both;
+}
+.misfit_warning {
+	display: none;
+}
+.misfit .misfit_warning {
+	display: block;
 }
 
 #files .file_list_entry .title {

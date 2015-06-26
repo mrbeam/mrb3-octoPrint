@@ -20,9 +20,8 @@
 					</a>
 				</div>
 				<ul class="nav nav-pills">
-					<li class="active"><a href="#workingarea" data-toggle="tab">working area</a></li>
+					<li class="active"><a href="#workingarea" data-toggle="tab" id="wa_tab_btn">working area</a></li>
 					<li><a href="#designlib" data-toggle="tab">design library</a></li>
-					<!--<li><a href="#gcode" data-toggle="tab">gcode</a></li>-->
 					<li><a href="#focus" data-toggle="tab">focus</a></li>
 					<li><a href="#term" data-toggle="tab">terminal</a></li>
 					
@@ -179,7 +178,7 @@
 									<div class="accordion-body collapse in overflow_visible" id="wa_filelist">
 										<div class="accordion-inner">
 											<div class="gcode_files" data-bind="slimScrolledForeach: placedDesigns">
-												<div class="entry" data-bind="attr: { id: $root.getEntryId($data) }, template: { name: $root.templateFor($data), data: $data }"></div>
+												<div class="entry" data-bind="attr: { id: $data.id }, template: { name: $root.templateFor($data), data: $data }"></div>
 											</div>
 
 											<script type="text/html" id="wa_template_machinecode">
@@ -193,10 +192,16 @@
 
 											<script type="text/html" id="wa_template_model_svg">
 												<div class="file_list_entry">
-													<div class="title muted" data-bind="text: name"></div>
+													<div class="title muted pull-left" data-bind="text: name"></div>
 													<div class="btn-group action-buttons pull-right">
 														<div class="btn btn-mini" data-bind="click: function() { $root.toggleTransformHandles($data); }"><i class="icon-move" title="{{ _('Transform') }}"></i></div>
 														<div class="btn btn-mini" data-bind="click: function() { $root.removeSVG($data); }"><i class="icon-remove" title="{{ _('Remove') }}"></i></div>
+													</div>
+													<div class="detail_information" >
+														<div class="misfit_warning" >
+															<i class="icon-exclamation-sign" style="color:red;" title="{{ _('exceeds working area') }}"> Design exceeds the working area.</i>
+															<a href="#" data-bind="click: function(){ $root.fitSVG($data) } ">Transform to fit closely</a>
+														</div>
 													</div>
 												</div>
 											</script>

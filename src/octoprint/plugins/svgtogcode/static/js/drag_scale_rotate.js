@@ -125,8 +125,6 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 				dragHandleRotateEnd.bind( rotateDragger, freetransEl  ) 
 			);
 			freetransEl.ftStoreInitialTransformMatrix();
-//			freetransEl.ftStoreGlobalScaling();
-
 			freetransEl.ftHighlightBB();
 			return this;
 		};
@@ -160,15 +158,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		Element.prototype.ftStoreInitialTransformMatrix = function() {
 			this.data('initialTransformMatrix', this.transform().localMatrix );
 			return this;
-		};
-
-//		Element.prototype.ftStoreGlobalScaling = function() {
-//			var scale = this.transform().globalMatrix.a;
-//			this.data('globalScale', scale );
-//			return this;
-//		};
-		
-		
+		};	
 
 		Element.prototype.ftGetInitialTransformMatrix = function() {
 			return this.data('initialTransformMatrix');
@@ -202,11 +192,6 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 
 			return this;
 		};
-
-//		Element.prototype.ftTransformedPoint = function( x, y ) {
-//			var transform = this.transform().diffMatrix;
-//			return { x:  transform.x( x,y ) , y:  transform.y( x,y ) };
-//		};
 		
 		Element.prototype.ftUpdateTransform = function() {
 			var tstring = "t" + this.data("tx") + "," + this.data("ty") + this.ftGetInitialTransformMatrix().toTransformString() + "r" + this.data("angle") + 'S' + this.data("scale" );		
@@ -224,8 +209,8 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 							.attr({ fill: "none", stroke: ftOption.handleFill, strokeWidth: ftOption.handleStrokeWidth, strokeDasharray: ftOption.handleStrokeDashPreset.join(',') })
 							.transform( this.transform().global.toString() ) );
 			// outer bbox
-			//this.data("bb", this.paper.select('#userContent').rect( rectObjFromBB( this.getBBox() ) )
-			//				.attr({ fill: "none", stroke: ftOption.handleFill3, strokeDasharray: ftOption.handleStrokeDash }) );
+			this.data("bb", this.paper.select('#userContent').rect( rectObjFromBB( this.getBBox() ) )
+							.attr({ fill: "none", stroke: 'gray', strokeWidth: ftOption.handleStrokeWidth, strokeDasharray: ftOption.handleStrokeDash }) );
 			return this;
 		};
 		
@@ -241,21 +226,34 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		} );
 		mainEl.data("otx", mainEl.data("tx") || 0);
 		mainEl.data("oty", mainEl.data("ty") || 0);
+		mainEl.data('obb', mainEl.getBBox());
+		mainEl.data('wa', snap.select('#coordGrid').getBBox());
 	};
 
 	function elementDragMove( mainEl, dx, dy, x, y ) {
 		var dragHandle = this;
 		var unscale = mainEl.data('unscale');
-
+		var bb = mainEl.data('obb');
+		
 		var udx = dx*unscale;
 		var udy = dy*unscale;
 
+		// check limits
+//		udx = Math.max(udx, -bb.x);
+//		udx = Math.min(udx, mainEl.data('wa').x2 - bb.x2);
+//		udy = Math.max(udy, -bb.y);
+//		udy = Math.min(udy, mainEl.data('wa').y2 - bb.y2);
+
+		// update drag handle
 		this.parent().selectAll('circle').forEach( function( el, i ) {
 			el.attr({ cx: +el.data('ocx') + udx, cy: +el.data('ocy') + udy });
-			
 		} );
-		mainEl.data("tx", mainEl.data("otx") + +udx);
-		mainEl.data("ty", mainEl.data("oty") + +udy);
+
+		// update element
+		var tx = mainEl.data("otx") + +udx;
+		var ty = mainEl.data("oty") + +udy;
+		mainEl.data("tx", tx);
+		mainEl.data("ty", ty);
 		mainEl.ftUpdateTransform();
 		mainEl.ftDrawJoinLine( dragHandle );
 	}
@@ -277,20 +275,16 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		var unscale = mainEl.data('unscale');
 		handle.attr({ cx: +handle.data('ocx') + dx*unscale, cy: +handle.data('ocy') + dy*unscale });
 		
-		var angle;
-		if(event.ctrlKey){
-			angle = 0
-		} else {
-			angle = Snap.angle( mainBB.cx, mainBB.cy, handle.attr('cx'), handle.attr('cy') ) - 180;
-		}
+		var angle = Snap.angle( mainBB.cx, mainBB.cy, handle.attr('cx'), handle.attr('cy') ) - 180;
+		if(event.shiftKey){
+			angle = Math.round(angle/30) * 30;
+		} 
 		mainEl.data("angle", angle );
 		
-		var scale;
+		var distance = calcDistance( mainBB.cx, mainBB.cy, handle.attr('cx'), handle.attr('cy') );
+		var scale = distance / mainEl.data("scaleFactor");
 		if(event.shiftKey){
-			scale = 1;
-		} else {
-			var distance = calcDistance( mainBB.cx, mainBB.cy, handle.attr('cx'), handle.attr('cy') );
-			scale = distance / mainEl.data("scaleFactor");
+			scale = Math.round(scale*4) / 4;	
 		}
 		mainEl.data("scale", scale );
 

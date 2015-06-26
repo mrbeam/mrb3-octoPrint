@@ -241,13 +241,6 @@ $(function(){
 				if(hasText !== null && hasText.length > 0){
 					self.svg_contains_text_warning(newSvg);
 				}
-				// TODO debug. bounding boxes are always zero sized when not displayed.
-//				var misfitting = self.outsideWorkingArea(newSvg);
-//				if(misfitting.oversized || misfitting.outside){
-//					self.svg_misfitting_warning(newSvg, misfitting);
-//					newSvg.translate(misfitting.dx, misfitting.dy);
-//					newSvg.scale(misfitting.scale);
-//				}
 				
 				newSvg.bake(); // remove transforms
 				newSvg.attr(newSvgAttrs);
@@ -256,10 +249,11 @@ $(function(){
 				newSvg.attr({id: previewId});
 				snap.select("#userContent").append(newSvg);
 				newSvg.transformable();
-
-				file.id = previewId;
+				
+				file.id = id; // list entry id
 				file.previewId = previewId;
 				file.url = url;
+				file.misfit = "";
 				
 				self.placedDesigns.push(file);
 			};
@@ -272,7 +266,7 @@ $(function(){
 		
 		self.removeSVG = function(file){
 			self.abortFreeTransforms();
-			snap.select('#'+file.previewId).remove();
+			snap.selectAll('#'+file.previewId).remove();
 			self.placedDesigns.remove(file); 
 			// TODO debug why remove always clears all items of this type.
 //			self.placedDesigns.remove(function(item){ 
@@ -284,6 +278,19 @@ $(function(){
 //				} else return false;
 //			});
 		};
+		self.fitSVG = function(file){
+			self.abortFreeTransforms();
+			var svg = snap.select('#'+file.previewId);
+			var fitMatrix = new Snap.matrix();
+			fitMatrix.scale(svg.data('fitMatrix').scale);
+			fitMatrix.translate(svg.data('fitMatrix').dx, svg.data('fitMatrix').dy);
+			var localMatrix = svg.transform().localMatrix;
+			var compositeMatrix = localMatrix.add(fitMatrix)
+			svg.transform(compositeMatrix);
+			svg.data('fitMatrix', null); 
+			$('#'+file.id).removeClass('misfit');
+		};
+		
 		self.toggleTransformHandles = function(file){
 			var el = snap.select('#'+file.previewId);
 			if(el){
@@ -292,7 +299,7 @@ $(function(){
 		};
 		
 		self.outsideWorkingArea = function(svg){
-			var waBB = snap.select('#userContent').getBBox();
+			var waBB = snap.select('#coordGrid').getBBox();
 			var svgBB = svg.getBBox();
 			var tooWide = svgBB.w > waBB.w;
 			var tooHigh = svgBB.h > waBB.h;
@@ -307,6 +314,7 @@ $(function(){
 				dx = -svgBB.x;
 				dy = -svgBB.y;
 			}
+			console.log("svgBB", svgBB.x, svgBB.x2);
 			
 			return { oversized: tooWide || tooHigh, outside: outside, scale: scale, dx: dx, dy: dy };
 		};
@@ -362,10 +370,10 @@ $(function(){
 					}
 				}
 				if(doc_height === "100%"){
-					doc_height = 1052.3622047 // 297mm @ 90dpi
+					doc_height = 1052.3622047; // 297mm @ 90dpi
 				}
 				if(doc_height === null){
-					doc_height = 1052.3622047 // 297mm @ 90dpi
+					doc_height = 1052.3622047; // 297mm @ 90dpi
 				}
 			}
 			
@@ -395,7 +403,7 @@ $(function(){
 
 				}
 			}
-			return [[1,0,0],[0,1,0], [0,0,1]]
+			return [[1,0,0],[0,1,0], [0,0,1]];
 		};
 		
 		//a dictionary of unit to user unit conversion factors
@@ -452,15 +460,6 @@ $(function(){
 			return "wa_" + md5(data["origin"] + ":" + data["name"]);
 		};
 
-		self.getEntryElement = function(data) {
-			var entryId = self.getEntryId(data);
-			var entryElements = $("#" + entryId);
-			if (entryElements && entryElements[0]) {
-				return entryElements[0];
-			} else {
-				return undefined;
-			}
-		};
 
 		self.init = function(){
 			// init snap.svg
@@ -519,6 +518,7 @@ $(function(){
 				var el = tip[i];
 				el.ftRemoveHandles();
 			}
+			self.check_sizes_and_placements();
 		};
 
 		self.getCompositionSVG = function(){
@@ -528,8 +528,6 @@ $(function(){
 				var dpiFactor = self.svgDPI()/25.4; // convert mm to pix 90dpi for inkscape, 72 for illustrator 
 				var w = dpiFactor * self.workingAreaWidthMM(); 
 				var h = dpiFactor * self.workingAreaHeightMM(); 
-	//			var w = dpiFactor * self.settings.printerProfiles.currentProfileData().volume.width; 
-	//			var h = dpiFactor * self.settings.printerProfiles.currentProfileData().volume.depth; 
 
 				var svg = '<svg height="'+ h +'" version="1.1" width="'+ w +'" xmlns="http://www.w3.org/2000/svg"><defs/>'+ tmpsvg +'</svg>';
 				return svg;
@@ -567,11 +565,37 @@ $(function(){
 			self.state.workingArea = self;
 			self.files.workingArea = self;
 			
+			// check this on tab change as before the bounding boxes are sized 0.
+			$('#wa_tab_btn').on('shown.bs.tab', function (e) {
+				self.trigger_resize();
+				self.check_sizes_and_placements();
+			});
 			$(window).resize(function(){
 				self.trigger_resize();
 			});
 			self.trigger_resize(); // initialize
 			self.init();
+		};
+		
+		self.check_sizes_and_placements = function(){
+			ko.utils.arrayForEach(self.placedDesigns(), function(design) {
+				if(design.type === 'model'){
+					var svg = snap.select('#' + design.previewId);
+					var misfitting = self.outsideWorkingArea(svg);
+					console.log(misfitting);
+					console.log(misfitting.scale * misfitting.dy);
+					if(misfitting.oversized || misfitting.outside){
+						//var tstr ='matrix(' + misfitting.scale + ',0,0,'+ misfitting.scale + ',' + misfitting.scale*misfitting.dx + ',' +  misfitting.scale*misfitting.dy +')' ;
+						//var tstr ='s' + misfitting.scale + 't' + misfitting.scale*misfitting.dx + ',' +  misfitting.scale*misfitting.dy  ;
+						svg.data('fitMatrix', misfitting);
+						$('#'+design.id).addClass('misfit');
+
+					} else {
+						$('#'+design.id).removeClass('misfit');
+						svg.data('fitMatrix', null);
+					}
+				}
+			});
 		};
 	}
 
