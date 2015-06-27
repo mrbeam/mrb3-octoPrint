@@ -198,6 +198,12 @@
 														<div class="btn btn-mini" data-bind="click: function() { $root.removeSVG($data); }"><i class="icon-remove" title="{{ _('Remove') }}"></i></div>
 													</div>
 													<div class="detail_information" >
+														<div class="local_transformation muted">
+															<i class="icon-move translation" title="{{ _('translation') }}"> </i>
+															<i class="icon-resize-full scale" title="{{ _('scale') }}"> </i>
+															<i class="icon-repeat rotation" title="{{ _('rotation') }}"> </i>
+															
+														</div>
 														<div class="misfit_warning" >
 															<i class="icon-exclamation-sign" style="color:red;" title="{{ _('exceeds working area') }}"> Design exceeds the working area.</i>
 															<a href="#" data-bind="click: function(){ $root.fitSVG($data) } ">Transform to fit closely</a>

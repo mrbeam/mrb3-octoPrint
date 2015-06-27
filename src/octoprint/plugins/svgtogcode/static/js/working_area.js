@@ -97,6 +97,7 @@ $(function(){
 		
 
 		self.trigger_resize = function(){
+			if(typeof(snap) !== 'undefined') self.abortFreeTransforms();
 			self.availableHeight(document.documentElement.clientHeight - $('body>nav').outerHeight()  - $('footer>*').outerHeight() - 39); // magic number
 			self.availableWidth($('#workingarea div.span8').innerWidth());
 		};
@@ -105,7 +106,6 @@ $(function(){
 			self.abortFreeTransforms();
 			if(self.state.isOperational() && !self.state.isPrinting()){
 				var x = self.px2mm(event.offsetX);
-		//		var y = self.px2mm(event.toElement.offsetHeight - event.offsetY); // toElement.offsetHeight is always 0 on svg>* elements ???
 				var y = self.px2mm(event.toElement.ownerSVGElement.offsetHeight - event.offsetY); // hopefully this works across browsers
 				$.ajax({
 					url: API_BASEURL + "printer/printhead",
@@ -243,12 +243,14 @@ $(function(){
 				}
 				
 				newSvg.bake(); // remove transforms
+				newSvg.selectAll('path').attr({strokeWidth: '0.5'});
 				newSvg.attr(newSvgAttrs);
 				var id = self.getEntryId(file); 
 				var previewId = self.generateUniqueId(id); // appends -# if multiple times the same design is placed.
 				newSvg.attr({id: previewId});
 				snap.select("#userContent").append(newSvg);
 				newSvg.transformable();
+				newSvg.ftRegisterCallback(self.svgTransformUpdate);
 				
 				file.id = id; // list entry id
 				file.previewId = previewId;
@@ -297,6 +299,21 @@ $(function(){
 				el.ftToggleHandles();
 			}
 		};
+		
+		self.svgTransformUpdate = function(svg){
+			var tx = self.px2mm(svg.data('tx')).toFixed(0);
+			var ty = self.px2mm(svg.data('ty')).toFixed(0);
+			var rot = svg.data('angle').toFixed(1);
+			var scale = Math.round(svg.data('scale')*100);
+			var id = svg.attr('id');
+			var label_id = id.substr(0, id.indexOf('-'));
+			console.log('#'+label_id+' .translation');
+			$('#'+label_id+' .translation').text(tx + ',' + ty);
+			$('#'+label_id+' .scale').text(scale + '%');
+			$('#'+label_id+' .rotation').text(rot + '°');
+		};
+		
+
 		
 		self.outsideWorkingArea = function(svg){
 			var waBB = snap.select('#coordGrid').getBBox();

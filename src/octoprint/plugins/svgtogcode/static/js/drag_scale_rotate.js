@@ -194,9 +194,11 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		};
 		
 		Element.prototype.ftUpdateTransform = function() {
+			//console.log("translate: ", this.data('tx'), this.data('ty'), 'rotate: ', this.data('angle'), 'scale: ', this.data('scale'));
 			var tstring = "t" + this.data("tx") + "," + this.data("ty") + this.ftGetInitialTransformMatrix().toTransformString() + "r" + this.data("angle") + 'S' + this.data("scale" );		
 			this.attr({ transform: tstring });
 			this.data("bbT") && this.ftHighlightBB(this.paper.select('#userContent'));
+			this.ftReportTransformation();
 			return this;
 		};
 
@@ -214,6 +216,21 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			return this;
 		};
 		
+		Element.prototype.ftReportTransformation = function(){
+			if(this.data('ftCallbacks') && this.data('ftCallbacks').length > 0){
+				for (var idx = 0; idx < this.data('ftCallbacks').length; idx++) {
+					var cb = this.data('ftCallbacks')[idx];
+					cb(this);
+				}
+			}
+		};
+		Element.prototype.ftRegisterCallback = function(callback){
+			if(typeof this.data('ftCallbacks') === 'undefined'){
+				this.data('ftCallbacks', [callback]);
+			} else {
+				this.data('ftCallbacks').push(callback);
+			}
+		};
 	});
 
 	function rectObjFromBB ( bb ) {
@@ -284,7 +301,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		var distance = calcDistance( mainBB.cx, mainBB.cy, handle.attr('cx'), handle.attr('cy') );
 		var scale = distance / mainEl.data("scaleFactor");
 		if(event.shiftKey){
-			scale = Math.round(scale*4) / 4;	
+			scale = Math.round(scale*4) / 4;
 		}
 		mainEl.data("scale", scale );
 
