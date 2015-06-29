@@ -301,8 +301,9 @@ $(function(){
 		};
 		
 		self.svgTransformUpdate = function(svg){
-			var tx = self.px2mm(svg.data('tx')).toFixed(0);
-			var ty = self.px2mm(svg.data('ty')).toFixed(0);
+			var globalScale = self.scaleMatrix().a;
+			var tx = self.px2mm(svg.data('tx')*globalScale).toFixed(1);
+			var ty = self.px2mm(svg.data('ty')*globalScale).toFixed(1);
 			var rot = svg.data('angle').toFixed(1);
 			var scale = Math.round(svg.data('scale')*100);
 			var id = svg.attr('id');

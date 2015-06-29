@@ -1634,6 +1634,11 @@ input.search-query,
 #wa_filelist .file_list_entry .detail_information {
 	clear: both;
 }
+#wa_filelist .file_list_entry .local_transformation span {
+	margin-left:0em;
+	margin-right:.8em;
+}
+	
 .misfit_warning {
 	display: none;
 }
