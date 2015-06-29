@@ -283,14 +283,14 @@ $(function(){
 		self.fitSVG = function(file){
 			self.abortFreeTransforms();
 			var svg = snap.select('#'+file.previewId);
-			var fitMatrix = new Snap.matrix();
+			var fitMatrix = new Snap.Matrix();
 			fitMatrix.scale(svg.data('fitMatrix').scale);
 			fitMatrix.translate(svg.data('fitMatrix').dx, svg.data('fitMatrix').dy);
-			var localMatrix = svg.transform().localMatrix;
-			var compositeMatrix = localMatrix.add(fitMatrix)
-			svg.transform(compositeMatrix);
+			fitMatrix.add(svg.transform().localMatrix);
+			svg.transform(fitMatrix);
 			svg.data('fitMatrix', null); 
 			$('#'+file.id).removeClass('misfit');
+			self.svgTransformUpdate(svg);
 		};
 		
 		self.toggleTransformHandles = function(file){
@@ -303,7 +303,7 @@ $(function(){
 		self.svgTransformUpdate = function(svg){
 			var globalScale = self.scaleMatrix().a;
 			var tx = self.px2mm(svg.data('tx')*globalScale).toFixed(1);
-			var ty = self.px2mm(svg.data('ty')*globalScale).toFixed(1);
+			var ty = -self.px2mm(svg.data('ty')*globalScale).toFixed(1);
 			var rot = svg.data('angle').toFixed(1);
 			var scale = Math.round(svg.data('scale')*100);
 			var id = svg.attr('id');
@@ -319,11 +319,12 @@ $(function(){
 		self.outsideWorkingArea = function(svg){
 			var waBB = snap.select('#coordGrid').getBBox();
 			var svgBB = svg.getBBox();
+			
 			var tooWide = svgBB.w > waBB.w;
 			var tooHigh = svgBB.h > waBB.h;
 			var scale = 1;
 			if(tooWide || tooHigh){
-				scale = Math.min(waBB.w / svgBB.w, waBB.h / svgBB.h);
+				scale = Math.min(waBB.w / svgBB.w, waBB.h / svgBB.h) - 0.01; // scale minimal smaller to avoid rounding errors
 			}
 			var outside = svgBB.x < waBB.x || svgBB.x2 > waBB.x2 || svgBB.y < waBB.y || svgBB.y2 > waBB.y2;
 			var dx = 0;
@@ -332,9 +333,14 @@ $(function(){
 				dx = -svgBB.x;
 				dy = -svgBB.y;
 			}
-			console.log("svgBB", svgBB.x, svgBB.x2);
 			
-			return { oversized: tooWide || tooHigh, outside: outside, scale: scale, dx: dx, dy: dy };
+			return { 
+				oversized: tooWide || tooHigh, 
+				outside: outside, 
+				scale: scale, 
+				dx: dx, 
+				dy: dy
+			};
 		};
 		
 		self.svg_contains_text_warning = function(svg){
@@ -600,11 +606,7 @@ $(function(){
 				if(design.type === 'model'){
 					var svg = snap.select('#' + design.previewId);
 					var misfitting = self.outsideWorkingArea(svg);
-					console.log(misfitting);
-					console.log(misfitting.scale * misfitting.dy);
 					if(misfitting.oversized || misfitting.outside){
-						//var tstr ='matrix(' + misfitting.scale + ',0,0,'+ misfitting.scale + ',' + misfitting.scale*misfitting.dx + ',' +  misfitting.scale*misfitting.dy +')' ;
-						//var tstr ='s' + misfitting.scale + 't' + misfitting.scale*misfitting.dx + ',' +  misfitting.scale*misfitting.dy  ;
 						svg.data('fitMatrix', misfitting);
 						$('#'+design.id).addClass('misfit');
 
