@@ -326,12 +326,25 @@ $(function(){
 			if(tooWide || tooHigh){
 				scale = Math.min(waBB.w / svgBB.w, waBB.h / svgBB.h) - 0.01; // scale minimal smaller to avoid rounding errors
 			}
-			var outside = svgBB.x < waBB.x || svgBB.x2 > waBB.x2 || svgBB.y < waBB.y || svgBB.y2 > waBB.y2;
+
 			var dx = 0;
 			var dy = 0;
-			if(outside){
-				dx = -svgBB.x;
-				dy = -svgBB.y;
+			var outside = false;
+			if(svgBB.x < waBB.x){
+				dx = -svgBB.x + 0.01;
+				outside = true; 
+			}
+			if(svgBB.x2 > waBB.x2){
+				dx = -svgBB.x2 + waBB.x2 - 0.01;
+				outside = true; 
+			}
+			if(svgBB.y < waBB.y){
+				dy = -svgBB.y + 0.01;
+				outside = true; 
+			}
+			if(svgBB.y2 > waBB.y2){
+				dy = -svgBB.y2 + waBB.y2 - 0.01;
+				outside = true; 
 			}
 			
 			return { 
