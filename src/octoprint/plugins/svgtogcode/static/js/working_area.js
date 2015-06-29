@@ -302,16 +302,22 @@ $(function(){
 		
 		self.svgTransformUpdate = function(svg){
 			var globalScale = self.scaleMatrix().a;
-			var tx = self.px2mm(svg.data('tx')*globalScale).toFixed(1);
-			var ty = -self.px2mm(svg.data('ty')*globalScale).toFixed(1);
-			var rot = svg.data('angle').toFixed(1);
-			var scale = Math.round(svg.data('scale')*100);
+			var transform = svg.transform();
+			var bbox = svg.getBBox();
+			var tx = self.px2mm(bbox.x * globalScale);
+			var ty = self.workingAreaHeightMM() - self.px2mm(bbox.y2 * globalScale);
+//			var tx = self.px2mm(svg.data('tx')*globalScale).toFixed(1);
+//			var ty = -self.px2mm(svg.data('ty')*globalScale).toFixed(1);
+//			var rot = svg.data('angle') || 0;
+			var startIdx = transform.local.indexOf('r') + 1;
+			var endIdx = transform.local.indexOf(',', startIdx);
+			var rot = parseFloat(transform.local.substring(startIdx, endIdx));
+			var scale = transform.localMatrix.a * 100;
 			var id = svg.attr('id');
 			var label_id = id.substr(0, id.indexOf('-'));
-			console.log('#'+label_id+' .translation');
-			$('#'+label_id+' .translation').text(tx + ',' + ty);
-			$('#'+label_id+' .scale').text(scale + '%');
-			$('#'+label_id+' .rotation').text(rot + '°');
+			$('#'+label_id+' .translation').text(tx.toFixed(1) + ',' + ty.toFixed(1));
+			$('#'+label_id+' .scale').text(scale.toFixed(1) + '%');
+			$('#'+label_id+' .rotation').text(rot.toFixed(1) + '°');
 		};
 		
 
