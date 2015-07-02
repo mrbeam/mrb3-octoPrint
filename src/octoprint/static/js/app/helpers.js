@@ -11,6 +11,7 @@ function ItemListHelper(listType, supportedSorting, supportedFilters, defaultSor
     self.searchFunction = undefined;
 
     self.allItems = [];
+    self.allSize = ko.observable(0);
 
     self.items = ko.observableArray([]);
     self.pageSize = ko.observable(filesPerPage);
@@ -27,6 +28,7 @@ function ItemListHelper(listType, supportedSorting, supportedFilters, defaultSor
 
     self.updateItems = function(items) {
         self.allItems = items;
+        self.allSize(items.length);
         self._updateItems();
     };
 
@@ -430,4 +432,32 @@ function showOfflineOverlay(title, message, reconnectCallback) {
 
 function hideOfflineOverlay() {
     $("#offline_overlay").hide();
+}
+
+function showConfirmationDialog(message, onacknowledge) {
+    var confirmationDialog = $("#confirmation_dialog");
+    var confirmationDialogAck = $(".confirmation_dialog_acknowledge", confirmationDialog);
+
+    $(".confirmation_dialog_message", confirmationDialog).text(message);
+    confirmationDialogAck.unbind("click");
+    confirmationDialogAck.bind("click", function (e) {
+        e.preventDefault();
+        $("#confirmation_dialog").modal("hide");
+        onacknowledge(e);
+    });
+    confirmationDialog.modal("show");
+}
+
+function commentableLinesToArray(lines) {
+    return splitTextToArray(lines, "\n", true, function(item) {return !_.startsWith(item, "#")});
+}
+
+function splitTextToArray(text, sep, stripEmpty, filter) {
+    return _.filter(
+        _.map(
+            text.split(sep),
+            function(item) { return (item) ? item.trim() : ""; }
+        ),
+        function(item) { return (stripEmpty ? item : true) && (filter ? filter(item) : true); }
+    );
 }

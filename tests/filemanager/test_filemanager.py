@@ -6,10 +6,12 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 __copyright__ = "Copyright (C) 2014 The OctoPrint Project - Released under terms of the AGPLv3 License"
 
 
+import io
 import unittest
 import mock
 
 import octoprint.filemanager
+import octoprint.filemanager.util
 
 class FileManagerTest(unittest.TestCase):
 
@@ -25,6 +27,10 @@ class FileManagerTest(unittest.TestCase):
 		event_manager = self.event_manager_patcher.start()
 		event_manager.return_value.fire = mock.MagicMock()
 		self.fire_event = event_manager.return_value.fire
+
+		# mock plugin manager
+		self.plugin_manager_patcher = mock.patch("octoprint.plugin.plugin_manager")
+		self.plugin_manager = self.plugin_manager_patcher.start()
 
 		self.analysis_queue = mock.MagicMock(spec=octoprint.filemanager.AnalysisQueue)
 
@@ -42,12 +48,13 @@ class FileManagerTest(unittest.TestCase):
 
 	def cleanUp(self):
 		self.event_manager_patcher.stop()
+		self.plugin_manager_patcher.stop()
 
 	def test_add_file(self):
 		wrapper = object()
 
 		self.local_storage.add_file.return_value = ("", "test.file")
-		self.local_storage.get_absolute_path.return_value = "prefix/test.file"
+		self.local_storage.path_on_disk.return_value = "prefix/test.file"
 
 		test_profile = dict(id="_default", name="My Default Profile")
 		self.printer_profile_manager.get_current_or_default.return_value = test_profile
@@ -103,11 +110,12 @@ class FileManagerTest(unittest.TestCase):
 		self.local_storage.get_metadata.assert_called_once_with("test.file")
 
 	@mock.patch("__builtin__.open", new_callable=mock.mock_open)
+	@mock.patch("io.FileIO")
 	@mock.patch("shutil.copyfileobj")
 	@mock.patch("os.remove")
 	@mock.patch("tempfile.NamedTemporaryFile")
 	@mock.patch("time.time", side_effect=[1411979916.422, 1411979932.116])
-	def test_slice(self, mocked_time, mocked_tempfile, mocked_os, mocked_shutil, mocked_open):
+	def test_slice(self, mocked_time, mocked_tempfile, mocked_os, mocked_shutil, mocked_fileio, mocked_open):
 		callback = mock.MagicMock()
 		callback_args = ("one", "two", "three")
 
@@ -126,7 +134,7 @@ class FileManagerTest(unittest.TestCase):
 		self.printer_profile_manager.get.return_value = None
 
 		# mock get_absolute_path method on local storage
-		def get_absolute_path(path):
+		def path_on_disk(path):
 			if isinstance(path, tuple):
 				import os
 				joined_path = ""
@@ -134,7 +142,7 @@ class FileManagerTest(unittest.TestCase):
 					joined_path = os.path.join(joined_path, part)
 				path = joined_path
 			return "prefix/" + path
-		self.local_storage.get_absolute_path.side_effect = get_absolute_path
+		self.local_storage.path_on_disk.side_effect = path_on_disk
 
 		# mock split_path method on local storage
 		def split_path(path):
@@ -148,12 +156,14 @@ class FileManagerTest(unittest.TestCase):
 		self.local_storage.add_file.side_effect = add_file
 
 		# mock slice method on slicing manager
-		def slice(slicer_name, source_path, dest_path, profile, done_cb, printer_profile_id=None, callback_args=None, overrides=None, on_progress=None, on_progress_args=None, on_progress_kwargs=None):
+		def slice(slicer_name, source_path, dest_path, profile, done_cb, printer_profile_id=None, position=None, callback_args=None, overrides=None, on_progress=None, on_progress_args=None, on_progress_kwargs=None):
 			self.assertEquals("some_slicer", slicer_name)
 			self.assertEquals("prefix/source.file", source_path)
 			self.assertEquals("tmp.file", dest_path)
 			self.assertIsNone(profile)
 			self.assertIsNone(overrides)
+			self.assertIsNone(printer_profile_id)
+			self.assertIsNone(position)
 			self.assertIsNotNone(on_progress)
 			self.assertIsNotNone(on_progress_args)
 			self.assertTupleEqual(("some_slicer", octoprint.filemanager.FileDestinations.LOCAL, "source.file", octoprint.filemanager.FileDestinations.LOCAL, "dest.file"), on_progress_args)
@@ -177,12 +187,17 @@ class FileManagerTest(unittest.TestCase):
 		self.local_storage.add_file.assert_called_once_with("dest.file", mock.ANY, printer_profile=expected_printer_profile, allow_overwrite=True, links=expected_links)
 
 		# assert that the generated gcode was manipulated as required
-		expected_open_calls = [mock.call("prefix/dest.file", "w"), mock.call("tmp.file", "r")]
+		expected_open_calls = [mock.call("prefix/dest.file", "wb")]
 		self.assertEquals(mocked_open.call_args_list, expected_open_calls)
-		mocked_open.return_value.write.assert_called_once_with(";Generated from source.file aabbccddeeff\r")
+		#mocked_open.return_value.write.assert_called_once_with(";Generated from source.file aabbccddeeff\r")
 
-		# assert that the contents of tmp.file where copied to dest.file
-		mocked_shutil.assert_called_once_with(mock.ANY, mock.ANY)
+		# assert that shutil was asked to copy the concatenated multistream
+		self.assertEquals(1, len(mocked_shutil.call_args_list))
+		shutil_call_args = mocked_shutil.call_args_list[0]
+		self.assertTrue(isinstance(shutil_call_args[0][0], octoprint.filemanager.util.MultiStream))
+		multi_stream = shutil_call_args[0][0]
+		self.assertEquals(2, len(multi_stream.streams))
+		self.assertTrue(isinstance(multi_stream.streams[0], io.BytesIO))
 
 		# assert that the temporary file was deleted
 		mocked_os.assert_called_once_with("tmp.file")
@@ -202,8 +217,8 @@ class FileManagerTest(unittest.TestCase):
 		temp_file.name = "tmp.file"
 		mocked_tempfile.return_value = temp_file
 
-		# mock get_absolute_path method on local storage
-		def get_absolute_path(path):
+		# mock path_on_disk method on local storage
+		def path_on_disk(path):
 			if isinstance(path, tuple):
 				import os
 				joined_path = ""
@@ -211,15 +226,17 @@ class FileManagerTest(unittest.TestCase):
 					joined_path = os.path.join(joined_path, part)
 				path = joined_path
 			return "prefix/" + path
-		self.local_storage.get_absolute_path.side_effect = get_absolute_path
+		self.local_storage.path_on_disk.side_effect = path_on_disk
 
 		# mock slice method on slicing manager
-		def slice(slicer_name, source_path, dest_path, profile, done_cb, printer_profile_id=None, callback_args=None, overrides=None, on_progress=None, on_progress_args=None, on_progress_kwargs=None):
+		def slice(slicer_name, source_path, dest_path, profile, done_cb, printer_profile_id=None, position=None, callback_args=None, overrides=None, on_progress=None, on_progress_args=None, on_progress_kwargs=None):
 			self.assertEquals("some_slicer", slicer_name)
 			self.assertEquals("prefix/source.file", source_path)
 			self.assertEquals("tmp.file", dest_path)
 			self.assertIsNone(profile)
 			self.assertIsNone(overrides)
+			self.assertIsNone(printer_profile_id)
+			self.assertIsNone(position)
 			self.assertIsNotNone(on_progress)
 			self.assertIsNotNone(on_progress_args)
 			self.assertTupleEqual(("some_slicer", octoprint.filemanager.FileDestinations.LOCAL, "source.file", octoprint.filemanager.FileDestinations.LOCAL, "dest.file"), on_progress_args)

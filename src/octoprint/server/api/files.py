@@ -11,11 +11,16 @@ import octoprint.util as util
 from octoprint.filemanager.destinations import FileDestinations
 from octoprint.settings import settings, valid_boolean_trues
 from octoprint.server import printer, fileManager, slicingManager, eventManager, NO_CONTENT
-from octoprint.server.util.flask import restricted_access
+from octoprint.server.util.flask import restricted_access, get_json_command_from_request
 from octoprint.server.api import api
 from octoprint.events import Events
 import octoprint.filemanager
-import shutil
+#<<<<<<< HEAD
+#import shutil
+#=======
+import octoprint.filemanager.util
+import octoprint.slicing
+#>>>>>>> upstream/maintenance
 
 
 #~~ GCODE file handling
@@ -28,7 +33,7 @@ def readGcodeFiles():
 		filter = request.values["filter"]
 	files = _getFileList(FileDestinations.LOCAL, filter=filter)
 	files.extend(_getFileList(FileDestinations.SDCARD))
-	return jsonify(files=files, free=util.getFreeBytes(settings().getBaseFolder("uploads")))
+	return jsonify(files=files, free=util.get_free_bytes(settings().getBaseFolder("uploads")))
 
 
 @api.route("/files/<string:origin>", methods=["GET"])
@@ -39,7 +44,7 @@ def readGcodeFilesForOrigin(origin):
 	files = _getFileList(origin)
 
 	if origin == FileDestinations.LOCAL:
-		return jsonify(files=files, free=util.getFreeBytes(settings().getBaseFolder("uploads")))
+		return jsonify(files=files, free=util.get_free_bytes(settings().getBaseFolder("uploads")))
 	else:
 		return jsonify(files=files)
 
@@ -54,7 +59,7 @@ def _getFileDetails(origin, filename):
 
 def _getFileList(origin, filter=None):
 	if origin == FileDestinations.SDCARD:
-		sdFileList = printer.getSdFiles()
+		sdFileList = printer.get_sd_files()
 
 		files = []
 		if sdFileList is not None:
@@ -118,7 +123,7 @@ def _getFileList(origin, filter=None):
 
 def _verifyFileExists(origin, filename):
 	if origin == FileDestinations.SDCARD:
-		return filename in map(lambda x: x[0], printer.getSdFiles())
+		return filename in map(lambda x: x[0], printer.get_sd_files())
 	else:
 		return fileManager.file_exists(origin, filename)
 
@@ -133,14 +138,18 @@ def uploadGcodeFile(target):
 	input_upload_name = input_name + "." + settings().get(["server", "uploads", "nameSuffix"])
 	input_upload_path = input_name + "." + settings().get(["server", "uploads", "pathSuffix"])
 	if input_upload_name in request.values and input_upload_path in request.values:
-		import shutil
-		upload = util.Object()
-		upload.filename = request.values[input_upload_name]
-		upload.save = lambda new_path: shutil.move(request.values[input_upload_path], new_path)
-	elif input_name in request.files:
-		upload = request.files[input_name]
+		upload = octoprint.filemanager.util.DiskFileWrapper(request.values[input_upload_name], request.values[input_upload_path])
 	else:
 		return make_response("No file included", 400)
+
+	# Store any additional user data the caller may have passed.
+	userdata = None
+	if "userdata" in request.values:
+		import json
+		try:
+			userdata = json.loads(request.values["userdata"])
+		except:
+			return make_response("userdata contains invalid JSON", 400)
 
 	if target == FileDestinations.SDCARD and not settings().getBoolean(["feature", "sdSupport"]):
 		return make_response("SD card support is disabled", 404)
@@ -151,15 +160,15 @@ def uploadGcodeFile(target):
 
 	if sd:
 		# validate that all preconditions for SD upload are met before attempting it
-		if not (printer.isOperational() and not (printer.isPrinting() or printer.isPaused())):
+		if not (printer.is_operational() and not (printer.is_printing() or printer.is_paused())):
 			return make_response("Can not upload to SD card, printer is either not operational or already busy", 409)
-		if not printer.isSdReady():
+		if not printer.is_sd_ready():
 			return make_response("Can not upload to SD card, not yet initialized", 409)
 
 	# determine current job
 	currentFilename = None
 	currentOrigin = None
-	currentJob = printer.getCurrentJob()
+	currentJob = printer.get_current_job()
 	if currentJob is not None and "file" in currentJob.keys():
 		currentJobFile = currentJob["file"]
 		if "name" in currentJobFile.keys() and "origin" in currentJobFile.keys():
@@ -171,11 +180,11 @@ def uploadGcodeFile(target):
 		futureFilename = fileManager.sanitize_name(FileDestinations.LOCAL, upload.filename)
 	except:
 		futureFilename = None
-	if futureFilename is None or not (slicingManager.slicing_enabled or octoprint.filemanager.valid_file_type(futureFilename, type="gcode")):
+	if futureFilename is None:
 		return make_response("Can not upload file %s, wrong format?" % upload.filename, 415)
 
 	# prohibit overwriting currently selected file while it's being printed
-	if futureFilename == currentFilename and target == currentOrigin and printer.isPrinting() or printer.isPaused():
+	if futureFilename == currentFilename and target == currentOrigin and printer.is_printing() or printer.is_paused():
 		return make_response("Trying to overwrite file that is currently being printed: %s" % currentFilename, 409)
 
 	def fileProcessingFinished(filename, absFilename, destination):
@@ -187,7 +196,7 @@ def uploadGcodeFile(target):
 		"""
 
 		if destination == FileDestinations.SDCARD and octoprint.filemanager.valid_file_type(filename, "gcode"):
-			return filename, printer.addSdFile(filename, absFilename, selectAndOrPrint)
+			return filename, printer.add_sd_file(filename, absFilename, selectAndOrPrint)
 		else:
 			selectAndOrPrint(filename, absFilename, destination)
 			return filename
@@ -202,7 +211,7 @@ def uploadGcodeFile(target):
 		exact file is already selected, such reloading it.
 		"""
 		if octoprint.filemanager.valid_file_type(added_file, "gcode") and (selectAfterUpload or printAfterSelect or (currentFilename == filename and currentOrigin == destination)):
-			printer.selectFile(absFilename, destination == FileDestinations.SDCARD, printAfterSelect)
+			printer.select_file(absFilename, destination == FileDestinations.SDCARD, printAfterSelect)
 
 	added_file = fileManager.add_file(FileDestinations.LOCAL, upload.filename, upload, allow_overwrite=True)
 	if added_file is None:
@@ -211,8 +220,12 @@ def uploadGcodeFile(target):
 		filename = added_file
 		done = True
 	else:
-		filename = fileProcessingFinished(added_file, fileManager.get_absolute_path(FileDestinations.LOCAL, added_file), target)
+		filename = fileProcessingFinished(added_file, fileManager.path_on_disk(FileDestinations.LOCAL, added_file), target)
 		done = True
+
+	if userdata is not None:
+		# upload included userdata, add this now to the metadata
+		fileManager.set_additional_metadata(FileDestinations.LOCAL, added_file, "userdata", userdata)
 
 	sdFilename = None
 	if isinstance(filename, tuple):
@@ -276,7 +289,12 @@ def gcodeFileCommand(filename, target):
 		"select": [],
 		"slice": []
 	}
-	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
+#<<<<<<< HEAD
+#	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
+#=======
+
+	command, data, response = get_json_command_from_request(request, valid_commands)
+#>>>>>>> upstream/maintenance
 	if response is not None:
 		return response
 
@@ -284,7 +302,7 @@ def gcodeFileCommand(filename, target):
 		# selects/loads a file
 		printAfterLoading = False
 		if "print" in data.keys() and data["print"] in valid_boolean_trues:
-			if not printer.isOperational():
+			if not printer.is_operational():
 				return make_response("Printer is not operational, cannot directly start printing", 409)
 			printAfterLoading = True
 
@@ -293,30 +311,33 @@ def gcodeFileCommand(filename, target):
 			filenameToSelect = filename
 			sd = True
 		else:
-			filenameToSelect = fileManager.get_absolute_path(target, filename)
-		printer.selectFile(filenameToSelect, sd, printAfterLoading)
+			filenameToSelect = fileManager.path_on_disk(target, filename)
+		printer.select_file(filenameToSelect, sd, printAfterLoading)
 
 	elif command == "slice":
-		if "slicer" in data.keys():
-			slicer = data["slicer"]
-			del data["slicer"]
-			if not slicer in slicingManager.registered_slicers:
-				return make_response("Slicer {slicer} is not available".format(**locals()), 400)
-			slicer_instance = slicingManager.get_slicer(slicer)
-		elif "cura" in slicingManager.registered_slicers:
-			slicer = "cura"
-			slicer_instance = slicingManager.get_slicer("cura")
-		else:
-			return make_response("Cannot slice {filename}, no slicer available".format(**locals()), 415)
+		try:
+			if "slicer" in data:
+				slicer = data["slicer"]
+				del data["slicer"]
+				slicer_instance = slicingManager.get_slicer(slicer)
+
+			elif "cura" in slicingManager.registered_slicers:
+				slicer = "cura"
+				slicer_instance = slicingManager.get_slicer("cura")
+
+			else:
+				return make_response("Cannot slice {filename}, no slicer available".format(**locals()), 415)
+		except octoprint.slicing.UnknownSlicer as e:
+			return make_response("Slicer {slicer} is not available".format(slicer=e.slicer), 400)
 
 		if not octoprint.filemanager.valid_file_type(filename, type="stl"):
 			return make_response("Cannot slice {filename}, not an STL file".format(**locals()), 415)
 
-		if slicer_instance.get_slicer_properties()["same_device"] and (printer.isPrinting() or printer.isPaused()):
+		if slicer_instance.get_slicer_properties()["same_device"] and (printer.is_printing() or printer.is_paused()):
 			# slicer runs on same device as OctoPrint, slicing while printing is hence disabled
 			return make_response("Cannot slice on {slicer} while printing due to performance reasons".format(**locals()), 409)
 
-		if "gcode" in data.keys() and data["gcode"]:
+		if "gcode" in data and data["gcode"]:
 			gcode_name = data["gcode"]
 			del data["gcode"]
 		else:
@@ -326,7 +347,7 @@ def gcodeFileCommand(filename, target):
 
 		# prohibit overwriting the file that is currently being printed
 		currentOrigin, currentFilename = _getCurrentFile()
-		if currentFilename == gcode_name and currentOrigin == target and (printer.isPrinting() or printer.isPaused()):
+		if currentFilename == gcode_name and currentOrigin == target and (printer.is_printing() or printer.is_paused()):
 			make_response("Trying to slice into file that is currently being printed: %s" % gcode_name, 409)
 
 		if "profile" in data.keys() and data["profile"]:
@@ -349,13 +370,13 @@ def gcodeFileCommand(filename, target):
 
 		select_after_slicing = False
 		if "select" in data.keys() and data["select"] in valid_boolean_trues:
-			if not printer.isOperational():
+			if not printer.is_operational():
 				return make_response("Printer is not operational, cannot directly select for printing", 409)
 			select_after_slicing = True
 
 		print_after_slicing = False
 		if "print" in data.keys() and data["print"] in valid_boolean_trues:
-			if not printer.isOperational():
+			if not printer.is_operational():
 				return make_response("Printer is not operational, cannot directly start printing", 409)
 			select_after_slicing = print_after_slicing = True
 
@@ -371,34 +392,34 @@ def gcodeFileCommand(filename, target):
 					filenameToSelect = gcode_name
 					sd = True
 				else:
-					filenameToSelect = fileManager.get_absolute_path(target, gcode_name)
-				printer.selectFile(filenameToSelect, sd, print_after_slicing)
+					filenameToSelect = fileManager.path_on_disk(target, gcode_name)
+				printer.select_file(filenameToSelect, sd, print_after_slicing)
 
-		ok, result = fileManager.slice(slicer, target, filename, target, gcode_name,
-		                               profile=profile,
-		                               printer_profile_id=printerProfile,
-		                               position=position,
-		                               overrides=overrides,
-		                               callback=slicing_done,
-		                               callback_args=(target, gcode_name, select_after_slicing, print_after_slicing))
+		try:
+			fileManager.slice(slicer, target, filename, target, gcode_name,
+			                  profile=profile,
+			                  printer_profile_id=printerProfile,
+			                  position=position,
+			                  overrides=overrides,
+			                  callback=slicing_done,
+			                  callback_args=(target, gcode_name, select_after_slicing, print_after_slicing))
+		except octoprint.slicing.UnknownProfile:
+			return make_response("Profile {profile} doesn't exist".format(**locals()), 400)
 
-		if ok:
-			files = {}
-			location = url_for(".readGcodeFile", target=target, filename=gcode_name, _external=True)
-			result = {
-				"name": gcode_name,
-				"origin": FileDestinations.LOCAL,
-				"refs": {
-					"resource": location,
-					"download": url_for("index", _external=True) + "downloads/files/" + target + "/" + gcode_name
-				}
+		files = {}
+		location = url_for(".readGcodeFile", target=target, filename=gcode_name, _external=True)
+		result = {
+			"name": gcode_name,
+			"origin": FileDestinations.LOCAL,
+			"refs": {
+				"resource": location,
+				"download": url_for("index", _external=True) + "downloads/files/" + target + "/" + gcode_name
 			}
+		}
 
-			r = make_response(jsonify(result), 202)
-			r.headers["Location"] = location
-			return r
-		else:
-			return make_response("Could not slice: {result}".format(result=result), 500)
+		r = make_response(jsonify(result), 202)
+		r.headers["Location"] = location
+		return r
 
 	return NO_CONTENT
 
@@ -532,7 +553,7 @@ def deleteGcodeFile(filename, target):
 
 	# prohibit deleting files that are currently in use
 	currentOrigin, currentFilename = _getCurrentFile()
-	if currentFilename == filename and currentOrigin == target and (printer.isPrinting() or printer.isPaused()):
+	if currentFilename == filename and currentOrigin == target and (printer.is_printing() or printer.is_paused()):
 		make_response("Trying to delete file that is currently being printed: %s" % filename, 409)
 
 	if (target, filename) in fileManager.get_busy_files():
@@ -540,20 +561,48 @@ def deleteGcodeFile(filename, target):
 
 	# deselect the file if it's currently selected
 	if currentFilename is not None and filename == currentFilename:
-		printer.unselectFile()
+		printer.unselect_file()
 
 	# delete it
 	if target == FileDestinations.SDCARD:
-		printer.deleteSdFile(filename)
+		printer.delete_sd_file(filename)
 	else:
 		fileManager.remove_file(target, filename)
 
 	return NO_CONTENT
 
 def _getCurrentFile():
-	currentJob = printer.getCurrentJob()
+	currentJob = printer.get_current_job()
 	if currentJob is not None and "file" in currentJob.keys() and "name" in currentJob["file"] and "origin" in currentJob["file"]:
 		return currentJob["file"]["origin"], currentJob["file"]["name"]
 	else:
 		return None, None
 
+
+class WerkzeugFileWrapper(octoprint.filemanager.util.AbstractFileWrapper):
+	"""
+	A wrapper around a Werkzeug ``FileStorage`` object.
+
+	Arguments:
+	    file_obj (werkzeug.datastructures.FileStorage): The Werkzeug ``FileStorage`` instance to wrap.
+
+	.. seealso::
+
+	   `werkzeug.datastructures.FileStorage <http://werkzeug.pocoo.org/docs/0.10/datastructures/#werkzeug.datastructures.FileStorage>`_
+	        The documentation of Werkzeug's ``FileStorage`` class.
+	"""
+	def __init__(self, file_obj):
+		octoprint.filemanager.util.AbstractFileWrapper.__init__(self, file_obj.filename)
+		self.file_obj = file_obj
+
+	def save(self, path):
+		"""
+		Delegates to ``werkzeug.datastructures.FileStorage.save``
+		"""
+		self.file_obj.save(path)
+
+	def stream(self):
+		"""
+		Returns ``werkzeug.datastructures.FileStorage.stream``
+		"""
+		return self.file_obj.stream

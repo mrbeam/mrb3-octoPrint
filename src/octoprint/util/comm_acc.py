@@ -24,7 +24,8 @@ from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 from octoprint.filemanager import valid_file_type
 from octoprint.filemanager.destinations import FileDestinations
-from octoprint.util import getExceptionString, getNewTimeout, sanitizeAscii, filterNonAscii
+#from octoprint.util import get_exception_string, getNewTimeout, sanitizeAscii, filterNonAscii
+from octoprint.util import get_exception_string, sanitize_ascii, filter_non_ascii, CountedEvent, RepeatedTimer
 from octoprint.util.virtual import VirtualPrinter
 
 try:
@@ -293,9 +294,10 @@ class MachineCom(object):
 	def isOperational(self):
 		return self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PRINTING or self._state == self.STATE_PAUSED or self._state == self.STATE_TRANSFERING_FILE
 
-	def isLocked(self):
+
+	def is_locked(self):
 		return self._state == self.STATE_LOCKED
-	
+
 	def isPrinting(self):
 		return self._state == self.STATE_PRINTING
 
@@ -435,7 +437,7 @@ class MachineCom(object):
 				self._sendNext()
 		except:
 			self._logger.exception("Error while trying to start printing")
-			self._errorValue = getExceptionString()
+			self._errorValue = get_exception_string()
 			self._changeState(self.STATE_ERROR)
 			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
@@ -967,7 +969,7 @@ class MachineCom(object):
 									self._sendCommand("M105")
 								self._testingBaudrate = True
 							except:
-								self._log("Unexpected error while setting baudrate: %d %s" % (baudrate, getExceptionString()))
+								self._log("Unexpected error while setting baudrate: %d %s" % (baudrate, get_exception_string()))
 					elif self._grbl and '$$' in line:
 						self._log("Baudrate test ok: %d" % (self._baudrateDetectTestOk))
 						self._changeState(self.STATE_OPERATIONAL)
@@ -1106,7 +1108,7 @@ class MachineCom(object):
 					self._log("Error while connecting to %s: %s" % (p, str(e)))
 					pass
 				except:
-					self._log("Unexpected error while connecting to serial port: %s %s" % (p, getExceptionString()))
+					self._log("Unexpected error while connecting to serial port: %s %s" % (p, get_exception_string()))
 				programmer.close()
 			if self._serial is None:
 				self._log("Failed to autodetect serial port")
@@ -1132,7 +1134,7 @@ class MachineCom(object):
 				if self._grbl :
 					self._serial.setDTR(False) # Drop DTR
 			except:
-				self._log("Unexpected error while connecting to serial port: %s %s" % (self._port, getExceptionString()))
+				self._log("Unexpected error while connecting to serial port: %s %s" % (self._port, get_exception_string()))
 				self._errorValue = "Failed to open serial port, permissions correct?"
 				self._changeState(self.STATE_ERROR)
 				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
@@ -1172,8 +1174,8 @@ class MachineCom(object):
 				self.gcode_line_counter += 1 # Iterate g-code counter
 				del self.line_lengths[0] # Delete the commands character count corresponding to the last 'ok'
 		except:
-			self._log("Unexpected error while reading serial port: %s" % (getExceptionString()))
-			self._errorValue = getExceptionString()
+			self._log("Unexpected error while reading serial port: %s" % (get_exception_string()))
+			self._errorValue = get_exception_string()
 			self.close(True)
 			return None
 		if ret == '':
@@ -1320,12 +1322,12 @@ class MachineCom(object):
 				try:
 					self._serial.write(cmd + '\n')
 				except:
-					self._log("Unexpected error while writing serial port: %s" % (getExceptionString()))
-					self._errorValue = getExceptionString()
+					self._log("Unexpected error while writing serial port: %s" % (get_exception_string()))
+					self._errorValue = get_exception_string()
 					self.close(True)
 			except:
-				self._log("Unexpected error while writing serial port: %s" % (getExceptionString()))
-				self._errorValue = getExceptionString()
+				self._log("Unexpected error while writing serial port: %s" % (get_exception_string()))
+				self._errorValue = get_exception_string()
 				self.close(True)
 
 	def _gcode_T(self, cmd):

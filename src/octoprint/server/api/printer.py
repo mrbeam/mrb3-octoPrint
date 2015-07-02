@@ -6,14 +6,16 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 __copyright__ = "Copyright (C) 2014 The OctoPrint Project - Released under terms of the AGPLv3 License"
 
 from flask import request, jsonify, make_response, Response
-from flask.exceptions import JSONBadRequest
+from werkzeug.exceptions import BadRequest
 import re
 
 from octoprint.settings import settings, valid_boolean_trues
 from octoprint.server import printer, NO_CONTENT
 from octoprint.server.api import api
-from octoprint.server.util.flask import restricted_access
+from octoprint.server.util.flask import restricted_access, get_json_command_from_request
 import octoprint.util as util
+
+from octoprint.printer import UnknownScript
 
 #~~ Printer
 
@@ -38,11 +40,11 @@ def printerState():
 
 	# add sd information
 	if not "sd" in excludes and settings().getBoolean(["feature", "sdSupport"]):
-		result.update({"sd": {"ready": printer.isSdReady()}})
+		result.update({"sd": {"ready": printer.is_sd_ready()}})
 
 	# add state information
 	if not "state" in excludes:
-		state = printer.getCurrentData()["state"]
+		state = printer.get_current_data()["state"]
 		result.update({"state": state})
 
 	return jsonify(result)
@@ -54,16 +56,17 @@ def printerState():
 @api.route("/printer/tool", methods=["POST"])
 @restricted_access
 def printerToolCommand():
-	if not printer.isOperational():
+	if not printer.is_operational():
 		return make_response("Printer is not operational", 409)
 
 	valid_commands = {
 		"select": ["tool"],
 		"target": ["targets"],
 		"offset": ["offsets"],
-		"extrude": ["amount"]
+		"extrude": ["amount"],
+		"flowrate": ["factor"]
 	}
-	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
+	command, data, response = get_json_command_from_request(request, valid_commands)
 	if response is not None:
 		return response
 
@@ -77,7 +80,7 @@ def printerToolCommand():
 		if not tool.startswith("tool"):
 			return make_response("Invalid tool for selection: %s" % tool, 400)
 
-		printer.changeTool(tool)
+		printer.change_tool(tool)
 
 	##~~ temperature
 	elif command == "target":
@@ -94,7 +97,7 @@ def printerToolCommand():
 
 		# perform the actual temperature commands
 		for tool in validated_values.keys():
-			printer.setTemperature(tool, validated_values[tool])
+			printer.set_temperature(tool, validated_values[tool])
 
 	##~~ temperature offset
 	elif command == "offset":
@@ -112,11 +115,11 @@ def printerToolCommand():
 			validated_values[tool] = value
 
 		# set the offsets
-		printer.setTemperatureOffset(validated_values)
+		printer.set_temperature_offset(validated_values)
 
 	##~~ extrusion
 	elif command == "extrude":
-		if printer.isPrinting():
+		if printer.is_printing():
 			# do not extrude when a print job is running
 			return make_response("Printer is currently printing", 409)
 
@@ -125,12 +128,21 @@ def printerToolCommand():
 			return make_response("Not a number for extrusion amount: %r" % amount, 400)
 		printer.extrude(amount)
 
+	elif command == "flowrate":
+		factor = data["factor"]
+		if not isinstance(factor, (int, long, float)):
+			return make_response("Not a number for flow rate: %r" % factor, 400)
+		try:
+			printer.flow_rate(factor)
+		except ValueError as e:
+			return make_response("Invalid value for flow rate: %s" % str(e), 400)
+
 	return NO_CONTENT
 
 
 @api.route("/printer/tool", methods=["GET"])
 def printerToolState():
-	if not printer.isOperational():
+	if not printer.is_operational():
 		return make_response("Printer is not operational", 409)
 
 	def deleteBed(x):
@@ -149,14 +161,14 @@ def printerToolState():
 @api.route("/printer/bed", methods=["POST"])
 @restricted_access
 def printerBedCommand():
-	if not printer.isOperational():
+	if not printer.is_operational():
 		return make_response("Printer is not operational", 409)
 
 	valid_commands = {
 		"target": ["target"],
 		"offset": ["offset"]
 	}
-	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
+	command, data, response = get_json_command_from_request(request, valid_commands)
 	if response is not None:
 		return response
 
@@ -169,7 +181,7 @@ def printerBedCommand():
 			return make_response("Not a number: %r" % target, 400)
 
 		# perform the actual temperature command
-		printer.setTemperature("bed", target)
+		printer.set_temperature("bed", target)
 
 	##~~ temperature offset
 	elif command == "offset":
@@ -182,14 +194,14 @@ def printerBedCommand():
 			return make_response("Offset not in range [-50, 50]: %f" % offset, 400)
 
 		# set the offsets
-		printer.setTemperatureOffset({"bed": offset})
+		printer.set_temperature_offset({"bed": offset})
 
 	return NO_CONTENT
 
 
 @api.route("/printer/bed", methods=["GET"])
 def printerBedState():
-	if not printer.isOperational():
+	if not printer.is_operational():
 		return make_response("Printer is not operational", 409)
 
 	def deleteTools(x):
@@ -213,18 +225,19 @@ def printerBedState():
 @api.route("/printer/printhead", methods=["POST"])
 @restricted_access
 def printerPrintheadCommand():
-	if not (printer.isOperational() or printer.isLocked()) or printer.isPrinting():
-		# do not jog when a print job is running or we don't have a connection
-		return make_response("Printer is not operational or currently printing", 409)
-
 	valid_commands = {
 		"jog": [],
 		"home": ["axes"],
+		"feedrate": ["factor"],
 		"position": ["x", "y"]
 	}
-	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
+	command, data, response = get_json_command_from_request(request, valid_commands)
 	if response is not None:
 		return response
+
+	if not (printer.is_operational() or printer.is_locked()) or (printer.is_printing() and command != "feedrate"):
+		# do not jog when a print job is running or we don't have a connection
+		return make_response("Printer is not operational or currently printing", 409)
 
 	valid_axes = ["x", "y", "z"]
 	##~~ jog command
@@ -266,6 +279,15 @@ def printerPrintheadCommand():
 		# execute the home command
 		printer.home(validated_values)
 
+	elif command == "feedrate":
+		factor = data["factor"]
+		if not isinstance(factor, (int, long, float)):
+			return make_response("Not a number for feed rate: %r" % factor, 400)
+		try:
+			printer.feed_rate(factor)
+		except ValueError as e:
+			return make_response("Invalid value for feed rate: %s" % str(e), 400)
+
 	return NO_CONTENT
 
 
@@ -278,7 +300,7 @@ def printerSdCommand():
 	if not settings().getBoolean(["feature", "sdSupport"]):
 		return make_response("SD support is disabled", 404)
 
-	if not printer.isOperational() or printer.isPrinting() or printer.isPaused():
+	if not printer.is_operational() or printer.is_printing() or printer.is_paused():
 		return make_response("Printer is not operational or currently busy", 409)
 
 	valid_commands = {
@@ -286,16 +308,16 @@ def printerSdCommand():
 		"refresh": [],
 		"release": []
 	}
-	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
+	command, data, response = get_json_command_from_request(request, valid_commands)
 	if response is not None:
 		return response
 
 	if command == "init":
-		printer.initSdCard()
+		printer.init_sd_card()
 	elif command == "refresh":
-		printer.refreshSdFiles()
+		printer.refresh_sd_files()
 	elif command == "release":
-		printer.releaseSdCard()
+		printer.release_sd_card()
 
 	return NO_CONTENT
 
@@ -305,7 +327,7 @@ def printerSdState():
 	if not settings().getBoolean(["feature", "sdSupport"]):
 		return make_response("SD support is disabled", 404)
 
-	return jsonify(ready=printer.isSdReady())
+	return jsonify(ready=printer.is_sd_ready())
 
 
 ##~~ Commands
@@ -314,7 +336,7 @@ def printerSdState():
 @api.route("/printer/command", methods=["POST"])
 @restricted_access
 def printerCommand():
-	if not (printer.isOperational() or printer.isLocked()):
+	if not (printer.is_operational() or printer.is_locked()):
 		return make_response("Printer is not operational", 409)
 
 	if not "application/json" in request.headers["Content-Type"]:
@@ -322,35 +344,65 @@ def printerCommand():
 
 	try:
 		data = request.json
-	except JSONBadRequest:
+	except BadRequest:
 		return make_response("Malformed JSON body in request", 400)
-
-	parameters = dict()
-	if "parameters" in data.keys(): parameters = data["parameters"]
 
 	if "command" in data and "commands" in data:
 		return make_response("'command' and 'commands' are mutually exclusive", 400)
-	elif "command" in data:
-		commands = [data["command"]]
-	elif "commands" in data and isinstance(data["commands"], (list, tuple)):
-		commands = data["commands"]
-	else:
-		return make_response("Need either single 'command' or list of 'commands'", 400)
+	elif ("command" in data or "commands" in data) and "script" in data:
+		return make_response("'command'/'commands' and 'script' are mutually exclusive", 400)
+	elif not ("command" in data or "commands" in data or "script" in data):
+		return make_response("Need one of 'command', 'commands' or 'script'", 400)
 
-	commandsToSend = []
-	for command in commands:
-		commandToSend = command
-		if len(parameters) > 0:
-			commandToSend = command % parameters
-		commandsToSend.append(commandToSend)
+#<<<<<<< HEAD
+#	commandsToSend = []
+#	for command in commands:
+#		commandToSend = command
+#		if len(parameters) > 0:
+#			commandToSend = command % parameters
+#		commandsToSend.append(commandToSend)
+#
+#	if settings().getBoolean(["feature", "grbl"]):
+#		commandsToSend.append("?")
+#
+#	printer.commands(commandsToSend)
+#=======
+	parameters = dict()
+	if "parameters" in data:
+		parameters = data["parameters"]
+
+	if "command" in data or "commands" in data:
+		if "command" in data:
+			commands = [data["command"]]
+		else:
+			if not isinstance(data["commands"], (list, tuple)):
+				return make_response("'commands' needs to be a list", 400)
+			commands = data["commands"]
+
+		commandsToSend = []
+		for command in commands:
+			commandToSend = command
+			if len(parameters) > 0:
+				commandToSend = command % parameters
+			commandsToSend.append(commandToSend)
 
 	if settings().getBoolean(["feature", "grbl"]):
 		commandsToSend.append("?")
+		printer.commands(commandsToSend)
 
-	printer.commands(commandsToSend)
+	elif "script" in data:
+		script_name = data["script"]
+		context = dict(parameters=parameters)
+		if "context" in data:
+			context["context"] = data["context"]
+
+		try:
+			printer.script(script_name, context=context)
+		except UnknownScript:
+			return make_response("Unknown script: {script_name}".format(**locals()), 404)
+#>>>>>>> upstream/maintenance
 
 	return NO_CONTENT
-
 
 @api.route("/printer/command/custom", methods=["GET"])
 def getCustomControls():
@@ -360,13 +412,13 @@ def getCustomControls():
 
 
 def _getTemperatureData(filter):
-	if not printer.isOperational():
+	if not printer.is_operational():
 		return make_response("Printer is not operational", 409)
 
-	tempData = printer.getCurrentTemperatures()
+	tempData = printer.get_current_temperatures()
 
 	if "history" in request.values.keys() and request.values["history"] in valid_boolean_trues:
-		tempHistory = printer.getTemperatureHistory()
+		tempHistory = printer.get_temperature_history()
 
 		limit = 300
 		if "limit" in request.values.keys() and unicode(request.values["limit"]).isnumeric():

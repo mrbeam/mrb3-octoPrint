@@ -1,14 +1,12 @@
-<link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet" media="screen">
-<link href="{{ url_for('static', filename='css/bootstrap-modal.css') }}" rel="stylesheet" media="screen">
-<link href="{{ url_for('static', filename='css/bootstrap-slider.css') }}" rel="stylesheet" media="screen">
-<link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="stylesheet" media="screen">
-<link href="{{ url_for('static', filename='css/jquery.fileupload-ui.css') }}" rel="stylesheet" media="screen">
-<link href="{{ url_for('static', filename='css/pnotify.min.css') }}" rel="stylesheet" media="screen">
+{% assets "css_libs" %}
+    <link href="{{ ASSET_URL }}" rel="stylesheet" media="screen">
+{% endassets %}
 
+<!--<<<<<<< HEAD
 {% if stylesheet == "less" %}
-    <!--<link href="{{ url_for('static', filename='less/octoprint.less') }}" rel="stylesheet/less" type="text/css" media="screen">-->
+    <link href="{{ url_for('static', filename='less/octoprint.less') }}" rel="stylesheet/less" type="text/css" media="screen">
 
-    <!-- Plugin files -->
+     Plugin files 
     {% for name, assets in assetPlugins.items() %}
         {% if "less" in assets %}
             {% for asset in assets["less"] %}
@@ -16,19 +14,29 @@
             {% endfor %}
         {% endif %}
     {% endfor %}
-    <!-- /Plugin files -->
+     /Plugin files 
 
     <script src="{{ url_for('static', filename='js/lib/less.min.js') }}" type="text/javascript"></script>
 {% else %}
-    <!--<link href="{{ url_for('static', filename='css/octoprint.css') }}" rel="stylesheet" type="text/css" media="screen">-->
-    <!-- Plugin files -->
-    {% for name, assets in assetPlugins.items() %}
+    <link href="{{ url_for('static', filename='css/octoprint.css') }}" rel="stylesheet" type="text/css" media="screen">
+     Plugin files 
+    {#% for name, assets in assetPlugins.items() %}
         {% if "css" in assets %}
             {% for asset in assets["css"] %}
                 <link href="{{ url_for('plugin_assets', name=name, filename=asset) }}" rel="stylesheet" type="text/css" media="screen">
             {% endfor %}
         {% endif %}
-    {% endfor %}
-    <!-- /Plugin files -->
+    {% endfor #}
+     /Plugin files 
 {% endif %}
+=======-->
+{% assets "css_app" %}
+    <link href="{{ ASSET_URL }}" rel="stylesheet" media="screen">
+{% endassets %}
 
+{% assets "less_app" %}
+    <link href="{{ ASSET_URL }}" rel="stylesheet/less" type="text/css" media="screen">
+{% endassets %}
+<!-->>>>>>> upstream/maintenance-->
+
+<script src="{{ url_for('static', filename='js/lib/less.min.js') }}" type="text/javascript"></script>

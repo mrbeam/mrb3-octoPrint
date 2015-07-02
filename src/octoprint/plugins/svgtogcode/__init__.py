@@ -135,22 +135,96 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 
 	##~~ BlueprintPlugin API
 
-	def get_blueprint(self):
-		global blueprint
-		return blueprint
+	@octoprint.plugin.BlueprintPlugin.route("/import", methods=["POST"])
+	def import_cura_profile(self):
+		import datetime
+		import tempfile
+
+		from octoprint.server import slicingManager
+
+		input_name = "file"
+		input_upload_name = input_name + "." + self._settings.global_get(["server", "uploads", "nameSuffix"])
+		input_upload_path = input_name + "." + self._settings.global_get(["server", "uploads", "pathSuffix"])
+
+		if input_upload_name in flask.request.values and input_upload_path in flask.request.values:
+			filename = flask.request.values[input_upload_name]
+			try:
+				profile_dict = Profile.from_cura_ini(flask.request.values[input_upload_path])
+			except Exception as e:
+				self._logger.exception("Error while converting the imported profile")
+				return flask.make_response("Something went wrong while converting imported profile: {message}".format(message=str(e)), 500)
+
+		else:
+			self._logger.warn("No profile file included for importing, aborting")
+			return flask.make_response("No file included", 400)
+
+		if profile_dict is None:
+			self._logger.warn("Could not convert profile, aborting")
+			return flask.make_response("Could not convert Cura profile", 400)
+
+		name, _ = os.path.splitext(filename)
+
+		# default values for name, display name and description
+		profile_name = _sanitize_name(name)
+		profile_display_name = name
+		profile_description = "Imported from {filename} on {date}".format(filename=filename, date=octoprint.util.get_formatted_datetime(datetime.datetime.now()))
+		profile_allow_overwrite = False
+
+		# overrides
+		if "name" in flask.request.values:
+			profile_name = flask.request.values["name"]
+		if "displayName" in flask.request.values:
+			profile_display_name = flask.request.values["displayName"]
+		if "description" in flask.request.values:
+			profile_description = flask.request.values["description"]
+		if "allowOverwrite" in flask.request.values:
+			from octoprint.server.api import valid_boolean_trues
+			profile_allow_overwrite = flask.request.values["allowOverwrite"] in valid_boolean_trues
+
+		try:
+			slicingManager.save_profile("cura",
+			                            profile_name,
+			                            profile_dict,
+			                            allow_overwrite=profile_allow_overwrite,
+			                            display_name=profile_display_name,
+			                            description=profile_description)
+		except octoprint.slicing.ProfileAlreadyExists:
+			self._logger.warn("Profile {profile_name} already exists, aborting".format(**locals()))
+			return flask.make_response("A profile named {profile_name} already exists for slicer cura".format(**locals()), 409)
+
+		result = dict(
+			resource=flask.url_for("api.slicingGetSlicerProfile", slicer="cura", name=profile_name, _external=True),
+			displayName=profile_display_name,
+			description=profile_description
+		)
+		r = flask.make_response(flask.jsonify(result), 201)
+		r.headers["Location"] = result["resource"]
+		return r
 
 	##~~ AssetPlugin API
 
 	def get_assets(self):
-		return {
-			"js": [ "js/convert.js", "js/working_area.js", "js/gcode_parser.js", "js/lib/snap.svg-min.js", "js/matrix_oven.js", "js/drag_scale_rotate.js"],
-			"less": ["less/svgtogcode.less"],
-			"css": ["css/svgtogcode.css", "css/mrbeam.css"]
-		}
-
+		return dict(
+			js=[ "js/convert.js", "js/working_area.js", "js/gcode_parser.js", "js/lib/snap.svg-min.js", "js/matrix_oven.js", "js/drag_scale_rotate.js"],
+			less=["less/svgtogcode.less"],
+			css=["css/svgtogcode.css", "css/mrbeam.css"]
+		)
+	
 	##~~ SettingsPlugin API
 
-	def on_settings_load(self):
+	def on_settings_save(self, data):
+		old_debug_logging = self._settings.get_boolean(["debug_logging"])
+
+		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
+
+		new_debug_logging = self._settings.get_boolean(["debug_logging"])
+		if old_debug_logging != new_debug_logging:
+			if new_debug_logging:
+				self._cura_logger.setLevel(logging.DEBUG)
+			else:
+				self._cura_logger.setLevel(logging.CRITICAL)
+
+	def get_settings_defaults(self):
 		return dict(
 			defaultIntensity=s.get(["defaultIntensity"]),
 			defaultFeedrate=s.get(["defaultFeedrate"]),
@@ -206,7 +280,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 		)
 
 	def get_slicer_default_profile(self):
-		path = s.get(["default_profile"])
+		path = self._settings.get(["default_profile"])
 		if not path:
 			path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "profiles", "default.profile.yaml")
 		return self.get_slicer_profile(path)
@@ -227,6 +301,9 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 		return octoprint.slicing.SlicingProfile(properties["type"], "unknown", profile_dict, display_name=display_name, description=description)
 
 	def save_slicer_profile(self, path, profile, allow_overwrite=True, overrides=None):
+		if os.path.exists(path) and not allow_overwrite:
+			raise octoprint.slicing.ProfileAlreadyExists("cura", profile.name)
+
 		new_profile = Profile.merge_profile(profile.data, overrides=overrides)
 
 		if profile.display_name is not None:
@@ -356,9 +433,6 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 		return profile_dict
 
 	def _save_profile(self, path, profile, allow_overwrite=True):
-		if not allow_overwrite and os.path.exists(path):
-			raise IOError("Cannot overwrite {path}".format(path=path))
-
 		import yaml
 		with open(path, "wb") as f:
 			yaml.safe_dump(profile, f, default_flow_style=False, indent="  ", allow_unicode=True)

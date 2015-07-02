@@ -31,7 +31,113 @@ class BedTypes(object):
 	def values(cls):
 		return [getattr(cls, name) for name in cls.__dict__ if not name.startswith("__")]
 
+class BedOrigin(object):
+	LOWERLEFT = "lowerleft"
+	CENTER = "center"
+
+	@classmethod
+	def values(cls):
+		return [getattr(cls, name) for name in cls.__dict__ if not name.startswith("__")]
+
 class PrinterProfileManager(object):
+	"""
+	Manager for printer profiles. Offers methods to select the globally used printer profile and to list, add, remove,
+	load and save printer profiles.
+
+	A printer profile is a ``dict`` of the following structure:
+
+	.. list-table::
+	   :widths: 15 5 10 30
+	   :header-rows: 1
+
+	   * - Name
+	     - Type
+	     - Description
+	   * - ``id``
+	     - ``string``
+	     - Internal id of the printer profile
+	   * - ``name``
+	     - ``string``
+	     - Human readable name of the printer profile
+	   * - ``model``
+	     - ``string``
+	     - Printer model
+	   * - ``color``
+	     - ``string``
+	     - Color to associate with the printer profile
+	   * - ``volume``
+	     - ``dict``
+	     - Information about the print volume
+	   * - ``volume.width``
+	     - ``float``
+	     - Width of the print volume (X axis)
+	   * - ``volume.depth``
+	     - ``float``
+	     - Depth of the print volume (Y axis)
+	   * - ``volume.height``
+	     - ``float``
+	     - Height of the print volume (Z axis)
+	   * - ``volume.formFactor``
+	     - ``string``
+	     - Form factor of the print bed, either ``rectangular`` or ``circular``
+	   * - ``volume.origin``
+	     - ``string``
+	     - Location of gcode origin in the print volume, either ``lowerleft`` or ``center``
+	   * - ``heatedBed``
+	     - ``bool``
+	     - Whether the printer has a heated bed (``True``) or not (``False``)
+	   * - ``extruder``
+	     - ``dict``
+	     - Information about the printer's extruders
+	   * - ``extruder.count``
+	     - ``int``
+	     - How many extruders the printer has (default 1)
+	   * - ``extruder.offsets``
+	     - ``list`` of ``tuple``s
+	     - Extruder offsets relative to first extruder, list of (x, y) tuples, first is always (0,0)
+	   * - ``extruder.nozzleDiameter``
+	     - ``float``
+	     - Diameter of the printer nozzle
+	   * - ``axes``
+	     - ``dict``
+	     - Information about the printer axes
+	   * - ``axes.x``
+	     - ``dict``
+	     - Information about the printer's X axis
+	   * - ``axes.x.speed``
+	     - ``float``
+	     - Speed of the X axis in mm/s
+	   * - ``axes.x.inverted``
+	     - ``bool``
+	     - Whether a positive value change moves the nozzle away from the print bed's origin (False, default) or towards it (True)
+	   * - ``axes.y``
+	     - ``dict``
+	     - Information about the printer's Y axis
+	   * - ``axes.y.speed``
+	     - ``float``
+	     - Speed of the Y axis in mm/s
+	   * - ``axes.y.inverted``
+	     - ``bool``
+	     - Whether a positive value change moves the nozzle away from the print bed's origin (False, default) or towards it (True)
+	   * - ``axes.z``
+	     - ``dict``
+	     - Information about the printer's Z axis
+	   * - ``axes.z.speed``
+	     - ``float``
+	     - Speed of the Z axis in mm/s
+	   * - ``axes.z.inverted``
+	     - ``bool``
+	     - Whether a positive value change moves the nozzle away from the print bed (False, default) or towards it (True)
+	   * - ``axes.e``
+	     - ``dict``
+	     - Information about the printer's E axis
+	   * - ``axes.e.speed``
+	     - ``float``
+	     - Speed of the E axis in mm/s
+	   * - ``axes.e.inverted``
+	     - ``bool``
+	     - Whether a positive value change extrudes (False, default) or retracts (True) filament
+	"""
 
 	default = dict(
 		id = "_default",
@@ -43,6 +149,7 @@ class PrinterProfileManager(object):
 			depth = 200,
 			height = 200,
 			formFactor = BedTypes.RECTANGULAR,
+			origin = BedOrigin.LOWERLEFT
 		),
 		heatedBed = False,
 		extruder=dict(
@@ -93,6 +200,8 @@ class PrinterProfileManager(object):
 	def remove(self, identifier):
 		if identifier == "_default":
 			return False
+		if self._current is not None and self._current["id"] == identifier:
+			return False
 		return self._remove_from_path(self._get_profile_path(identifier))
 
 	def save(self, profile, allow_overwrite=False, make_default=False):
@@ -120,6 +229,8 @@ class PrinterProfileManager(object):
 			if make_default:
 				settings().set(["printerProfiles", "default"], identifier)
 
+		if self._current is not None and self._current["id"] == identifier:
+			self.select(identifier)
 		return self.get(identifier)
 
 	def get_default(self):
@@ -196,7 +307,15 @@ class PrinterProfileManager(object):
 		import yaml
 		with open(path) as f:
 			profile = yaml.safe_load(f)
+
+		if self._migrate_profile(profile):
+			try:
+				self._save_to_path(path, profile, allow_overwrite=True)
+			except:
+				self._logger.exception("Tried to save profile to {path} after migrating it while loading, ran into exception".format(path=path))
+
 		profile = self._ensure_valid_profile(profile)
+
 		if not profile:
 			self._logger.warn("Invalid profile: %s" % path)
 			raise InvalidProfileError()
@@ -215,7 +334,7 @@ class PrinterProfileManager(object):
 			try:
 				yaml.safe_dump(profile, f, default_flow_style=False, indent="  ", allow_unicode=True)
 			except Exception as e:
-				raise SaveError("Cannot save profile %s: %s" % (profile["id"], e.message))
+				raise SaveError("Cannot save profile %s: %s" % (profile["id"], str(e)))
 
 	def _remove_from_path(self, path):
 		try:
@@ -248,9 +367,18 @@ class PrinterProfileManager(object):
 		sanitized_name = sanitized_name.replace(" ", "_")
 		return sanitized_name
 
+	def _migrate_profile(self, profile):
+		# make sure profile format is up to date
+		if "volume" in profile and "formFactor" in profile["volume"] and not "origin" in profile["volume"]:
+			profile["volume"]["origin"] = BedOrigin.CENTER if profile["volume"]["formFactor"] == BedTypes.CIRCULAR else BedOrigin.LOWERLEFT
+			return True
+
+		return False
+
 	def _ensure_valid_profile(self, profile):
 		# ensure all keys are present
 		if not dict_contains_keys(self.default, profile):
+			self._logger.warn("Profile invalid, missing keys. Expected: {expected!r}. Actual: {actual!r}".format(expected=self.default.keys(), actual=profile.keys()))
 			return False
 
 		# conversion helper
@@ -270,7 +398,8 @@ class PrinterProfileManager(object):
 		for path in (("extruder", "count"), ("axes", "x", "speed"), ("axes", "y", "speed"), ("axes", "z", "speed")):
 			try:
 				convert_value(profile, path, int)
-			except:
+			except Exception as e:
+				self._logger.warn("Profile has invalid value for path {path!r}: {msg}".format(path=".".join(path), msg=str(e)))
 				return False
 
 		# convert floats
@@ -278,6 +407,7 @@ class PrinterProfileManager(object):
 			try:
 				convert_value(profile, path, float)
 			except:
+				self._logger.warn("Profile has invalid value for path {path!r}: {msg}".format(path=".".join(path), msg=str(e)))
 				return False
 
 		# convert booleans
@@ -285,21 +415,34 @@ class PrinterProfileManager(object):
 			try:
 				convert_value(profile, path, bool)
 			except:
+				self._logger.warn("Profile has invalid value for path {path!r}: {msg}".format(path=".".join(path), msg=str(e)))
 				return False
 
 		# validate form factor
 		if not profile["volume"]["formFactor"] in BedTypes.values():
+			self._logger.warn("Profile has invalid value volume.formFactor: {formFactor}".format(formFactor=profile["volume"]["formFactor"]))
 			return False
+
+		# validate origin type
+		if not profile["volume"]["origin"] in BedOrigin.values():
+			self._logger.warn("Profile has invalid value in volume.origin: {origin}".format(origin=profile["volume"]["origin"]))
+			return False
+
+		# ensure origin and form factor combination is legal
+		if profile["volume"]["formFactor"] == BedTypes.CIRCULAR and not profile["volume"]["origin"] == BedOrigin.CENTER:
+			profile["volume"]["origin"] = BedOrigin.CENTER
 
 		# validate offsets
 		offsets = []
 		for offset in profile["extruder"]["offsets"]:
 			if not len(offset) == 2:
+				self._logger.warn("Profile has an invalid extruder.offsets entry: {entry!r}".format(entry=offset))
 				return False
 			x_offset, y_offset = offset
 			try:
 				offsets.append((float(x_offset), float(y_offset)))
 			except:
+				self._logger.warn("Profile has an extruder.offsets entry with non-float values: {entry!r}".format(entry=offset))
 				return False
 		profile["extruder"]["offsets"] = offsets
 

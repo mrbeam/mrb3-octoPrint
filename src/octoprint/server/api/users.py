@@ -6,7 +6,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 __copyright__ = "Copyright (C) 2014 The OctoPrint Project - Released under terms of the AGPLv3 License"
 
 from flask import request, jsonify, abort, make_response
-from flask.exceptions import JSONBadRequest
+from werkzeug.exceptions import BadRequest
 from flask.ext.login import current_user
 
 import octoprint.users as users
@@ -41,7 +41,7 @@ def addUser():
 
 	try:
 		data = request.json
-	except JSONBadRequest:
+	except BadRequest:
 		return make_response("Malformed JSON body in request", 400)
 
 	name = data["name"]
@@ -89,7 +89,7 @@ def updateUser(username):
 
 		try:
 			data = request.json
-		except JSONBadRequest:
+		except BadRequest:
 			return make_response("Malformed JSON body in request", 400)
 
 		# change roles
@@ -132,7 +132,7 @@ def changePasswordForUser(username):
 
 		try:
 			data = request.json
-		except JSONBadRequest:
+		except BadRequest:
 			return make_response("Malformed JSON body in request", 400)
 
 		if not "password" in data.keys() or not data["password"]:
@@ -147,6 +147,40 @@ def changePasswordForUser(username):
 	else:
 		return make_response(("Forbidden", 403, []))
 
+
+@api.route("/users/<username>/settings", methods=["GET"])
+@restricted_access
+def getSettingsForUser(username):
+	if userManager is None:
+		return jsonify(SUCCESS)
+
+	if current_user is None or current_user.is_anonymous() or (current_user.get_name() != username and not current_user.is_admin()):
+		return make_response("Forbidden", 403)
+
+	try:
+		return jsonify(userManager.getAllUserSettings(username))
+	except users.UnknownUser:
+		return make_response("Unknown user: %s" % username, 404)
+
+@api.route("/users/<username>/settings", methods=["PATCH"])
+@restricted_access
+def changeSettingsForUser(username):
+	if userManager is None:
+		return jsonify(SUCCESS)
+
+	if current_user is None or current_user.is_anonymous() or (current_user.get_name() != username and not current_user.is_admin()):
+		return make_response("Forbidden", 403)
+
+	try:
+		data = request.json
+	except BadRequest:
+		return make_response("Malformed JSON body in request", 400)
+
+	try:
+		userManager.changeUserSettings(username, data)
+		return jsonify(SUCCESS)
+	except users.UnknownUser:
+		return make_response("Unknown user: %s" % username, 404)
 
 @api.route("/users/<username>/apikey", methods=["DELETE"])
 @restricted_access

@@ -171,11 +171,15 @@ class LaserCutterProfilesPlugin(octoprint.plugin.SettingsPlugin,
 	##~~ AssetPlugin API
 	
 	def get_assets(self):
-		return {
-			"js": ["js/lasercutterprofiles.js"],
-			"less": [],
-			"css": []
-		}
+		return dict(
+			js=["js/lasercutterprofiles.js"],
+			less=[],
+			css=[]
+		)
+		
+	def get_asset_folder(self):
+		import os
+		return os.path.join(self._basefolder, "static")	
 
 	##~~ SettingsPlugin API
 
