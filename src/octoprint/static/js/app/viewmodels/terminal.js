@@ -355,10 +355,10 @@ $(function() {
         };
 
 //<<<<<<< HEAD
-    self.handleKeyUp = function(event) {
-        if (event.keyCode == 13) {
-            self.sendCommandWithSafetyPopup();
-        }
+//    self.handleKeyUp = function(event) {
+//        if (event.keyCode == 13) {
+//            self.sendCommandWithSafetyPopup();
+//        }
 //=======
         self.onAfterTabChange = function(current, previous) {
             if (current != "#term") {
@@ -370,7 +370,7 @@ $(function() {
         };
 //>>>>>>> upstream/maintenance
 
-//    }
+    }
 
     OCTOPRINT_VIEWMODELS.push([
         TerminalViewModel,

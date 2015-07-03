@@ -258,12 +258,9 @@ def index():
 	)
 	render_kwargs.update(plugin_vars)
 
-	#~~ render!
 
-	return render_template(
-		"index.jinja2",
-		**render_kwargs
-	)
+	return render_template("mrbeam_index.jinja2", **render_kwargs)
+	#return render_template("index.jinja2", **render_kwargs)
 
 
 def _process_template_configs(name, implementation, configs, rules):

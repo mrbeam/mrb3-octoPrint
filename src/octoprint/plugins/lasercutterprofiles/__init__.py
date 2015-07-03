@@ -28,7 +28,8 @@ default_settings = {
 	"current_profile_id": "_mrbeam_junior"
 }
 s = octoprint.plugin.plugin_settings("lasercutterprofiles", defaults=default_settings)
-blueprint = flask.Blueprint("plugin.lasercutterprofiles", __name__)
+static_folder = os.path.join(os.path.dirname(__file__), 'static')
+blueprint = flask.Blueprint("plugin.lasercutterprofiles", __name__, static_folder=static_folder)
 laserCutterProfileManager = LaserCutterProfileManager(s)
 
 @blueprint.route("/profiles", methods=["GET"])
@@ -176,10 +177,6 @@ class LaserCutterProfilesPlugin(octoprint.plugin.SettingsPlugin,
 			less=[],
 			css=[]
 		)
-		
-	def get_asset_folder(self):
-		import os
-		return os.path.join(self._basefolder, "static")	
 
 	##~~ SettingsPlugin API
 

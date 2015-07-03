@@ -130,7 +130,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 		svgtogcode_logging_handler.setLevel(logging.DEBUG)
 
 		self._svgtogcode_logger.addHandler(svgtogcode_logging_handler)
-		self._svgtogcode_logger.setLevel(logging.DEBUG if s.getBoolean(["debug_logging"]) else logging.CRITICAL)
+		self._svgtogcode_logger.setLevel(logging.DEBUG if s.get_boolean(["debug_logging"]) else logging.CRITICAL)
 		self._svgtogcode_logger.propagate = False
 
 	##~~ BlueprintPlugin API
@@ -229,7 +229,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 			defaultIntensity=s.get(["defaultIntensity"]),
 			defaultFeedrate=s.get(["defaultFeedrate"]),
 			svgDPI=s.get(["svgDPI"]),
-			debug_logging=s.getBoolean(["debug_logging"])
+			debug_logging=s.get_boolean(["debug_logging"])
 		)
 
 	def on_settings_save(self, data):
@@ -242,7 +242,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 		if "svgDPI" in data and data["svgDPI"]:
 			s.set(["svgDPI"], data["svgDPI"])
 		if "debug_logging" in data:
-			old_debug_logging = s.getBoolean(["debug_logging"])
+			old_debug_logging = s.get_boolean(["debug_logging"])
 			new_debug_logging = data["debug_logging"] in octoprint.settings.valid_boolean_trues
 			if old_debug_logging != new_debug_logging:
 				if new_debug_logging:
@@ -262,7 +262,10 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 		return os.path.join(self._basefolder, "templates")
 
 	def get_template_configs(self):
-		return [dict(type = 'settings', name = "Svg Conversion", custom_bindings = False)]
+		return [
+			dict(type = 'settings', name = "Svg Conversion", template='svgtogcode_settings.jinja2', custom_bindings = False),
+			dict(type = 'generic', name = "Svg Conversion", custom_bindings = False)
+		]
 
 	##~~ SlicerPlugin API
 

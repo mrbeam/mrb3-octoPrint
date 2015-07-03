@@ -260,6 +260,10 @@
 //            },
 //            "system": {
 //                "actions": self.system_actions()
+//            }
+//		});
+//        return data;
+//	};
 //=======
 $(function() {
     function SettingsViewModel(parameters) {
@@ -304,8 +308,7 @@ $(function() {
                 }
 //>>>>>>> upstream/maintenance
             },
-            {
-            },
+            {},
             "locale",
             [],
             [],
@@ -589,7 +592,6 @@ $(function() {
             return self.translations.allSize() > 0;
         });
 		
-		return data;
 	};
 
 //<<<<<<< HEAD

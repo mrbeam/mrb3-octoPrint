@@ -64,9 +64,9 @@ class VirtualPrinter():
 		self._newSdFilePos = None
 		self._heatupThread = None
 
-		self._okBeforeCommandOutput = settings().getBoolean(["devel", "virtualPrinter", "okBeforeCommandOutput"])
+		self._okBeforeCommandOutput = settings().get_boolean(["devel", "virtualPrinter", "okBeforeCommandOutput"])
 
-		self._sendWait = settings().getBoolean(["devel", "virtualPrinter", "sendWait"])
+		self._sendWait = settings().get_boolean(["devel", "virtualPrinter", "sendWait"])
 		self._waitInterval = settings().getFloat(["devel", "virtualPrinter", "waitInterval"])
 
 		self.currentLine = 0
@@ -132,7 +132,7 @@ class VirtualPrinter():
 			if "*" in data:
 				data = data[:data.rfind("*")]
 				self.currentLine += 1
-			elif settings().getBoolean(["devel", "virtualPrinter", "forceChecksum"]):
+			elif settings().get_boolean(["devel", "virtualPrinter", "forceChecksum"]):
 				self.outgoing.put("Error: Missing checksum")
 				continue
 
@@ -352,7 +352,7 @@ class VirtualPrinter():
 
 	def _listSd(self):
 		self.outgoing.put("Begin file list")
-		if settings().getBoolean(["devel", "virtualPrinter", "extendedSdFileList"]):
+		if settings().get_boolean(["devel", "virtualPrinter", "extendedSdFileList"]):
 			items = map(
 				lambda x: "%s %d" % (x.upper(), os.stat(os.path.join(self._virtualSd, x)).st_size),
 				os.listdir(self._virtualSd)
@@ -398,7 +398,7 @@ class VirtualPrinter():
 			self.outgoing.put("Not SD printing")
 
 	def _processTemperatureQuery(self):
-		includeTarget = not settings().getBoolean(["devel", "virtualPrinter", "repetierStyleTargetTemperature"])
+		includeTarget = not settings().get_boolean(["devel", "virtualPrinter", "repetierStyleTargetTemperature"])
 		includeOk = not self._okBeforeCommandOutput
 
 		# send simulated temperature data
@@ -408,16 +408,16 @@ class VirtualPrinter():
 				allTemps.append((i, self.temp[i], self.targetTemp[i]))
 			allTempsString = " ".join(map(lambda x: "T%d:%.2f /%.2f" % x if includeTarget else "T%d:%.2f" % (x[0], x[1]), allTemps))
 
-			if settings().getBoolean(["devel", "virtualPrinter", "smoothieTemperatureReporting"]):
+			if settings().get_boolean(["devel", "virtualPrinter", "smoothieTemperatureReporting"]):
 				allTempsString = allTempsString.replace("T0:", "T:")
 
-			if settings().getBoolean(["devel", "virtualPrinter", "hasBed"]):
+			if settings().get_boolean(["devel", "virtualPrinter", "hasBed"]):
 				if includeTarget:
 					allTempsString = "B:%.2f /%.2f %s" % (self.bedTemp, self.bedTargetTemp, allTempsString)
 				else:
 					allTempsString = "B:%.2f %s" % (self.bedTemp, allTempsString)
 
-			if settings().getBoolean(["devel", "virtualPrinter", "includeCurrentToolInTemps"]):
+			if settings().get_boolean(["devel", "virtualPrinter", "includeCurrentToolInTemps"]):
 				if includeTarget:
 					output = "T:%.2f /%.2f %s @:64\n" % (self.temp[self.currentExtruder], self.targetTemp[self.currentExtruder] + 1, allTempsString)
 				else:
@@ -453,7 +453,7 @@ class VirtualPrinter():
 
 		if "M109" in line:
 			self._waitForHeatup("tool%d" % tool)
-		if settings().getBoolean(["devel", "virtualPrinter", "repetierStyleTargetTemperature"]):
+		if settings().get_boolean(["devel", "virtualPrinter", "repetierStyleTargetTemperature"]):
 			self.outgoing.put("TargetExtr%d:%d" % (tool, self.targetTemp[tool]))
 
 	def _parseBedCommand(self, line):
@@ -464,7 +464,7 @@ class VirtualPrinter():
 
 		if "M190" in line:
 			self._waitForHeatup("bed")
-		if settings().getBoolean(["devel", "virtualPrinter", "repetierStyleTargetTemperature"]):
+		if settings().get_boolean(["devel", "virtualPrinter", "repetierStyleTargetTemperature"]):
 			self.outgoing.put("TargetBed:%d" % self.bedTargetTemp)
 
 	def _performMove(self, line):
@@ -516,7 +516,7 @@ class VirtualPrinter():
 				pass
 
 		if duration:
-			if settings().getBoolean(["devel", "virtualPrinter", "waitOnLongMoves"]):
+			if settings().get_boolean(["devel", "virtualPrinter", "waitOnLongMoves"]):
 				slept = 0
 				while duration - slept > self._read_timeout:
 					time.sleep(self._read_timeout)
@@ -685,7 +685,7 @@ class VirtualPrinter():
 		self.buffered = None
 
 	def _sendOk(self):
-		if settings().getBoolean(["devel", "virtualPrinter", "okWithLinenumber"]):
+		if settings().get_boolean(["devel", "virtualPrinter", "okWithLinenumber"]):
 			self.outgoing.put("ok %d" % self.lastN)
 		else:
 			self.outgoing.put("ok")
