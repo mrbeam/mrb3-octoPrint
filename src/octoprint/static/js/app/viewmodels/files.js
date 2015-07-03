@@ -347,10 +347,14 @@ $(function() {
             return data["prints"]["last"]["success"] ? "text-success" : "text-error";
         };
 
-        self.templateFor = function(data) {
-            return "files_template_" + data.type;
-        };
-
+		self.templateFor = function(data) {
+			var extension = data.name.split('.').pop().toLowerCase();
+			if (extension === "svg") {
+				return "files_template_" + data.type + "_svg";
+			} else {
+				return "files_template_" + data.type;
+			}
+		};
         self.getEntryId = function(data) {
             return "gcode_file_" + md5(data["origin"] + ":" + data["name"]);
         };

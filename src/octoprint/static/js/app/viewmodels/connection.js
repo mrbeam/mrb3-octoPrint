@@ -211,7 +211,7 @@ $(function() {
             self.isReady(data.flags.ready);
             self.isLoading(data.flags.loading);
 
-            var connectionTab = $("#connection");
+            var connectionTab = $("#connection_wrapper");
             if (self.previousIsOperational != self.isOperational()) {
                 if (self.isOperational() && connectionTab.hasClass("in")) {
                     // connection just got established, close connection tab for now

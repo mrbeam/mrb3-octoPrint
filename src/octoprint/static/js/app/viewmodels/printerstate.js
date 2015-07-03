@@ -7,7 +7,6 @@
 //    self.stateString = ko.observable(undefined);
 //    self.isErrorOrClosed = ko.observable(undefined);
 //    self.isOperational = ko.observable(undefined);
-//    self.isLocked = ko.observable(undefined);
 //    self.isConnecting = ko.observable(undefined);
 //    self.isPrinting = ko.observable(undefined);
 //    self.isPaused = ko.observable(undefined);
@@ -33,7 +32,6 @@
 //
 //    self.currentHeight = ko.observable(undefined);
 //	
-//	self.currentPos = ko.observable(undefined);
 //	self.conversion = vectorConversionViewModel;
 //
 //
@@ -70,6 +68,8 @@ $(function() {
         self.isReady = ko.observable(undefined);
         self.isLoading = ko.observable(undefined);
         self.isSdReady = ko.observable(undefined);
+	    self.isLocked = ko.observable(undefined);
+	    self.isConnecting = ko.observable(undefined);
 
         self.filename = ko.observable(undefined);
         self.progress = ko.observable(undefined);
@@ -87,6 +87,7 @@ $(function() {
         self.lastPrintTime = ko.observable(undefined);
 
         self.currentHeight = ko.observable(undefined);
+		self.currentPos = ko.observable(undefined);
 
         self.TITLE_PRINT_BUTTON_PAUSED = gettext("Restarts the print job from the beginning");
         self.TITLE_PRINT_BUTTON_UNPAUSED = gettext("Starts the print job");
@@ -190,7 +191,6 @@ $(function() {
 //        self.stateString(gettext(data.text));
 //        self.isErrorOrClosed(data.flags.closedOrError);
 //        self.isOperational(data.flags.operational);
-//        self.isLocked(data.flags.locked);
 //        self.isConnecting(data.text === "Connecting" || data.text === "Opening serial port");
 //        self.isPaused(data.flags.paused);
 //        self.isPrinting(data.flags.printing);
@@ -274,6 +274,8 @@ $(function() {
             self.isError(data.flags.error);
             self.isReady(data.flags.ready);
             self.isSdReady(data.flags.sdReady);
+			self.isLocked(data.flags.locked);
+			self.isConnecting(data.text === "Connecting" || data.text === "Opening serial port");
 
             if (self.isPaused() != prevPaused) {
                 if (self.isPaused()) {

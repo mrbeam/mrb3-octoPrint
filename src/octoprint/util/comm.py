@@ -446,11 +446,6 @@ class MachineCom(object):
 				return
 
 		if self.isPrinting() and not self.isSdFileSelected():
-#<<<<<<< HEAD
-#			self._commandQueue.put(cmd)
-#		elif self.isOperational() or self.isLocked():
-#			self._sendCommand(cmd)
-#=======
 			self._commandQueue.put((cmd, cmd_type))
 		elif self.isOperational():
 			self._sendCommand(cmd, cmd_type=cmd_type)
@@ -506,7 +501,6 @@ class MachineCom(object):
 		for line in scriptLines:
 			self.sendCommand(line)
 		return "\n".join(scriptLines)
-#>>>>>>> upstream/maintenance
 
 	def startPrint(self):
 		if not self.isOperational() or self.isPrinting():
@@ -833,10 +827,6 @@ class MachineCom(object):
 
 		startSeen = False
 		supportRepetierTargetTemp = settings().getBoolean(["feature", "repetierTargetTemp"])
-#<<<<<<< HEAD
-#		grblMoving = True
-#		grblLastStatus = ""
-#=======
 		supportWait = settings().getBoolean(["feature", "supportWait"])
 
 		connection_timeout = settings().getFloat(["serial", "timeout", "connection"])
@@ -846,7 +836,6 @@ class MachineCom(object):
 		if try_hello:
 			self._sendCommand("M110")
 			self._clear_to_send.set()
-#>>>>>>> upstream/maintenance
 
 		while self._monitoring_active:
 			try:
@@ -951,76 +940,11 @@ class MachineCom(object):
 						except ValueError:
 							pass
 
-#<<<<<<< HEAD
-#				# GRBL Position update
-#				if self._grbl :
-#					if 'MPos:' in line:
-#
-#						if grblLastStatus == line:
-#							grblMoving = False
-#						else:
-#							grblMoving = True
-#
-#						grblLastStatus = line
-#
-#						if("Alarm" in line):
-#							self._changeState(self.STATE_LOCKED)
-#						if("Idle" in line and self._state == self.STATE_LOCKED):
-#							self._changeState(self.STATE_OPERATIONAL)
-#					
-#						
-#						parts = line.strip("\r\n").split(":")
-#
-#						pos = parts[1].split(",")
-#						MPos = (float(pos[0]), float(pos[1]), float(pos[2]))
-#
-#						pos = parts[2].split(",")
-#						WPos = (float(pos[0]), float(pos[1]), float( pos[2].strip(">") ))
-#					
-#						self._callback.mcPosUpdate(MPos, WPos)
-#
-#					if("ALARM: Hard/soft limit" in line):
-#						errorMsg = "Machine Limit Hit. Please reset the machine and do a homing cycle"
-#						self._log(errorMsg)
-#						self._errorValue = errorMsg
-#						self._changeState(self.STATE_ERROR)
-#						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
-#						self.close()
-#						
-#					if("Invalid gcode" in line and self._state == self.STATE_PRINTING):
-#						errorMsg = line
-#						self._log(errorMsg)
-#						self._errorValue = errorMsg
-#						self._changeState(self.STATE_ERROR)
-#						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
-#
-#					if("error:" in line and self._state == self.STATE_PRINTING):
-#						errorMsg = line
-#						self._log(errorMsg)
-#						self._errorValue = errorMsg
-#						self._changeState(self.STATE_ERROR)
-#						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
-#
-#					if("[" in line):
-#						versionMatch = re.search("\[(?P<grbl>.+)\.(?P<git>[0-9a-f]{7})(?P<dirty>-dirty)?:(?P<minor>.*)\]", line)
-#						if(versionMatch):
-#							# write grbl version to file
-#							versionDict = versionMatch.groupdict()
-#							if versionDict['dirty'] == '-dirty':
-#								versionDict['dirty'] = True
-#							versionDict['lastConnect'] = time.time()	
-#							import yaml
-#							versionFile = os.path.join(settings().getBaseFolder("logs"),'grbl_version.yml')
-#							with open(versionFile, 'w') as outfile:
-#								outfile.write( yaml.dump(versionDict, default_flow_style=True) )
-#							logging.info("updated firmware version file " + versionFile)
-#=======
 				#If we are waiting for an M109 or M190 then measure the time we lost during heatup, so we can remove that time from our printing time estimate.
 				if 'ok' in line and self._heatupWaitStartTime:
 					self._heatupWaitTimeLost = self._heatupWaitTimeLost + (time.time() - self._heatupWaitStartTime)
 					self._heatupWaitStartTime = None
 					self._heating = False
-#>>>>>>> upstream/maintenance
 
 				##~~ SD Card handling
 				elif 'SD init fail' in line or 'volume.init failed' in line or 'openRoot failed' in line:
@@ -1129,22 +1053,12 @@ class MachineCom(object):
 							self._baudrateDetectRetry -= 1
 							self._serial.write('\n')
 							self._log("Baudrate test retry: %d" % (self._baudrateDetectRetry))
-#<<<<<<< HEAD
-#							# self._sendCommand("M105")
-#							if self._grbl:
-#								self._sendCommand("$")
-#							else:
-#								self._sendCommand("M105")
-#							self._testingBaudrate = True
-#						else:
-#=======
 							if self._grbl:
 								self._sendCommand("$")
 							else:
 								self._sendCommand("M110")
 							self._clear_to_send.set()
 						elif len(self._baudrateDetectList) > 0:
-#>>>>>>> upstream/maintenance
 							baudrate = self._baudrateDetectList.pop(0)
 							try:
 								self._serial.baudrate = baudrate
@@ -1154,24 +1068,6 @@ class MachineCom(object):
 								self._baudrateDetectRetry = 5
 								self._timeout = get_new_timeout("communication")
 								self._serial.write('\n')
-#<<<<<<< HEAD
-#								# self._sendCommand("M105")
-#								if self._grbl:
-#									self._sendCommand("$")
-#								else:
-#									self._sendCommand("M105")
-#								self._testingBaudrate = True
-#							except:
-#								self._log("Unexpected error while setting baudrate: %d %s" % (baudrate, getExceptionString()))
-#					elif self._grbl and '$$' in line:
-#						self._log("Baudrate test ok: %d" % (self._baudrateDetectTestOk))
-#						self._changeState(self.STATE_OPERATIONAL)
-#					elif 'ok' in line and 'T:' in line:
-#						self._baudrateDetectTestOk += 1
-#						if self._baudrateDetectTestOk < 10:
-#							self._log("Baudrate test ok: %d" % (self._baudrateDetectTestOk))
-#							self._sendCommand("M105")
-#=======
 								if self._grbl:
 									self._sendCommand("$")
 								else:
@@ -1179,7 +1075,6 @@ class MachineCom(object):
 								self._clear_to_send.set()
 							except:
 								self._log("Unexpected error while setting baudrate: %d %s" % (baudrate, get_exception_string()))
-#>>>>>>> upstream/maintenance
 						else:
 							self.close()
 							self._errorValue = "No more baudrates to test, and no suitable baudrate found."
@@ -1191,48 +1086,7 @@ class MachineCom(object):
 
 				### Connection attempt
 				elif self._state == self.STATE_CONNECTING:
-#<<<<<<< HEAD
-#					if self._grbl:
-#						# TODO get version string to detect connection
-#						self._sendCommand('$I');
-#						if "Grbl" in line:
-#								self._changeState(self.STATE_LOCKED)
-#					else:
-#						if (line == "" or "wait" in line) and startSeen:
-#							self._sendCommand("M105")
-#						elif "start" in line:
-#							startSeen = True
-#						elif "ok" in line and startSeen:
-#							self._changeState(self.STATE_OPERATIONAL)
-#							if self._sdAvailable:
-#								self.refreshSdFiles()
-#							else:
-#								self.initSdCard()
-#							eventManager().fire(Events.CONNECTED, {"port": self._port, "baudrate": self._baudrate})
-#						elif time.time() > self._timeout:
-#							self.close()
-#
-#				### Operational
-#				elif self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PAUSED or self._state == self.STATE_LOCKED:
-#					#Request the temperature on comm timeout (every 5 seconds) when we are not printing.
-#					if line == "" or "wait" in line:
-#						if self._resendDelta is not None:
-#							self._resendNextCommand()
-#						elif not self._commandQueue.empty():
-#							self._sendCommand(self._commandQueue.get())
-#						else:
-#							if self._grbl:
-#								self._sendCommand("?")
-#							else:
-#								self._sendCommand("M105")
-#								
-#						if self._grbl:
-#							tempRequestTimeout = getNewTimeout("position")
-#						else:
-#							tempRequestTimeout = getNewTimeout("detection") 
-						##print(tempRequestTimeout)
-						
-#=======
+
 					if "start" in line and not startSeen:
 						startSeen = True
 						self._sendCommand("M110")
@@ -1253,7 +1107,6 @@ class MachineCom(object):
 						elif self._sendFromQueue():
 							pass
 
-#>>>>>>> upstream/maintenance
 					# resend -> start resend procedure from requested line
 					elif line.lower().startswith("resend") or line.lower().startswith("rs"):
 						self._handleResendRequest(line)
@@ -1261,43 +1114,6 @@ class MachineCom(object):
 				### Printing
 				elif self._state == self.STATE_PRINTING:
 					if line == "" and time.time() > self._timeout:
-#<<<<<<< HEAD
-#						if not self._grbl:
-#							self._log("Communication timeout during printing, forcing a line")
-#							line = 'ok'
-#						else:
-#							line = ""
-#
-#					if self.isSdPrinting():
-#						if time.time() > tempRequestTimeout and not heatingUp:
-#							if not self._grbl:
-#								self._sendCommand("M105")
-#							tempRequestTimeout = getNewTimeout("temperature")
-#
-#						if time.time() > sdStatusRequestTimeout and not heatingUp:
-#							self._sendCommand("M27")
-#							sdStatusRequestTimeout = getNewTimeout("sdStatus")
-#					else:
-#						# Even when printing request the temperature every 5 seconds.
-#						if time.time() > tempRequestTimeout and not self.isStreaming():
-#							if self._grbl:
-#								# disabled, caused race conditions during streaming resulting in a Invalid Gcode ID24
-#								#self._commandQueue.put("?")
-#								#tempRequestTimeout = getNewTimeout("position")
-#								pass
-#							else:
-#								self._commandQueue.put("M105")
-#								tempRequestTimeout = getNewTimeout("temperature")
-#
-#						if "ok" in line and swallowOk:
-#							swallowOk = False
-#						elif "ok" in line:
-#							if self._resendDelta is not None:
-#								self._resendNextCommand()
-#							elif not self._commandQueue.empty() and not self.isStreaming():
-#								self._sendCommand(self._commandQueue.get(), True)
-#							else:
-#=======
 						if not self._long_running_command:
 							self._log("Communication timeout during printing, forcing a line")
 							self._sendCommand("M105")
@@ -1318,7 +1134,6 @@ class MachineCom(object):
 							if self._sendFromQueue():
 								pass
 							elif not self.isSdPrinting():
-#>>>>>>> upstream/maintenance
 								self._sendNext()
 
 					elif line.lower().startswith("resend") or line.lower().startswith("rs"):
@@ -1429,25 +1244,11 @@ class MachineCom(object):
 			serial_obj = None
 
 			try:
-#<<<<<<< HEAD
-#				self._log("Connecting to: %s" % self._port)
-#				if self._baudrate == 0:
-#					self._serial = serial.Serial(str(self._port), 115200, timeout=settings().getFloat(["serial", "timeout", "connection"]), writeTimeout=10000, parity=serial.PARITY_ODD)
-#				else:
-#					self._serial = serial.Serial(str(self._port), self._baudrate, timeout=settings().getFloat(["serial", "timeout", "connection"]), writeTimeout=10000)
-#					self._serial = serial.Serial(str(self._port), self._baudrate, timeout=settings().getFloat(["serial", "timeout", "connection"]), writeTimeout=10000, parity=serial.PARITY_ODD)
-#				self._serial.close()
-#				self._serial.parity = serial.PARITY_NONE
-#				self._serial.open()
-#				if self._grbl :
-#					self._serial.setDTR(False) # Drop DTR to reset grbl. TODO init connection status by requesting version.
-#=======
 				self._log("Connecting to: %s" % (p))
 				programmer.connect(p)
 				serial_obj = programmer.leaveISP()
 			except ispBase.IspError as (e):
 				self._log("Error while connecting to %s: %s" % (p, str(e)))
-#>>>>>>> upstream/maintenance
 			except:
 				self._log("Unexpected error while connecting to serial port: %s %s" % (p, get_exception_string()))
 
@@ -1559,44 +1360,6 @@ class MachineCom(object):
 
 		return ret
 
-#<<<<<<< HEAD
-#	def _sendNext(self):
-#		with self._sendNextLock:
-#			line = self._currentFile.getNext()
-#			if line is None:
-#				if self.isStreaming():
-#					self._sendCommand("M29")
-#
-#					remote = self._currentFile.getRemoteFilename()
-#					payload = {
-#						"local": self._currentFile.getLocalFilename(),
-#						"remote": remote,
-#						"time": self.getPrintTime()
-#					}
-#					
-#					self._currentFile = None
-#					self._changeState(self.STATE_OPERATIONAL)
-#					self._callback.mcFileTransferDone(remote)
-#					eventManager().fire(Events.TRANSFER_DONE, payload)
-#					self.refreshSdFiles()
-#				else:
-#					payload = {
-#						"file": self._currentFile.getFilename(),
-#						"filename": os.path.basename(self._currentFile.getFilename()),
-#						"origin": self._currentFile.getFileLocation(),
-#						"time": self.getPrintTime()
-#					}
-#					self._callback.mcPrintjobDone()
-#					self._changeState(self.STATE_OPERATIONAL)
-#					eventManager().fire(Events.PRINT_DONE, payload)
-#
-#				# TODO fetch finish sequence from machine profiles
-#				self.sendCommand("M05");
-#				self.sendCommand("G0X0Y0");
-#				self.sendCommand("M09");
-#				#self.sendCommand("M02");
-#				return
-#=======
 	def _getNext(self):
 		line = self._currentFile.getNext()
 		if line is None:
@@ -1609,7 +1372,6 @@ class MachineCom(object):
 					"remote": remote,
 					"time": self.getPrintTime()
 				}
-#>>>>>>> upstream/maintenance
 
 				self._currentFile = None
 				self._changeState(self.STATE_OPERATIONAL)
@@ -1717,36 +1479,6 @@ class MachineCom(object):
 			self._enqueue_for_sending(cmd, command_type=cmd_type)
 
 			if not self.isStreaming():
-#<<<<<<< HEAD
-#				for hook in self._gcode_hooks:
-#					hook_cmd = self._gcode_hooks[hook](self, cmd)
-#					if hook_cmd and isinstance(hook_cmd, basestring):
-#						cmd = hook_cmd
-#				gcode = self._regex_command.search(cmd)
-#				if gcode:
-#					gcode = gcode.group(1)
-#
-#					if gcode in gcodeToEvent:
-#						eventManager().fire(gcodeToEvent[gcode])
-#
-#					gcodeHandler = "_gcode_" + gcode
-#					if hasattr(self, gcodeHandler):
-#						cmd = getattr(self, gcodeHandler)(cmd)
-#
-#			if cmd is not None:
-#				self._doSend(cmd, sendChecksum)
-#
-#	def _doSend(self, cmd, sendChecksum=False):
-#		if sendChecksum or self._alwaysSendChecksum:
-#			lineNumber = self._currentLine
-#			self._addToLastLines(cmd)
-#			self._currentLine += 1
-#
-#			if self._grbl:
-#				self._doSendWithoutChecksum(cmd) # no checksums for grbl 
-#			else:
-#				self._doSendWithChecksum(cmd, lineNumber)
-#=======
 				# trigger the "queued" phase only if we are not streaming to sd right now
 				self._process_command_phase("queued", cmd, cmd_type, gcode=gcode)
 
@@ -1908,7 +1640,6 @@ class MachineCom(object):
 		elif hook_result_length == 2:
 			# handler returned command and command_type
 			command, command_type = handler_result
-#>>>>>>> upstream/maintenance
 		else:
 			# handler returned a tuple of an unexpected length
 			return original_tuple
@@ -2041,10 +1772,6 @@ class MachineCom(object):
 		elif s_idx != -1:
 			# dwell time is specified in seconds
 			_timeout = float(cmd[s_idx+1:])
-#<<<<<<< HEAD
-#		self._timeout = getNewTimeout("communication") + _timeout
-#		return cmd
-#=======
 		self._timeout = get_new_timeout("communication") + _timeout
 
 	##~~ command phase handlers
@@ -2052,7 +1779,6 @@ class MachineCom(object):
 	def _command_phase_sending(self, cmd, cmd_type=None, gcode=None):
 		if gcode is not None and gcode in self._long_running_commands:
 			self._long_running_command = True
-#>>>>>>> upstream/maintenance
 
 ### MachineCom callback ################################################################################################
 
@@ -2220,14 +1946,6 @@ class PrintingGcodeFileInformation(PrintingFileInformation):
 		if self._handle is None:
 			raise ValueError("File %s is not open for reading" % self._filename)
 
-#<<<<<<< HEAD
-#		if self._lineCount is None:
-#			self._lineCount = 0
-#			#return "M110 N0"
-#			return ""
-#
-#=======
-#>>>>>>> upstream/maintenance
 		try:
 			offsets = self._offsets_callback() if self._offsets_callback is not None else None
 			current_tool = self._current_tool_callback() if self._current_tool_callback is not None else None

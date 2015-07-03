@@ -2,9 +2,6 @@
 //function ControlViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel) {
 //    var self = this;
 //
-//    self.loginState = loginStateViewModel;
-//    self.settings = settingsViewModel;
-//    self.printerState = printerStateViewModel;
 //
 //    self._createToolEntry = function() {
 //        return {
@@ -23,7 +20,6 @@
 //    self.isLoading = ko.observable(undefined);
 //
 //    self.extrusionAmount = ko.observable(undefined);
-//	self.jogDistanceInMM = ko.observable(undefined)
 //    self.controls = ko.observableArray([]);
 //
 //    self.tools = ko.observableArray([]);
@@ -60,6 +56,7 @@ $(function() {
 
         self.loginState = parameters[0];
         self.settings = parameters[1];
+	    self.printerState = parameters[2];
 
         self._createToolEntry = function () {
             return {
@@ -207,14 +204,7 @@ $(function() {
 //        return control;
 //    };
 //	
-//	self.laserPos = ko.computed(function(){
-//		var pos = self.printerState.currentPos();
-//		if(!pos){
-//			return "(?, ?)";
-//		} else {
-//			return "("+ pos.x + ", "+ pos.y + ")";
-//		}
-//	}, this);
+
 //
 //	self.focus_on = function(){
 //		
@@ -399,9 +389,7 @@ $(function() {
 //        });
 //    };
 //	
-//	self.setCoordinateOrigin = function(){
-//		self.sendCustomCommand({type:'command', command: "G92 X0 Y0"});
-//	};
+
 //=======
         self.sendJogCommand = function (axis, multiplier, distance) {
             if (typeof distance === "undefined")
@@ -864,12 +852,26 @@ $(function() {
                 button.click();
             }
         };
+		self.laserPos = ko.computed(function () {
+			var pos = self.printerState.currentPos();
+			if (!pos) {
+				return "(?, ?)";
+			} else {
+				return "(" + pos.x + ", " + pos.y + ")";
+			}
+		}, this);
+		
+		self.setCoordinateOrigin = function () {
+			self.sendCustomCommand({type: 'command', command: "G92 X0 Y0"});
+		};
+
+		self.jogDistanceInMM = ko.observable(undefined)
 
     }
 
     OCTOPRINT_VIEWMODELS.push([
         ControlViewModel,
-        ["loginStateViewModel", "settingsViewModel"],
+        ["loginStateViewModel", "settingsViewModel", 'printerStateViewModel'],
         "#control"
     ]);
 });

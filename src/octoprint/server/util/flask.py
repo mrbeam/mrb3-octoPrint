@@ -478,9 +478,6 @@ class PluginAssetResolver(flask.ext.assets.FlaskResolver):
 			try:
 				prefix, plugin, name = item.split("/", 2)
 				blueprint = prefix + "." + plugin
-				print('####', blueprint, app.blueprints[blueprint])
-				#for attr in dir(app.blueprints[blueprint]):
-				#	print "obj.%s = %s" % (attr, getattr(app.blueprints[blueprint], attr))
 				directory = flask.ext.assets.get_static_folder(app.blueprints[blueprint])
 				item = name
 				endpoint = blueprint + ".static"

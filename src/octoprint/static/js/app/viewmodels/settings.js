@@ -119,15 +119,7 @@
 //      self.requestData();
 //    };
 //    
-//	self.saveall = function(e, v){
-////		$("#settings_save_btn").css("visibility", "visible");
-//
-//		$("#settingsTabs li.active").addClass('saveInProgress');
-//		if(self.savetimer !== undefined){
-//			clearTimeout(self.savetimer);
-//		}
-//		self.savetimer = setTimeout(self.instantSaveData, 2000);
-//	};
+
 //	 
 //    self.requestData = function(callback) {
 //        $.ajax({
@@ -202,68 +194,7 @@
 //        self.terminalFilters(response.terminalFilters);
 //    };
 //
-//	self.collectData = function (){
-//		var data = ko.mapping.toJS(self.settings);
-//        data = _.extend(data, {
-//            "api" : {
-//                "enabled": self.api_enabled(),
-//                "key": self.api_key(),
-//                "allowCrossOrigin": self.api_allowCrossOrigin()
-//            },
-//            "appearance" : {
-//                "name": self.appearance_name(),
-//                "color": self.appearance_color()
-//            },
-//            "printer": {
-//                "defaultExtrusionLength": self.printer_defaultExtrusionLength()
-//            },
-//            "webcam": {
-//                "streamUrl": self.webcam_streamUrl(),
-//                "snapshotUrl": self.webcam_snapshotUrl(),
-//                "ffmpegPath": self.webcam_ffmpegPath(),
-//                "bitrate": self.webcam_bitrate(),
-//                "watermark": self.webcam_watermark(),
-//                "flipH": self.webcam_flipH(),
-//                "flipV": self.webcam_flipV()
-//            },
-//            "feature": {
-//                "gcodeViewer": self.feature_gcodeViewer(),
-//                "temperatureGraph": self.feature_temperatureGraph(),
-//                "waitForStart": self.feature_waitForStart(),
-//                "alwaysSendChecksum": self.feature_alwaysSendChecksum(),
-//                "sdSupport": self.feature_sdSupport(),
-//                "sdAlwaysAvailable": self.feature_sdAlwaysAvailable(),
-//                "swallowOkAfterResend": self.feature_swallowOkAfterResend(),
-//                "repetierTargetTemp": self.feature_repetierTargetTemp(),
-//                "keyboardControl": self.feature_keyboardControl()
-//            },
-//            "serial": {
-//                "port": self.serial_port(),
-//                "baudrate": self.serial_baudrate(),
-//                "autoconnect": self.serial_autoconnect(),
-//                "timeoutConnection": self.serial_timeoutConnection(),
-//                "timeoutDetection": self.serial_timeoutDetection(),
-//                "timeoutCommunication": self.serial_timeoutCommunication(),
-//                "timeoutTemperature": self.serial_timeoutTemperature(),
-//                "timeoutSdStatus": self.serial_timeoutSdStatus(),
-//                "log": self.serial_log()
-//            },
-//            "folder": {
-//                "uploads": self.folder_uploads(),
-//                "timelapse": self.folder_timelapse(),
-//                "timelapseTmp": self.folder_timelapseTmp(),
-//                "logs": self.folder_logs(),
-//                "watched": self.folder_watched()
-//            },
-//            "temperature": {
-//                "profiles": self.temperature_profiles()
-//            },
-//            "system": {
-//                "actions": self.system_actions()
-//            }
-//		});
-//        return data;
-//	};
+
 //=======
 $(function() {
     function SettingsViewModel(parameters) {
@@ -591,8 +522,7 @@ $(function() {
         self.languagePacksAvailable = ko.computed(function() {
             return self.translations.allSize() > 0;
         });
-		
-	};
+
 
 //<<<<<<< HEAD
 //    self.saveData = function() {
@@ -615,23 +545,7 @@ $(function() {
 //        });
 //    };
 //	
-//    self.instantSaveData = function() {
-//        
-//		var data = self.collectData();
-//		
-//        $.ajax({
-//            url: API_BASEURL + "settings",
-//            type: "POST",
-//            dataType: "json",
-//            contentType: "application/json; charset=UTF-8",
-//            data: JSON.stringify(data),
-//            success: function(response) {
-////                self.fromResponse(response);
-////                $("#settings_dialog").modal("hide");
-////                $("#settings_save_btn").attr("disabled", "disabled");
-////				$("#settings_save_btn").css("visibility", "hidden");
-//				$("#settingsTabs li.active").removeClass('saveInProgress');
-//				self.savetimer = undefined;
+
 //=======
         self.deleteLanguagePack = function(locale, pack) {
             $.ajax({
@@ -821,7 +735,102 @@ $(function() {
                 }
             });
         };
-//    }
+		
+		self.saveall = function(e, v){
+	//		$("#settings_save_btn").css("visibility", "visible");
+
+			$("#settingsTabs li.active").addClass('saveInProgress');
+			if(self.savetimer !== undefined){
+				clearTimeout(self.savetimer);
+			}
+			self.savetimer = setTimeout(self.instantSaveData, 2000);
+		};
+		
+		self.instantSaveData = function() {
+        
+			var data = self.collectData();
+
+			$.ajax({
+				url: API_BASEURL + "settings",
+				type: "POST",
+				dataType: "json",
+				contentType: "application/json; charset=UTF-8",
+				data: JSON.stringify(data),
+				success: function(response) {
+	//                self.fromResponse(response);
+	//                $("#settings_dialog").modal("hide");
+	//                $("#settings_save_btn").attr("disabled", "disabled");
+	//				$("#settings_save_btn").css("visibility", "hidden");
+					$("#settingsTabs li.active").removeClass('saveInProgress');
+					self.savetimer = undefined;
+				}
+			});
+		};
+	
+
+		self.collectData = function (){
+			var data = ko.mapping.toJS(self.settings);
+			data = _.extend(data, {
+				"api" : {
+					"enabled": self.api_enabled(),
+					"key": self.api_key(),
+					"allowCrossOrigin": self.api_allowCrossOrigin()
+				},
+				"appearance" : {
+					"name": self.appearance_name(),
+					"color": self.appearance_color()
+				},
+				"printer": {
+					"defaultExtrusionLength": self.printer_defaultExtrusionLength()
+				},
+				"webcam": {
+					"streamUrl": self.webcam_streamUrl(),
+					"snapshotUrl": self.webcam_snapshotUrl(),
+					"ffmpegPath": self.webcam_ffmpegPath(),
+					"bitrate": self.webcam_bitrate(),
+					"watermark": self.webcam_watermark(),
+					"flipH": self.webcam_flipH(),
+					"flipV": self.webcam_flipV()
+				},
+				"feature": {
+					"gcodeViewer": self.feature_gcodeViewer(),
+					"temperatureGraph": self.feature_temperatureGraph(),
+					"waitForStart": self.feature_waitForStart(),
+					"alwaysSendChecksum": self.feature_alwaysSendChecksum(),
+					"sdSupport": self.feature_sdSupport(),
+					"sdAlwaysAvailable": self.feature_sdAlwaysAvailable(),
+					"swallowOkAfterResend": self.feature_swallowOkAfterResend(),
+					"repetierTargetTemp": self.feature_repetierTargetTemp(),
+					"keyboardControl": self.feature_keyboardControl()
+				},
+				"serial": {
+					"port": self.serial_port(),
+					"baudrate": self.serial_baudrate(),
+					"autoconnect": self.serial_autoconnect(),
+					"timeoutConnection": self.serial_timeoutConnection(),
+					"timeoutDetection": self.serial_timeoutDetection(),
+					"timeoutCommunication": self.serial_timeoutCommunication(),
+					"timeoutTemperature": self.serial_timeoutTemperature(),
+					"timeoutSdStatus": self.serial_timeoutSdStatus(),
+					"log": self.serial_log()
+				},
+				"folder": {
+					"uploads": self.folder_uploads(),
+					"timelapse": self.folder_timelapse(),
+					"timelapseTmp": self.folder_timelapseTmp(),
+					"logs": self.folder_logs(),
+					"watched": self.folder_watched()
+				},
+				"temperature": {
+					"profiles": self.temperature_profiles()
+				},
+				"system": {
+					"actions": self.system_actions()
+				}
+			});
+			return data;
+		};
+	};
 
     OCTOPRINT_VIEWMODELS.push([
         SettingsViewModel,

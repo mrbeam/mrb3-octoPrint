@@ -253,14 +253,6 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 
 	##~~ TemplatePlugin API
 
-	def get_template_vars(self):
-		return dict()
-
-	def get_template_folder(self):
-		#import os
-		#return os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates")
-		return os.path.join(self._basefolder, "templates")
-
 	def get_template_configs(self):
 		return [
 			dict(type = 'settings', name = "Svg Conversion", template='svgtogcode_settings.jinja2', custom_bindings = False),
