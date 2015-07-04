@@ -65,176 +65,16 @@ $(function() {
                     return this.toString().match(/^\s*function\s*(\S*)\s*\(/)[1];
                 }
             });
-//<<<<<<< HEAD
-//        });
-//
-//        //~~ Initialize view models
-//        var loginStateViewModel = new LoginStateViewModel();
-//        var printerProfilesViewModel = new PrinterProfilesViewModel();
-//        var usersViewModel = new UsersViewModel(loginStateViewModel);
-//        var timelapseViewModel = new TimelapseViewModel(loginStateViewModel);
-//
-//        var printerStateViewModel = new PrinterStateViewModel(loginStateViewModel, timelapseViewModel);
-//        var settingsViewModel = new SettingsViewModel(loginStateViewModel, usersViewModel, printerProfilesViewModel);
-//        var gcodeViewModel = new GcodeViewModel(loginStateViewModel, settingsViewModel);
-//        var connectionViewModel = new ConnectionViewModel(loginStateViewModel, settingsViewModel, printerProfilesViewModel);
-//        var appearanceViewModel = new AppearanceViewModel(settingsViewModel, printerStateViewModel);
-//        var temperatureViewModel = new TemperatureViewModel(loginStateViewModel, settingsViewModel);
-//        var terminalViewModel = new TerminalViewModel(loginStateViewModel, settingsViewModel);
-//
-//        var slicingViewModel = new SlicingViewModel(loginStateViewModel, printerProfilesViewModel);
-//        var gcodeFilesViewModel = new GcodeFilesViewModel(printerStateViewModel, loginStateViewModel, slicingViewModel);
-//		var controlViewModel = new ControlViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel);
-//        var navigationViewModel = new NavigationViewModel(loginStateViewModel, appearanceViewModel, settingsViewModel, usersViewModel);
-//        var logViewModel = new LogViewModel(loginStateViewModel);
-//
-//
-//        // the view model map is our basic look up table for dependencies that may be injected into other view models
-//        var viewModelMap = {
-//            loginStateViewModel: loginStateViewModel,
-//            printerProfilesViewModel: printerProfilesViewModel,
-//            usersViewModel: usersViewModel,
-//            settingsViewModel: settingsViewModel,
-//            connectionViewModel: connectionViewModel,
-//            timelapseViewModel: timelapseViewModel,
-//            printerStateViewModel: printerStateViewModel,
-//            appearanceViewModel: appearanceViewModel,
-//            temperatureViewModel: temperatureViewModel,
-//            controlViewModel: controlViewModel,
-//            terminalViewModel: terminalViewModel,
-//            gcodeFilesViewModel: gcodeFilesViewModel,
-//            gcodeViewModel: gcodeViewModel,
-//            navigationViewModel: navigationViewModel,
-//            logViewModel: logViewModel,
-//            slicingViewModel: slicingViewModel,
-//        };
-//=======
-        }
-//>>>>>>> upstream/maintenance
+		}
 
         // helper to create a view model instance with injected constructor parameters from the view model map
         var _createViewModelInstance = function(viewModel, viewModelMap){
             var viewModelClass = viewModel[0];
             var viewModelParameters = viewModel[1];
-//<<<<<<< HEAD
-//
-//            // now we'll try to resolve all of the view model's constructor parameters via our view model map
-//            var constructorParameters = _.map(viewModelParameters, function(parameter){
-//                return viewModelMap[parameter]
-//            });
-//
-//            if (_.some(constructorParameters, function(parameter) { return parameter === undefined; })) {
-//                var _extractName = function(entry) { return entry[0]; };
-//                var _onlyUnresolved = function(entry) { return entry[1] === undefined; };
-//                var missingParameters = _.map(_.filter(_.zip(viewModelParameters, constructorParameters), _onlyUnresolved), _extractName);
-//                console.log("postponing", viewModel[0].name, "due to missing parameters:", missingParameters.join(", "));
-//                return;
-//            }
-//
-//            // if we came this far then we could resolve all constructor parameters, so let's construct that view model
-//            return new viewModelClass(constructorParameters);
-//        };
-//
-//        // helper for translating the name of a view model class into an identifier for the view model map
-//        var _getViewModelId = function(viewModel){
-//            var name = viewModel[0].name;
-//            return name.substr(0, 1).toLowerCase() + name.substr(1); // FooBarViewModel => fooBarViewModel
-//        };
-//
-//        // instantiation loop, will make multiple passes over the list of unprocessed view models until all
-//        // view models have been successfully instantiated with all of their dependencies or no changes can be made
-//        // any more which means not all view models can be instantiated due to missing dependencies
-//        var unprocessedViewModels = ADDITIONAL_VIEWMODELS.slice();
-//        var additionalViewModels = [];
-//        var pass = 1;
-//        while (unprocessedViewModels.length > 0) {
-//            console.log("View model dependency resolution, pass #" + pass++);
-//            var startLength = unprocessedViewModels.length;
-//            var postponed = [];
-//
-//            // now try to instantiate every one of our as of yet unprocessed view model descriptors
-//            while (unprocessedViewModels.length > 0){
-//                var viewModel = unprocessedViewModels.shift();
-//                var viewModelId = _getViewModelId(viewModel);
-//
-//                // make sure that we don't have to view models going by the same name
-//                if (_.has(viewModelMap, viewModelId)) {
-//                    console.error("Duplicate class name while instantiating viewModel ", viewModelId);
-//                    continue;
-//                }
-//
-//                var viewModelInstance = _createViewModelInstance(viewModel, viewModelMap);
-//
-//                // our view model couldn't yet be instantiated, so postpone it for a bit
-//                if (viewModelInstance === undefined) {
-//                    postponed.push(viewModel);
-//                    continue;
-//                }
-//
-//                // we could resolve the depdendencies and the view model is not defined yet => add it, it's now fully processed
-//                var viewModelBindTarget = viewModel[2];
-//                additionalViewModels.push([viewModelInstance, viewModelBindTarget]);
-//                viewModelMap[viewModelId] = viewModelInstance;
-//            }
-//
-//            // anything that's now in the postponed list has to be readded to the unprocessedViewModels
-//            unprocessedViewModels = unprocessedViewModels.concat(postponed);
-//
-//            // if we still have the same amount of items in our list of unprocessed view models it means that we
-//            // couldn't instantiate any more view models over a whole iteration, which in turn mean we can't resolve the
-//            // dependencies of remaining ones, so log that as an error and then quit the loop
-//            if (unprocessedViewModels.length == startLength) {
-//                console.error("Could not instantiate the following view models due to unresolvable dependencies:");
-//                _.each(unprocessedViewModels, function(entry) {
-//                    console.error(entry[0].name, "(missing:", _.filter(entry[1], function(id) { return !_.has(viewModelMap, id); }).join(", "), ")");
-//                });
-//                break;
-//            }
-//        }
-//        console.log("View model dependency resolution done");
-//
-//        var allViewModels = _.values(viewModelMap);
-//        var dataUpdater = new DataUpdater(allViewModels);
-//
-//
-//        //~~ Temperature
-//
-//        $('#tabs a[data-toggle="tab"]').on('shown', function (e) {
-//            temperatureViewModel.updatePlot();
-//            terminalViewModel.updateOutput();
-//        });
-//
-//        //~~ File list
-//
-//        $(".gcode_files").slimScroll({
-//            height: "80vh",
-//            size: "5px",
-//            distance: "0",
-//            railVisible: true,
-//            alwaysVisible: true,
-//            scrollBy: "102px"
-//        });
-//
-//        //~~ Gcode upload
-//
-//        function gcode_upload_done(e, data) {
-//            var filename = undefined;
-//            var location = undefined;
-//            if (data.result.files.hasOwnProperty("sdcard")) {
-//                filename = data.result.files.sdcard.name;
-//                location = "sdcard";
-//            } else if (data.result.files.hasOwnProperty("local")) {
-//                filename = data.result.files.local.name;
-//                location = "local";
-//            }
-//            gcodeFilesViewModel.requestData(filename, location);
-//=======
-
-            if (viewModelParameters != undefined) {
+			 if (viewModelParameters != undefined) {
                 if (!_.isArray(viewModelParameters)) {
                     viewModelParameters = [viewModelParameters];
                 }
-//>>>>>>> upstream/maintenance
 
                 // now we'll try to resolve all of the view model's constructor parameters via our view model map
                 var constructorParameters = _.map(viewModelParameters, function(parameter){
@@ -251,6 +91,40 @@ $(function() {
                 log.debug("Postponing", viewModel[0].name, "due to missing parameters:", missingParameters);
                 return;
             }
+			
+			// if we came this far then we could resolve all constructor parameters, so let's construct that view model
+            log.debug("Constructing", viewModel[0].name, "with parameters:", viewModelParameters);
+            return new viewModelClass(constructorParameters);
+        };
+
+
+
+        //~~ File list
+        $(".gcode_files").slimScroll({
+            height: "80vh",
+            size: "5px",
+            distance: "0",
+            railVisible: true,
+            alwaysVisible: true,
+            scrollBy: "102px"
+        });
+//
+//        //~~ Gcode upload
+//
+//        function gcode_upload_done(e, data) {
+//            var filename = undefined;
+//            var location = undefined;
+//            if (data.result.files.hasOwnProperty("sdcard")) {
+//                filename = data.result.files.sdcard.name;
+//                location = "sdcard";
+//            } else if (data.result.files.hasOwnProperty("local")) {
+//                filename = data.result.files.local.name;
+//                location = "local";
+//            }
+//            gcodeFilesViewModel.requestData(filename, location);
+//=======
+
+           
 //<<<<<<< HEAD
 //			
 //			if(data.result.files.hasOwnProperty("local")){
@@ -280,12 +154,6 @@ $(function() {
 //            $("#gcode_upload_progress .bar").text("");
 //        }
 //=======
-
-            // if we came this far then we could resolve all constructor parameters, so let's construct that view model
-            log.debug("Constructing", viewModel[0].name, "with parameters:", viewModelParameters);
-            return new viewModelClass(constructorParameters);
-        };
-//>>>>>>> upstream/maintenance
 
         // map any additional view model bindings we might need to make
         var additionalBindings = {};
@@ -337,21 +205,12 @@ $(function() {
 
                 var viewModelInstance = _createViewModelInstance(viewModel, viewModelMap);
 
-//<<<<<<< HEAD
-//            if (printerStateViewModel.isSdReady() && loginStateViewModel.isUser()) {
-//                enable_sd_dropzone();
-//            } else {
-//                disable_sd_dropzone();
-//            }
-//        }
-//		
-//=======
                 // our view model couldn't yet be instantiated, so postpone it for a bit
                 if (viewModelInstance === undefined) {
                     postponed.push(viewModel);
                     continue;
                 }
-//>>>>>>> upstream/maintenance
+
 
                 // we could resolve the depdendencies and the view model is not defined yet => add it, it's now fully processed
                 var viewModelBindTargets = viewModel[2];
@@ -367,20 +226,8 @@ $(function() {
                 allViewModels.push(viewModelInstance);
                 viewModelMap[viewModelId] = viewModelInstance;
             }
-
-//<<<<<<< HEAD
-//            window.dropZoneTimeout = setTimeout(function () {
-//                window.dropZoneTimeout = null;
-//                dropOverlay.removeClass("in");
-//                if (dropZoneLocal) dropZoneLocalBackground.removeClass("hover");
-//                if (dropZoneSd) dropZoneSdBackground.removeClass("hover");
-//                if (dropZone) dropZoneBackground.removeClass("hover");
-//            }, 1000);
-//        });
-//=======
             // anything that's now in the postponed list has to be readded to the unprocessedViewModels
             unprocessedViewModels = unprocessedViewModels.concat(postponed);
-//>>>>>>> upstream/maintenance
 
             // if we still have the same amount of items in our list of unprocessed view models it means that we
             // couldn't instantiate any more view models over a whole iteration, which in turn mean we can't resolve the
@@ -397,6 +244,18 @@ $(function() {
             pass++;
         }
         log.info("... dependency resolution done");
+
+//<<<<<<< HEAD
+//            window.dropZoneTimeout = setTimeout(function () {
+//                window.dropZoneTimeout = null;
+//                dropOverlay.removeClass("in");
+//                if (dropZoneLocal) dropZoneLocalBackground.removeClass("hover");
+//                if (dropZoneSd) dropZoneSdBackground.removeClass("hover");
+//                if (dropZone) dropZoneBackground.removeClass("hover");
+//            }, 1000);
+//        });
+//=======
+//>>>>>>> upstream/maintenance
 
         var dataUpdater = new DataUpdater(allViewModels);
 
@@ -599,33 +458,18 @@ $(function() {
             e.stopPropagation();
         });
 
+
 //<<<<<<< HEAD
-//        settingsViewModel.requestData(function() {
-//            ko.applyBindings(settingsViewModel, document.getElementById("settings_dialog"));
-//
-//            ko.applyBindings(connectionViewModel, document.getElementById("connection"));
-//            ko.applyBindings(printerStateViewModel, document.getElementById("state"));
-//            ko.applyBindings(gcodeFilesViewModel, document.getElementById("files_accordion"));
-//            ko.applyBindings(controlViewModel, document.getElementById("control"));
-//            ko.applyBindings(controlViewModel, document.getElementById("focus"));
-//            ko.applyBindings(terminalViewModel, document.getElementById("term"));
-//            var gcode = document.getElementById("gcode");
-//            if (gcode) {
-//                gcodeViewModel.initialize();
-//                ko.applyBindings(gcodeViewModel, gcode);
+//            if (printerStateViewModel.isSdReady() && loginStateViewModel.isUser()) {
+//                enable_sd_dropzone();
+//            } else {
+//                disable_sd_dropzone();
 //            }
-//            ko.applyBindings(navigationViewModel, document.getElementById("navbar"));
-////            ko.applyBindings(appearanceViewModel, document.getElementsByTagName("head")[0]);
-//            ko.applyBindings(printerStateViewModel, document.getElementById("drop_overlay"));
-//            ko.applyBindings(logViewModel, document.getElementById("logs"));
-//
-////            var timelapseElement = document.getElementById("timelapse");
-////            if (timelapseElement) {
-////                ko.applyBindings(timelapseViewModel, timelapseElement);
-////            }
-////
-////            ko.applyBindings(slicingViewModel, document.getElementById("slicing_configuration_dialog"));
+//        }
+//		
 //=======
+
+
         // prevent default action for drag-n-drop
         $(document).bind("drop dragover", function (e) {
             e.preventDefault();
@@ -647,7 +491,6 @@ $(function() {
                 if (!Array.isArray(viewModelData) || viewModelData.length != 2) {
                     return;
                 }
-//>>>>>>> upstream/maintenance
 
                 var viewModel = viewModelData[0];
                 var targets = viewModelData[1];
