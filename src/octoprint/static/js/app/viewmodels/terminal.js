@@ -1,9 +1,6 @@
 //<<<<<<< HEAD
 //function TerminalViewModel(loginStateViewModel, settingsViewModel) {
-//    var self = this;
-//
-//    self.loginState = loginStateViewModel;
-//    self.settings = settingsViewModel;
+
 //
 //    self.log = [];
 //
@@ -31,10 +28,7 @@
 //        self.updateOutput();
 //    });
 //
-//    self.fromCurrentData = function(data) {
-//        self._processStateData(data.state);
-//        self._processCurrentLogData(data.logs);
-//    };
+
 //
 //    self.fromHistoryData = function(data) {
 //        self._processStateData(data.state);
@@ -54,16 +48,7 @@
 //        self.updateOutput();
 //    };
 //
-//    self._processStateData = function(data) {
-//        self.isErrorOrClosed(data.flags.closedOrError);
-//        self.isOperational(data.flags.operational);
-//        self.isLocked(data.flags.locked);
-//        self.isPaused(data.flags.paused);
-//        self.isPrinting(data.flags.printing);
-//        self.isError(data.flags.error);
-//        self.isReady(data.flags.ready);
-//        self.isLoading(data.flags.loading);
-//    };
+
 //
 //    self.updateFilterRegex = function() {
 //        var filterRegexStr = self.activeFilters().join("|").trim();
@@ -93,21 +78,7 @@
 //    };
 //	
 
-//
-//    self.sendCommand = function() {
-//        var command = self.command();
-//        if (!command) {
-//            return;
-//        }
-//
-//        //var re = /^([gmt][0-9]+)(\s.*)?/;
-//        var re = /^([gmtfs][0-9]+|\$[cinhgx#$]|[?~!])(.*)?/; // grbl style
-//        var commandMatch = command.match(re);
-//        if (commandMatch != null) {
-//            command = commandMatch[1].toUpperCase() + ((commandMatch[2] !== undefined) ? commandMatch[2].toUpperCase() : "");
-//        }
-//		
-//        if (command) {
+
 //=======
 $(function() {
     function TerminalViewModel(parameters) {
@@ -264,12 +235,14 @@ $(function() {
                 return;
             }
 
-            var re = /^([gmt][0-9]+)(\s.*)?/;
+//            var re = /^([gmt][0-9]+)(\s.*)?/;
+			var re = /^([gmtfs][0-9]+|\$[cinhgx#$]|[?~!])(.*)?/; // grbl style
             var commandMatch = command.match(re);
             if (commandMatch != null) {
                 command = commandMatch[1].toUpperCase() + ((commandMatch[2] !== undefined) ? commandMatch[2] : "");
+	            command = commandMatch[1].toUpperCase() + ((commandMatch[2] !== undefined) ? commandMatch[2].toUpperCase() : "");
             }
-
+			
             if (command) {
                 $.ajax({
                     url: API_BASEURL + "printer/command",
@@ -323,19 +296,13 @@ $(function() {
 
         self.handleKeyUp = function(event) {
             if (event.keyCode == 13) {
-                self.sendCommand();
+	            self.sendCommandWithSafetyPopup();
             }
 
             // do not prevent default action
             return true;
         };
 
-//<<<<<<< HEAD
-//    self.handleKeyUp = function(event) {
-//        if (event.keyCode == 13) {
-//            self.sendCommandWithSafetyPopup();
-//        }
-//=======
         self.onAfterTabChange = function(current, previous) {
             if (current != "#term") {
                 return;
@@ -344,7 +311,6 @@ $(function() {
                 self.scrollToEnd();
             }
         };
-//>>>>>>> upstream/maintenance
 
 		self.sendCommandWithSafetyPopup = function () {
 			var command = self.command().split(' ').join('');
@@ -352,7 +318,6 @@ $(function() {
 				return;
 			}
 
-			console.log(command);
 			var parts = command.match(/^(M3|M03)(S[0-9.]+)?/i);
 			if (parts !== null) {
 

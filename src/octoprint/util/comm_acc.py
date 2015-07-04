@@ -1098,7 +1098,6 @@ class MachineCom(object):
 		self._log("Connection closed, closing down monitor")
 
 	def _openSerial(self):
-		print('_openSerial')
 		if self._port == 'AUTO':
 			self._changeState(self.STATE_DETECT_SERIAL)
 			programmer = stk500v2.Stk500v2()
