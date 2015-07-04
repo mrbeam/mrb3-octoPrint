@@ -262,17 +262,20 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 #		self.commands(["G91", "G1 %s%.4f F%d" % (axis.upper(), amount, movement_speed), "G90", "?"])
 
 	def home(self, axes):
-		if not isinstance(axes, (list, tuple)):
-			if isinstance(axes, (str, unicode)):
-				axes = [axes]
-			else:
-				raise ValueError("axes is neither a list nor a string: {axes}".format(axes=axes))
+		if(settings().getBoolean(["feature", "grbl"])):
+			self.commands(["$H", "G92X0Y0Z0", "G90", "G21"])
+		else:
+			if not isinstance(axes, (list, tuple)):
+				if isinstance(axes, (str, unicode)):
+					axes = [axes]
+				else:
+					raise ValueError("axes is neither a list nor a string: {axes}".format(axes=axes))
 
-		validated_axes = filter(lambda x: x in PrinterInterface.valid_axes, map(lambda x: x.lower(), axes))
-		if len(axes) != len(validated_axes):
-			raise ValueError("axes contains invalid axes: {axes}".format(axes=axes))
+			validated_axes = filter(lambda x: x in PrinterInterface.valid_axes, map(lambda x: x.lower(), axes))
+			if len(axes) != len(validated_axes):
+				raise ValueError("axes contains invalid axes: {axes}".format(axes=axes))
 
-		self.commands(["G91", "G28 %s" % " ".join(map(lambda x: "%s0" % x.upper(), validated_axes)), "G90"])
+			self.commands(["G91", "G28 %s" % " ".join(map(lambda x: "%s0" % x.upper(), validated_axes)), "G90"])
 
 	def extrude(self, amount):
 		if not isinstance(amount, (int, long, float)):
@@ -328,6 +331,11 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 
 		self._comm.setTemperatureOffset(offsets)
 		self._stateMonitor.set_temp_offsets(offsets)
+
+	def position(self, x, y):
+		printer_profile = self._printerProfileManager.get_current_or_default()
+		movement_speed = min(printer_profile["axes"]["x"]["speed"], printer_profile["axes"]["y"]["speed"])
+		self.commands(["G90", "G0 X%.3f Y%.3f F%d" % (x, y, movement_speed), "?"])
 
 	def _convert_rate_value(self, factor, min=0, max=200):
 		if not isinstance(factor, (int, float, long)):
@@ -502,6 +510,9 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 			return False
 		else:
 			return self._comm.isSdReady()
+
+	def is_locked(self):
+		return self._comm is not None and self._comm.isLocked()
 
 	#~~ sd file handling
 
@@ -743,7 +754,8 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 			"error": self.is_error(),
 			"paused": self.is_paused(),
 			"ready": self.is_ready(),
-			"sdReady": self.is_sd_ready()
+			"sdReady": self.is_sd_ready(),
+			"locked": self.is_locked()
 		}
 
 	#~~ comm.MachineComPrintCallback implementation
@@ -869,10 +881,6 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 
 
 #
-#	def position(self, x, y):
-#		printer_profile = self._printerProfileManager.get_current_or_default()
-#		movement_speed = min(printer_profile["axes"]["x"]["speed"], printer_profile["axes"]["y"]["speed"])
-#		self.commands(["G90", "G0 X%.3f Y%.3f F%d" % (x, y, movement_speed), "?"])
 #
 #	def home(self, axes):
 #		if(settings().getBoolean(["feature", "grbl"])):

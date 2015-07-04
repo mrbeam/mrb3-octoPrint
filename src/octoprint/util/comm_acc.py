@@ -131,11 +131,8 @@ class MachineCom(object):
 				baudrate = 0
 			else:
 				baudrate = settingsBaudrate
-		print('#####1', callbackObject)
 		if callbackObject == None:
 			callbackObject = MachineComPrintCallback()
-
-		print('#####2', callbackObject)
 
 		self._port = port
 		self._baudrate = baudrate
@@ -298,7 +295,7 @@ class MachineCom(object):
 		return self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PRINTING or self._state == self.STATE_PAUSED or self._state == self.STATE_TRANSFERING_FILE
 
 
-	def is_locked(self):
+	def isLocked(self):
 		return self._state == self.STATE_LOCKED
 
 	def isPrinting(self):

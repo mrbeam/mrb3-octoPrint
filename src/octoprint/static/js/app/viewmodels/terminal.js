@@ -221,6 +221,7 @@ $(function() {
             self.isError(data.flags.error);
             self.isReady(data.flags.ready);
             self.isLoading(data.flags.loading);
+            self.isLocked(data.flags.locked);
         };
 
         self.updateFilterRegex = function() {

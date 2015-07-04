@@ -791,26 +791,6 @@ $(function() {
             self.requestData();
         };
 
-//<<<<<<< HEAD
-//    self.onSlicingDone = function(payload) {
-//		var url = API_BASEURL + "files/" + payload.gcode_location + "/" + payload.gcode;
-//		var data = {refs: {resource: url}};
-//		self.loadFile(data, false); // loads gcode into gcode viewer
-//		
-//		var callback = function(e) {
-//			e.preventDefault(); 
-//			self.loadFile(data, true); // starts print
-//
-//		};
-//		self.printerState.show_safety_glasses_warning(callback);
-//		
-//    };
-//
-//    self.onMetadataAnalysisFinished = function(payload) {
-//        self.requestData();
-//    };	
-//}
-//=======
         self.onEventUpdatedFiles = function(payload) {
             if (payload.type == "gcode") {
                 self.requestData();
@@ -820,11 +800,23 @@ $(function() {
         self.onEventSlicingDone = function(payload) {
             self.requestData();
         };
+		self.onEventSlicingDone = function (payload) {
+			var url = API_BASEURL + "files/" + payload.gcode_location + "/" + payload.gcode;
+			var data = {refs: {resource: url}};
+			self.loadFile(data, false); // loads gcode into gcode viewer
 
-        self.onEventMetadataAnalysisFinished = function(payload) {
+			var callback = function (e) {
+				e.preventDefault();
+				self.loadFile(data, true); // starts print
+
+			};
+			self.printerState.show_safety_glasses_warning(callback);
+
+		};
+
+		self.onEventMetadataAnalysisFinished = function(payload) {
             self.requestData();
         };
-//>>>>>>> upstream/maintenance
 
         self.onEventMetadataStatisticsUpdated = function(payload) {
             self.requestData();

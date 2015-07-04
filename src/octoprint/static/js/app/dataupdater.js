@@ -196,6 +196,7 @@ function DataUpdater(allViewModels) {
                             gcodeUploadProgressBar.text(gettext("Slicing ..."));
                         }
                     } else if (type == "SlicingDone") {
+						console.log("slicingDone Event: payload: ", payload);
                         gcodeUploadProgress.removeClass("progress-striped").removeClass("active");
                         gcodeUploadProgressBar.css("width", "0%");
                         gcodeUploadProgressBar.text("");

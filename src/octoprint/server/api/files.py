@@ -15,12 +15,9 @@ from octoprint.server.util.flask import restricted_access, get_json_command_from
 from octoprint.server.api import api
 from octoprint.events import Events
 import octoprint.filemanager
-#<<<<<<< HEAD
-#import shutil
-#=======
+import shutil
 import octoprint.filemanager.util
 import octoprint.slicing
-#>>>>>>> upstream/maintenance
 
 
 #~~ GCODE file handling
@@ -289,12 +286,7 @@ def gcodeFileCommand(filename, target):
 		"select": [],
 		"slice": []
 	}
-#<<<<<<< HEAD
-#	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
-#=======
-
 	command, data, response = get_json_command_from_request(request, valid_commands)
-#>>>>>>> upstream/maintenance
 	if response is not None:
 		return response
 
@@ -355,7 +347,7 @@ def gcodeFileCommand(filename, target):
 			del data["profile"]
 		else:
 			profile = None
-
+##
 		if "printerProfile" in data.keys() and data["printerProfile"]:
 			printerProfile = data["printerProfile"]
 			del data["printerProfile"]
@@ -428,39 +420,55 @@ def gcodeFileCommand(filename, target):
 def gcodeConvertCommand():
 	target = FileDestinations.LOCAL;
 	
-	#if not _verifyFileExists(target, filename):
-	#	return make_response("File not found on '%s': %s" % (target, filename), 404)
-
 	# valid file commands, dict mapping command name to mandatory parameters
 	valid_commands = {
 		"convert": []
 	}
-	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
+	command, data, response = get_json_command_from_request(request, valid_commands)
 	if response is not None:
 		return response
-	
-	# TODO stripping non-ascii is a hack - svg contains lots of non-ascii in <text> tags. Fix this!
-	import re
-	svg = ''.join(i for i in data['svg'] if ord(i)<128) # strip non-ascii chars like € 
-	del data['svg']
 	
 	appendGcodeFiles = data['gcodeFilesToAppend']
 	del data['gcodeFilesToAppend']
 	
-	def appendCallback(location, path, sources):
-		output_path = fileManager.get_absolute_path(location, path)
-		with open(output_path,'ab') as wfd:
-			for f in sources:
-				path = fileManager.get_absolute_path(f['origin'], f['name'])
-				wfd.write( "\n; "+ f['name'] + "\n")
-				
-				with open(path,'rb') as fd:
-					shutil.copyfileobj(fd, wfd, 1024*1024*10)
-
-				wfd.write( "\nM05\n") # ensure that the laser is off.
+#	def appendCallback(location, path, sources, **kwargs):
+#		if '_error' in kwargs:
+#			result = kwargs['_error']
+#			return make_response("Could not slice: {result}".format(result=result), 500)		
+#		else:
+#			output_path = fileManager.path_on_disk(location, path)
+#			# append additioal gcodes
+#			with open(output_path,'ab') as wfd:
+#				for f in sources:
+#					path = fileManager.path_on_disk(f['origin'], f['name'])
+#					wfd.write( "\n; "+ f['name'] + "\n")
+#
+#					with open(path,'rb') as fd:
+#						shutil.copyfileobj(fd, wfd, 1024*1024*10)
+#
+#					wfd.write( "\nM05\n") # ensure that the laser is off.
+#			#files = {}
+#			#location = url_for(".readGcodeFile", target=target, filename=gcode_name, _external=True)
+#			#result = {
+##				"name": gcode_name,
+##				"origin": FileDestinations.LOCAL,
+##				"refs": {
+##					"resource": location,
+##					"download": url_for("index", _external=True) + "downloads/files/" + target + "/" + gcode_name
+##				}
+##			}
+#
+#			#r = make_response(jsonify(result), 202)
+#			#r.headers["Location"] = location
+#			#return r
 		
+
 		
 	if command == "convert":
+		# TODO stripping non-ascii is a hack - svg contains lots of non-ascii in <text> tags. Fix this!
+		import re
+		svg = ''.join(i for i in data['svg'] if ord(i)<128) # strip non-ascii chars like € 
+		del data['svg']	
 		
 		import os
 		name, _ = os.path.splitext(data['gcode'])
@@ -480,11 +488,8 @@ def gcodeConvertCommand():
 		fileManager.add_file(target, filename, fileObj, links=None, allow_overwrite=True)
 		
 		slicer = "svgtogcode";
-		if "slicer" in data.keys() and data["slicer"]:
-			slicer = data["slicer"]
-			del data["slicer"]
 		slicer_instance = slicingManager.get_slicer(slicer)
-		if slicer_instance.get_slicer_properties()["same_device"] and (printer.isPrinting() or printer.isPaused()):
+		if slicer_instance.get_slicer_properties()["same_device"] and (printer.is_printing() or printer.is_paused()):
 			# slicer runs on same device as OctoPrint, slicing while printing is hence disabled
 			return make_response("Cannot convert while lasering due to performance reasons".format(**locals()), 409)
 
@@ -496,6 +501,7 @@ def gcodeConvertCommand():
 			name, _ = os.path.splitext(filename)
 			gcode_name = name + ".gco"
 			
+		# append number if file exists
 		name, ext = os.path.splitext(gcode_name)
 		i = 1;
 		while(fileManager.file_exists(target, gcode_name)):
@@ -504,7 +510,7 @@ def gcodeConvertCommand():
 
 		# prohibit overwriting the file that is currently being printed
 		currentOrigin, currentFilename = _getCurrentFile()
-		if currentFilename == gcode_name and currentOrigin == target and (printer.isPrinting() or printer.isPaused()):
+		if currentFilename == gcode_name and currentOrigin == target and (printer.is_printing() or printer.is_paused()):
 			make_response("Trying to slice into file that is currently being printed: %s" % gcode_name, 409)
 
 		if "profile" in data.keys() and data["profile"]:
@@ -512,35 +518,82 @@ def gcodeConvertCommand():
 			del data["profile"]
 		else:
 			profile = None
+##
+		if "printerProfile" in data.keys() and data["printerProfile"]:
+			printerProfile = data["printerProfile"]
+			del data["printerProfile"]
+		else:
+			printerProfile = None
+
+		if "position" in data.keys() and data["position"] and isinstance(data["position"], dict) and "x" in data["position"] and "y" in data["position"]:
+			position = data["position"]
+			del data["position"]
+		else:
+			position = None
+			
+		select_after_slicing = False
+		if "select" in data.keys() and data["select"] in valid_boolean_trues:
+			if not printer.is_operational():
+				return make_response("Printer is not operational, cannot directly select for printing", 409)
+			select_after_slicing = True
+
+		print_after_slicing = False
+		if "print" in data.keys() and data["print"] in valid_boolean_trues:
+			if not printer.is_operational():
+				return make_response("Printer is not operational, cannot directly start printing", 409)
+			select_after_slicing = print_after_slicing = True
 
 		override_keys = [k for k in data if k.startswith("profile.") and data[k] is not None]
 		overrides = dict()
 		for key in override_keys:
 			overrides[key[len("profile."):]] = data[key]
 
-		ok, result = fileManager.slice(slicer, target, filename, target, gcode_name, profile=profile, overrides=overrides, 
-			callback=appendCallback, callback_args=[target, gcode_name, appendGcodeFiles])
-		
-		if ok:
-			files = {}
-			location = url_for(".readGcodeFile", target=target, filename=gcode_name, _external=True)
-			result = {
-				"name": gcode_name,
-				"origin": FileDestinations.LOCAL,
-				"refs": {
-					"resource": location,
-					"download": url_for("index", _external=True) + "downloads/files/" + target + "/" + gcode_name
-				}
-			}
+		def slicing_done(target, gcode_name, select_after_slicing, print_after_slicing, append_these_files):
+			# append additioal gcodes
+			output_path = fileManager.path_on_disk(target, gcode_name)
+			with open(output_path,'ab') as wfd:
+				for f in append_these_files:
+					path = fileManager.path_on_disk(f['origin'], f['name'])
+					wfd.write( "\n; "+ f['name'] + "\n")
 
-			r = make_response(jsonify(result), 202)
-			r.headers["Location"] = location
-			return r
-		else:
-			return make_response("Could not slice: {result}".format(result=result), 500)
+					with open(path,'rb') as fd:
+						shutil.copyfileobj(fd, wfd, 1024*1024*10)
+
+					wfd.write( "\nM05\n") # ensure that the laser is off.
+
+			if select_after_slicing or print_after_slicing:
+				sd = False
+				filenameToSelect = fileManager.path_on_disk(target, gcode_name)
+				printer.select_file(filenameToSelect, sd, True)
+
+		try:
+			fileManager.slice(slicer, target, filename, target, gcode_name, 
+							  profile=profile,
+			                  printer_profile_id=printerProfile,
+			                  position=position,
+							  overrides=overrides, 
+							  callback=slicing_done, 
+							  callback_args=[target, gcode_name, select_after_slicing, print_after_slicing, appendGcodeFiles])
+		except octoprint.slicing.UnknownProfile:
+			return make_response("Profile {profile} doesn't exist".format(**locals()), 400)
+
+		files = {}
+		location = url_for(".readGcodeFile", target=target, filename=gcode_name, _external=True)
+		result = {
+			"name": gcode_name,
+			"origin": FileDestinations.LOCAL,
+			"refs": {
+				"resource": location,
+				"download": url_for("index", _external=True) + "downloads/files/" + target + "/" + gcode_name
+			}
+		}
+
+		r = make_response(jsonify(result), 202)
+		r.headers["Location"] = location
+		return r
 
 	return NO_CONTENT
-
+		
 
 @api.route("/files/<string:target>/<path:filename>", methods=["DELETE"])
 @restricted_access

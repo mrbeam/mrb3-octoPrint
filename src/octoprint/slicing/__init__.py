@@ -289,7 +289,6 @@ class SlicingManager(object):
 						on_progress_args=on_progress_args,
 						on_progress_kwargs=on_progress_kwargs
 					)
-
 				if not ok:
 					callback_kwargs.update(dict(_error=result))
 				elif result is not None and isinstance(result, dict) and "analysis" in result:

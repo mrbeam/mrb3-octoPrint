@@ -262,7 +262,6 @@ class MachineCom(object):
 
 		oldState = self.getStateString()
 		self._state = newState
-		print('Changing monitoring state from \'%s\' to \'%s\'' % (oldState, self.getStateString()))
 		self._log('Changing monitoring state from \'%s\' to \'%s\'' % (oldState, self.getStateString()))
 		self._callback.on_comm_state_change(newState)
 
