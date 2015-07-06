@@ -18,7 +18,6 @@ $(function() {
 
         self.searchQuery = ko.observable(undefined);
         self.searchQuery.subscribe(function() {
-			console.log("searhc update");
             self.performSearch();
         });
 
@@ -48,9 +47,10 @@ $(function() {
                     return 0;
                 },
                 "size": function(a, b) {
+					var k = 'size';
                     // sorts descending
-                    if (b["bytes"] === undefined || a["bytes"] > b["bytes"]) return -1;
-                    if (a["bytes"] < b["bytes"]) return 1;
+                    if (b[k] === undefined || a[k] > b[k]) return -1;
+                    if (a[k] < b[k]) return 1;
                     return 0;
                 }
             },
@@ -615,6 +615,6 @@ $(function() {
     OCTOPRINT_VIEWMODELS.push([
         GcodeFilesViewModel,
         ["printerStateViewModel", "loginStateViewModel", "slicingViewModel"],
-        ["#files_wrapper", "#files_search"]
+        ["#files_wrapper", "#files_search", "#files_filter"]
     ]);
 });

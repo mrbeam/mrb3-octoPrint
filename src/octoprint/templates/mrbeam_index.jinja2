@@ -431,7 +431,7 @@
 											<input type="text" style="width:90%;" class="input-block search-query" data-bind="value: searchQuery, valueUpdate: 'input'" placeholder="{{ _('Search...') }}">
 										</form>
 									</div>
-									<ul class="file_list_filter">
+									<ul class="file_list_filter" id="files_filter">
 										<li><a href="#" data-bind="click: function() { $root.listHelper.changeSorting('name'); }"><i class="icon-ok" data-bind="style: {visibility: listHelper.currentSorting() == 'name' ? 'visible' : 'hidden'}"></i> {{ _('Sort by name') }} ({{ _('ascending') }})</a></li>
 										<li><a href="#" data-bind="click: function() { $root.listHelper.changeSorting('upload'); }"><i class="icon-ok" data-bind="style: {visibility: listHelper.currentSorting() == 'upload' ? 'visible' : 'hidden'}"></i> {{ _('Sort by upload date') }} ({{ _('descending') }})</a></li>
 										<li><a href="#" data-bind="click: function() { $root.listHelper.changeSorting('size'); }"><i class="icon-ok" data-bind="style: {visibility: listHelper.currentSorting() == 'size' ? 'visible' : 'hidden'}"></i> {{ _('Sort by file size') }} ({{ _('descending') }})</a></li>
