@@ -427,7 +427,7 @@
 									</div>
 
 									<div id="files_search" class="">
-										<form class="form-search">
+										<form class="form-search" data-bind="submit: performSearch">
 											<input type="text" style="width:90%;" class="input-block search-query" data-bind="value: searchQuery, valueUpdate: 'input'" placeholder="{{ _('Search...') }}">
 										</form>
 									</div>

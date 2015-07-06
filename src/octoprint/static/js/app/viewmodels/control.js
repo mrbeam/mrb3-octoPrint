@@ -207,26 +207,7 @@ $(function() {
 //	
 
 //
-//	self.focus_on = function(){
-//		
-//		$("#confirmation_dialog .confirmation_dialog_message").text(gettext("The laser will now be enabled. Protect yourself and everybody in the room appropriately before proceeding!"));
-//		$("#confirmation_dialog .confirmation_dialog_acknowledge").unbind("click");
-//		$("#confirmation_dialog .confirmation_dialog_acknowledge").click(
-//				function(e) {
-//					e.preventDefault(); 
-//					$("#confirmation_dialog").modal("hide"); 
-//					self.sendCustomCommand({type:'commands', commands:['M8', 'M3S7']});
-//					setTimeout(function(){ // switch focus off after 30 seconds for safety reasons.
-//						self.focus_off();
-//					}, 30000);
-//				});
-//		$("#confirmation_dialog").modal("show");
-//	};
-//	
-//	self.focus_off = function(){
-////		self.sendCustomCommand({type:'command',command:'M5'});
-//		self.sendCustomCommand({type:'commands', commands:['M5', 'M9']});
-//	};
+
 //
 //    self.sendJogCommand = function(axis, multiplier, distance) {
 //        if (typeof distance === "undefined")
@@ -866,13 +847,34 @@ $(function() {
 			self.sendCustomCommand({type: 'command', command: "G92 X0 Y0"});
 		};
 
-		self.jogDistanceInMM = ko.observable(undefined)
+		self.jogDistanceInMM = ko.observable(undefined);
+
+		self.focus_on = function () {
+
+			$("#confirmation_dialog .confirmation_dialog_message").text(gettext("The laser will now be enabled. Protect yourself and everybody in the room appropriately before proceeding!"));
+			$("#confirmation_dialog .confirmation_dialog_acknowledge").unbind("click");
+			$("#confirmation_dialog .confirmation_dialog_acknowledge").click(
+					function (e) {
+						e.preventDefault();
+						$("#confirmation_dialog").modal("hide");
+						self.sendCustomCommand({type: 'commands', commands: ['M8', 'M3S7']});
+						setTimeout(function () { // switch focus off after 30 seconds for safety reasons.
+							self.focus_off();
+						}, 30000);
+					});
+			$("#confirmation_dialog").modal("show");
+		};
+
+		self.focus_off = function () {
+//		self.sendCustomCommand({type:'command',command:'M5'});
+			self.sendCustomCommand({type: 'commands', commands: ['M5', 'M9']});
+		};
 
     }
 
     OCTOPRINT_VIEWMODELS.push([
         ControlViewModel,
         ["loginStateViewModel", "settingsViewModel", 'printerStateViewModel'],
-        "#control"
+        ["#control", '#focus']
     ]);
 });
