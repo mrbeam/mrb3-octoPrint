@@ -1,58 +1,3 @@
-//<<<<<<< HEAD
-//function PrinterStateViewModel(loginStateViewModel, timelapseViewModel, vectorConversionViewModel) {
-//    var self = this;
-//
-//    self.loginState = loginStateViewModel;
-//
-//    self.stateString = ko.observable(undefined);
-//    self.isErrorOrClosed = ko.observable(undefined);
-//    self.isOperational = ko.observable(undefined);
-//    self.isConnecting = ko.observable(undefined);
-//    self.isPrinting = ko.observable(undefined);
-//    self.isPaused = ko.observable(undefined);
-//    self.isError = ko.observable(undefined);
-//    self.isReady = ko.observable(undefined);
-//    self.isLoading = ko.observable(undefined);
-//    self.isSdReady = ko.observable(undefined);
-//
-//    self.filename = ko.observable(undefined);
-//    self.progress = ko.observable(undefined);
-//    self.filesize = ko.observable(undefined);
-//    self.filepos = ko.observable(undefined);
-//    self.printTime = ko.observable(undefined);
-//    self.printTimeLeft = ko.observable(undefined);
-//    self.sd = ko.observable(undefined);
-//    self.timelapse = ko.observable(undefined);
-//
-//    self.busyFiles = ko.observableArray([]);
-//
-//    self.filament = ko.observableArray([]);
-//    self.estimatedPrintTime = ko.observable(undefined);
-//    self.lastPrintTime = ko.observable(undefined);
-//
-//    self.currentHeight = ko.observable(undefined);
-//	
-//	self.conversion = vectorConversionViewModel;
-//
-//
-//    self.TITLE_PRINT_BUTTON_PAUSED = gettext("Restarts the print job from the beginning");
-//    self.TITLE_PRINT_BUTTON_UNPAUSED = gettext("Starts the print job");
-//    self.TITLE_PAUSE_BUTTON_PAUSED = gettext("Resumes the print job");
-//    self.TITLE_PAUSE_BUTTON_UNPAUSED = gettext("Pauses the print job");
-//
-//    self.titlePrintButton = ko.observable(self.TITLE_PRINT_BUTTON_UNPAUSED);
-//    self.titlePauseButton = ko.observable(self.TITLE_PAUSE_BUTTON_UNPAUSED);
-//
-//    self.estimatedPrintTimeString = ko.computed(function() {
-//        if (self.lastPrintTime())
-//            return formatDuration(self.lastPrintTime());
-//        if (self.estimatedPrintTime())
-//            return formatDuration(self.estimatedPrintTime());
-//        return "-";
-//    });
-//    self.byteString = ko.computed(function() {
-//        if (!self.filesize())
-//=======
 $(function() {
     function PrinterStateViewModel(parameters) {
         var self = this;
@@ -102,7 +47,6 @@ $(function() {
                 return formatDuration(self.lastPrintTime());
             if (self.estimatedPrintTime())
                 return formatDuration(self.estimatedPrintTime());
-//>>>>>>> upstream/maintenance
             return "-";
         });
         self.byteString = ko.computed(function() {
@@ -144,97 +88,20 @@ $(function() {
                 return gettext("Pause");
         });
 
-//<<<<<<< HEAD
-//        var type = timelapse["type"];
-//        if (type == "zchange") {
-//            return gettext("On Z Change");
-//        } else if (type == "timed") {
-//            return gettext("Timed") + " (" + timelapse["options"]["interval"] + " " + gettext("sec") + ")";
-//        } else {
-//            return "-";
-//        }
-//    });
-//
-//    self.fromCurrentData = function(data) {
-//        self._fromData(data);
-//    };
-//
-//    self.fromHistoryData = function(data) {
-//        self._fromData(data);
-//    };
-//
-//    self.fromTimelapseData = function(data) {
-//        self.timelapse(data);
-//    };
-//
-//    self._fromData = function(data) {
-//        self._processStateData(data.state);
-//        self._processJobData(data.job);
-//        self._processProgressData(data.progress);
-//        self._processZData(data.currentZ);
-//        self._processBusyFiles(data.busyFiles);
-//		if(data.workPosition){
-//			self._processPos(data.workPosition);
-//		}
-//    };
-//	
-//	self._processPos = function(posStr) {
-//		// example posStr: "X: 73.0000 Y: 192.0000 Z: 0.0000"
-//		var parts = posStr.split(" ");
-//		var x = parseFloat(parts[1]).toFixed(2);
-//		var y = parseFloat(parts[3]).toFixed(2);
-//        self.currentPos({x:x, y:y});
-//    };
-//
-//    self._processStateData = function(data) {
-//        var prevPaused = self.isPaused();
-//        self.stateString(gettext(data.text));
-//        self.isErrorOrClosed(data.flags.closedOrError);
-//        self.isOperational(data.flags.operational);
-//        self.isConnecting(data.text === "Connecting" || data.text === "Opening serial port");
-//        self.isPaused(data.flags.paused);
-//        self.isPrinting(data.flags.printing);
-//        self.isError(data.flags.error);
-//        self.isReady(data.flags.ready);
-//        self.isSdReady(data.flags.sdReady);
-//
-//        if (self.isPaused() != prevPaused) {
-//            if (self.isPaused()) {
-//                self.titlePrintButton(self.TITLE_PRINT_BUTTON_PAUSED);
-//                self.titlePauseButton(self.TITLE_PAUSE_BUTTON_PAUSED);
-//=======
         self.timelapseString = ko.computed(function() {
             var timelapse = self.timelapse();
 
             if (!timelapse || !timelapse.hasOwnProperty("type"))
                 return "-";
-
             var type = timelapse["type"];
             if (type == "zchange") {
                 return gettext("On Z Change");
             } else if (type == "timed") {
                 return gettext("Timed") + " (" + timelapse["options"]["interval"] + " " + gettext("sec") + ")";
-//>>>>>>> upstream/maintenance
             } else {
                 return "-";
             }
-//<<<<<<< HEAD
-//        }
-//    };
-//
-//    self._processJobData = function(data) {
-//        if (data.file) {
-//            self.filename(data.file.name);
-//            self.filesize(data.file.size);
-//            self.sd(data.file.origin === "sdcard");
-//        } else {
-//            self.filename(undefined);
-//            self.filesize(undefined);
-//            self.sd(undefined);
-//        }
-//=======
         });
-//>>>>>>> upstream/maintenance
 
         self.fromCurrentData = function(data) {
             self._fromData(data);
@@ -248,21 +115,17 @@ $(function() {
             self.timelapse(data);
         };
 
-//<<<<<<< HEAD
-//        var result = [];
-//        if (data.filament && typeof(data.filament) === "object" && _.keys(data.filament).length > 0) {
-//            for (var key in data.filament) {
-//                if (!_.startsWith(key, "tool") || !data.filament[key] || !data.filament[key].hasOwnProperty("length") || data.filament[key].length <= 0) continue;
-//=======
+
         self._fromData = function(data) {
             self._processStateData(data.state);
             self._processJobData(data.job);
             self._processProgressData(data.progress);
             self._processZData(data.currentZ);
             self._processBusyFiles(data.busyFiles);
+			if(data.workPosition){
+				self._processPos(data.workPosition);
+			}
         };
-//>>>>>>> upstream/maintenance
-
         self._processStateData = function(data) {
             var prevPaused = self.isPaused();
 
@@ -300,7 +163,6 @@ $(function() {
             }
             self.estimatedPrintTime(data.estimatedPrintTime);
             self.lastPrintTime(data.lastPrintTime);
-
             var result = [];
             if (data.filament && typeof(data.filament) == "object" && _.keys(data.filament).length > 0) {
                 for (var key in data.filament) {
@@ -362,38 +224,11 @@ $(function() {
 			self.show_safety_glasses_warning(callback);
 		};
 
-//<<<<<<< HEAD
-//    };
-//
-//    self.pause = function() {
-//        self._jobCommand("pause");
-//    };
-//
-//    self.cancel = function() {
-//        self._jobCommand("cancel");
-//    };
-//	
-////	self.convertWorkingArea = function(){		
-////        self.conversion.show2();
-////	};
-//
-//    self._jobCommand = function(command, callback) {
-//        $.ajax({
-//            url: API_BASEURL + "job",
-//            type: "POST",
-//            dataType: "json",
-//            contentType: "application/json; charset=UTF-8",
-//            data: JSON.stringify({command: command}),
-//            success: function(response) {
-//                if (callback != undefined) {
-//                    callback();
-//=======
         self._processBusyFiles = function(data) {
             var busyFiles = [];
             _.each(data, function(entry) {
                 if (entry.hasOwnProperty("name") && entry.hasOwnProperty("origin")) {
                     busyFiles.push(entry.origin + ":" + entry.name);
-//>>>>>>> upstream/maintenance
                 }
             });
             self.busyFiles(busyFiles);
@@ -423,7 +258,7 @@ $(function() {
             self._jobCommand("cancel");
         };
 
-        self._jobCommand = function(command, callback) {
+		self._jobCommand = function(command, callback) {
             $.ajax({
                 url: API_BASEURL + "job",
                 type: "POST",
@@ -436,7 +271,15 @@ $(function() {
                     }
                 }
             });
-        }
+        };
+		
+		self._processPos = function (posStr) {
+			// example posStr: "X: 73.0000 Y: 192.0000 Z: 0.0000"
+			var parts = posStr.split(" ");
+			var x = parseFloat(parts[1]).toFixed(2);
+			var y = parseFloat(parts[3]).toFixed(2);
+			self.currentPos({x: x, y: y});
+		};
     }
 
     OCTOPRINT_VIEWMODELS.push([

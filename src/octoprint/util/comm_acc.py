@@ -785,7 +785,6 @@ class MachineCom(object):
 
 				# GRBL Position update
 				if self._grbl :
-					print ('state: ', self.getStateString(), line)
 					if 'MPos:' in line:
 
 						if grblLastStatus == line:

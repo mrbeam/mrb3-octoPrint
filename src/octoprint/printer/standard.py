@@ -146,6 +146,7 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 			except: self._logger.exception("Exception while adding printer message")
 
 	def _sendCurrentDataCallbacks(self, data):
+		print("current Data callback",  self._callbacks)
 		for callback in self._callbacks:
 			try: callback.on_printer_send_current_data(copy.deepcopy(data))
 			except: self._logger.exception("Exception while pushing current data")
@@ -255,11 +256,7 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 
 		printer_profile = self._printerProfileManager.get_current_or_default()
 		movement_speed = printer_profile["axes"][axis]["speed"]
-		self.commands(["G91", "G1 %s%.4f F%d" % (axis.upper(), amount, movement_speed), "G90"])
-#	def jog(self, axis, amount):
-#		printer_profile = self._printerProfileManager.get_current_or_default()
-#		movement_speed = printer_profile["axes"][axis]["speed"]
-#		self.commands(["G91", "G1 %s%.4f F%d" % (axis.upper(), amount, movement_speed), "G90", "?"])
+		self.commands(["G91", "G1 %s%.4f F%d" % (axis.upper(), amount, movement_speed), "G90", "?"])
 
 	def home(self, axes):
 		if(settings().getBoolean(["feature", "grbl"])):
@@ -966,7 +963,9 @@ class StateMonitor(object):
 			"job": self._job_data,
 			"currentZ": self._current_z,
 			"progress": self._progress,
-			"offsets": self._offsets
+			"offsets": self._offsets,
+			"workPosition": self._workPosition,
+			"machinePosition": self._machinePosition
 		}
 		
 	def setWorkPosition(self, workPosition):
