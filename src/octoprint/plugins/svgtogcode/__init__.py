@@ -29,6 +29,36 @@ from .profile import Profile
 
 blueprint = flask.Blueprint("plugin.svgtogcode", __name__)
 
+@blueprint.route("/discovery.xml", methods=["GET"])
+def discovery(self):
+	self._logger.debug("Rendering discovery.xml")
+
+	modelName = self._settings.get(["model", "name"])
+	if not modelName:
+		import octoprint.server
+		modelName = "0.1"
+
+	vendor = self._settings.get(["model", "vendor"])
+	vendorUrl = self._settings.get(["model", "vendorUrl"])
+	if not vendor:
+		vendor = "The Mr Beam Project"
+		vendorUrl = "http://www.mr-beam.org/"
+
+	response = flask.make_response(flask.render_template("svgtogcode.xml.jinja2",
+														 friendlyName=self.get_instance_name(),
+														 manufacturer=vendor,
+														 manufacturerUrl=vendorUrl,
+														 modelName=modelName,
+														 modelDescription=self._settings.get(["model", "description"]),
+														 modelNumber=self._settings.get(["model", "number"]),
+														 modelUrl=self._settings.get(["model", "url"]),
+														 serialNumber=self._settings.get(["model", "serial"]),
+														 uuid=self.get_uuid(),
+														 presentationUrl=flask.url_for("index", _external=True)))
+	response.headers['Content-Type'] = 'application/xml'
+	return response
+
+
 @blueprint.route("/import", methods=["POST"])
 def importSvgToGcodeProfile():
 	import datetime

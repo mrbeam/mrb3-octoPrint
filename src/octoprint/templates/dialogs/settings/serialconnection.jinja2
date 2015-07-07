@@ -18,12 +18,13 @@
             </label>
         </div>
     </div>
+<!--	
     <div class="control-group" title="{{ _('Interval in which to poll for the temperature information from the printer while printing') }}">
         <label class="control-label" for="settings-serialTimeoutTemperature">{{ _('Temperature interval') }}</label>
         <div class="controls">
             <div class="input-append">
                 <input type="number" step="any" min="0" class="input-mini text-right"  data-bind="event: {change: saveall}, value: serial_timeoutCommunication" id="settings-serialTimeoutCommunication">
-                <!--<input type="number" step="any" min="0" class="input-mini text-right" data-bind="value: serial_timeoutTemperature" id="settings-serialTimeoutTemperature">-->
+                <input type="number" step="any" min="0" class="input-mini text-right" data-bind="value: serial_timeoutTemperature" id="settings-serialTimeoutTemperature">
                 <span class="add-on">s</span>
             </div>
         </div>
@@ -38,6 +39,7 @@
             </div>
         </div>
     </div>
+-->
     <div class="control-group" title="{{ _('Time after which the communication with your printer will be considered timed out if nothing was sent by your printer (and an attempt to get it talking again will be done). Increase this if your printer takes longer than this for some moves. This is also the interval in which the temperature will be polled from the printer while not printing.') }}">
         <label class="control-label" for="settings-serialTimeoutCommunication">{{ _('Communication timeout') }}</label>
         <div class="controls">
@@ -73,6 +75,7 @@
             </label>
         </div>
     </div>
+<!--	
     <div class="control-group">
         <label class="control-label" for="settings-serialLongRunningCommands">{{ _('Long running commands') }}</label>
         <div class="controls">
@@ -87,4 +90,5 @@
             <span class="help-inline">{{ _('Use this to define additional <a href="%%(glob_url)s">glob patterns</a> matching serial ports to list for connecting against, e.g. <code>/dev/ttyAMA*</code>. One entry per line.')|format(glob_url="http://docs.python.org/2/library/glob.html") }}</span>
         </div>
     </div>
+	-->
 </form>

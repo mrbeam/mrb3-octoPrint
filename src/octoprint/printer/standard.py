@@ -146,7 +146,6 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 			except: self._logger.exception("Exception while adding printer message")
 
 	def _sendCurrentDataCallbacks(self, data):
-		print("current Data callback",  self._callbacks)
 		for callback in self._callbacks:
 			try: callback.on_printer_send_current_data(copy.deepcopy(data))
 			except: self._logger.exception("Exception while pushing current data")
