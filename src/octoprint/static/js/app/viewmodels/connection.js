@@ -215,10 +215,10 @@ $(function() {
             if (self.previousIsOperational != self.isOperational()) {
                 if (self.isOperational() && connectionTab.hasClass("in")) {
                     // connection just got established, close connection tab for now
-                    connectionTab.collapse("hide");
+//                    connectionTab.collapse("hide");
                 } else if (!connectionTab.hasClass("in")) {
                     // connection just dropped, make sure connection tab is open
-                    connectionTab.collapse("show");
+//                    connectionTab.collapse("show");
                 }
             }
         };

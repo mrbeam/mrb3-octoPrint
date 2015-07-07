@@ -720,69 +720,6 @@ class MachineCom(object):
 				##~~ Error handling
 				line = self._handleErrors(line)
 
-				##~~ SD file list
-				# if we are currently receiving an sd file list, each line is just a filename, so just read it and abort processing
-				if self._sdFileList and not "End file list" in line:
-					preprocessed_line = line.strip().lower()
-					fileinfo = preprocessed_line.rsplit(None, 1)
-					if len(fileinfo) > 1:
-						# we might have extended file information here, so let's split filename and size and try to make them a bit nicer
-						filename, size = fileinfo
-						try:
-							size = int(size)
-						except ValueError:
-							# whatever that was, it was not an integer, so we'll just use the whole line as filename and set size to None
-							filename = preprocessed_line
-							size = None
-					else:
-						# no extended file information, so only the filename is there and we set size to None
-						filename = preprocessed_line
-						size = None
-
-					if valid_file_type(filename, "gcode"):
-						if filter_non_ascii(filename):
-							self._logger.warn("Got a file from printer's SD that has a non-ascii filename (%s), that shouldn't happen according to the protocol" % filename)
-						else:
-							self._sdFiles.append((filename, size))
-						continue
-
-				##~~ Temperature processing
-				if ' T:' in line or line.startswith('T:') or ' T0:' in line or line.startswith('T0:'):
-					self._processTemperatures(line)
-					self._callback.on_comm_temperature_update(self._temp, self._bedTemp)
-
-					#If we are waiting for an M109 or M190 then measure the time we lost during heatup, so we can remove that time from our printing time estimate.
-					if 'ok' in line and self._heatupWaitStartTime:
-						self._heatupWaitTimeLost = self._heatupWaitTimeLost + (time.time() - self._heatupWaitStartTime)
-						self._heatupWaitStartTime = None
-				elif supportRepetierTargetTemp and ('TargetExtr' in line or 'TargetBed' in line):
-					matchExtr = self._regex_repetierTempExtr.match(line)
-					matchBed = self._regex_repetierTempBed.match(line)
-
-					if matchExtr is not None:
-						toolNum = int(matchExtr.group(1))
-						try:
-							target = float(matchExtr.group(2))
-							if toolNum in self._temp.keys() and self._temp[toolNum] is not None and isinstance(self._temp[toolNum], tuple):
-								(actual, oldTarget) = self._temp[toolNum]
-								self._temp[toolNum] = (actual, target)
-							else:
-								self._temp[toolNum] = (None, target)
-							self._callback.on_comm_temperature_update(self._temp, self._bedTemp)
-						except ValueError:
-							pass
-					elif matchBed is not None:
-						try:
-							target = float(matchBed.group(1))
-							if self._bedTemp is not None and isinstance(self._bedTemp, tuple):
-								(actual, oldTarget) = self._bedTemp
-								self._bedTemp = (actual, target)
-							else:
-								self._bedTemp = (None, target)
-							self._callback.on_comm_temperature_update(self._temp, self._bedTemp)
-						except ValueError:
-							pass
-
 				# GRBL Position update
 				if self._grbl :
 					if 'MPos:' in line:
@@ -819,16 +756,21 @@ class MachineCom(object):
 						errorMsg = "Machine Limit Hit. Please reset the machine and do a homing cycle"
 						self._log(errorMsg)
 						self._errorValue = errorMsg
-						self._changeState(self.STATE_ERROR)
 						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
-						self.close()
+						eventManager().fire(Events.LIMITS_HIT, {"error": self.getErrorString()})
+						self._openSerial()
+						self._changeState(self.STATE_CONNECTING)
+
 						
 					if("Invalid gcode" in line and self._state == self.STATE_PRINTING):
+						# TODO Pause machine instead of resetting it.
 						errorMsg = line
 						self._log(errorMsg)
 						self._errorValue = errorMsg
-						self._changeState(self.STATE_ERROR)
+#						self._changeState(self.STATE_ERROR)
 						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+						self._openSerial()
+						self._changeState(self.STATE_CONNECTING)
 						
 					if("Grbl" in line and self._state == self.STATE_PRINTING):
 						errorMsg = "Machine reset."
@@ -836,62 +778,6 @@ class MachineCom(object):
 						self._errorValue = errorMsg
 						self._changeState(self.STATE_LOCKED)
 						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
-
-				##~~ SD Card handling
-				elif 'SD init fail' in line or 'volume.init failed' in line or 'openRoot failed' in line:
-					self._sdAvailable = False
-					self._sdFiles = []
-					self._callback.on_comm_sd_state_change(self._sdAvailable)
-				elif 'Not SD printing' in line:
-					if self.isSdFileSelected() and self.isPrinting():
-						# something went wrong, printer is reporting that we actually are not printing right now...
-						self._sdFilePos = 0
-						self._changeState(self.STATE_OPERATIONAL)
-				elif 'SD card ok' in line and not self._sdAvailable:
-					self._sdAvailable = True
-					self.refreshSdFiles()
-					self._callback.on_comm_sd_state_change(self._sdAvailable)
-				elif 'Begin file list' in line:
-					self._sdFiles = []
-					self._sdFileList = True
-				elif 'End file list' in line:
-					self._sdFileList = False
-					self._callback.on_comm_sd_files(self._sdFiles)
-				elif 'SD printing byte' in line:
-					# answer to M27, at least on Marlin, Repetier and Sprinter: "SD printing byte %d/%d"
-					match = self._regex_sdPrintingByte.search(line)
-					self._currentFile.setFilepos(int(match.group(1)))
-					self._callback.on_comm_progress()
-				elif 'File opened' in line:
-					# answer to M23, at least on Marlin, Repetier and Sprinter: "File opened:%s Size:%d"
-					match = self._regex_sdFileOpened.search(line)
-					self._currentFile = PrintingSdFileInformation(match.group(1), int(match.group(2)))
-				elif 'File selected' in line:
-					# final answer to M23, at least on Marlin, Repetier and Sprinter: "File selected"
-					if self._currentFile is not None:
-						self._callback.on_comm_file_selected(self._currentFile.getFilename(), self._currentFile.getFilesize(), True)
-						eventManager().fire(Events.FILE_SELECTED, {
-							"file": self._currentFile.getFilename(),
-							"origin": self._currentFile.getFileLocation()
-						})
-				elif 'Writing to file' in line:
-					# anwer to M28, at least on Marlin, Repetier and Sprinter: "Writing to file: %s"
-					self._printSection = "CUSTOM"
-					self._changeState(self.STATE_PRINTING)
-					line = "ok"
-				elif 'Done printing file' in line:
-					# printer is reporting file finished printing
-					self._sdFilePos = 0
-					self._callback.on_comm_print_job_done()
-					self._changeState(self.STATE_OPERATIONAL)
-					eventManager().fire(Events.PRINT_DONE, {
-						"file": self._currentFile.getFilename(),
-						"filename": os.path.basename(self._currentFile.getFilename()),
-						"origin": self._currentFile.getFileLocation(),
-						"time": self.getPrintTime()
-					})
-				elif 'Done saving file' in line:
-					self.refreshSdFiles()
 
 				##~~ Message handling
 				elif line.strip() != '' \
@@ -1175,7 +1061,8 @@ class MachineCom(object):
 			ret = self._serial.readline()
 			if('ok' in ret or 'error' in ret):
 				self.gcode_line_counter += 1 # Iterate g-code counter
-				del self.line_lengths[0] # Delete the commands character count corresponding to the last 'ok'
+				if(len(self.line_lengths) > 0):
+					del self.line_lengths[0]  # Delete the commands character count corresponding to the last 'ok'
 		except:
 			self._log("Unexpected error while reading serial port: %s" % (get_exception_string()))
 			self._errorValue = get_exception_string()

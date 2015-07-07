@@ -119,7 +119,7 @@
 										</div>
 									</div>
 									
-									<div class="accordion-body collapse in" id="connection_wrapper" data-bind="visible: (isErrorOrClosed()) && loginState.isUser()">
+									<div class="accordion-body in" id="connection_wrapper" data-bind="visible: (isErrorOrClosed()) && loginState.isUser()">
 										<div class="accordion-inner">
 											<label for="connection_ports" data-bind="css: {disabled: !isErrorOrClosed()}, enable: isErrorOrClosed() && loginState.isUser()">{{ _('Serial Port') }}</label>
 											<select id="connection_ports" data-bind="options: portOptions, optionsCaption: 'AUTO', value: selectedPort, css: {disabled: !isErrorOrClosed()}, enable: isErrorOrClosed() && loginState.isUser()"></select>

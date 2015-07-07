@@ -173,6 +173,7 @@ function DataUpdater(allViewModels) {
                     break;
                 }
                 case "event": {
+					console.log("Event", data);
                     var type = data["type"];
                     var payload = data["payload"];
                     var html = "";
@@ -226,6 +227,14 @@ function DataUpdater(allViewModels) {
                             type: "success"
                         });
                         gcodeFilesViewModel.requestData(payload.remote, "sdcard");
+                    } else if (type === "LimitsHit") {
+						var msg = gettext("Mr Beam has hit the limits of the working area.<br/> Please do a homing cycle get the coordinate origin again.");
+                        new PNotify({
+							title: gettext("Working Area Limits Hit"),
+							type: "error", 
+							hide: false, 
+							text: msg
+						});
                     }
 
                     var legacyEventHandlers = {

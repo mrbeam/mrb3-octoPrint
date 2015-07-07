@@ -86,6 +86,9 @@ class Events(object):
 
 	# Settings
 	SETTINGS_UPDATED = "SettingsUpdated"
+	
+	# GRBL
+	LIMITS_HIT = "LimitsHit"
 
 
 def eventManager():

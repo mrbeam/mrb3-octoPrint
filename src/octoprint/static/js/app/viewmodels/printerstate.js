@@ -128,7 +128,6 @@ $(function() {
         };
         self._processStateData = function(data) {
             var prevPaused = self.isPaused();
-
             self.stateString(gettext(data.text));
             self.isErrorOrClosed(data.flags.closedOrError);
             self.isOperational(data.flags.operational);

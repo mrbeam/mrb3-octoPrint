@@ -1,55 +1,3 @@
-//<<<<<<< HEAD
-//function ControlViewModel(loginStateViewModel, settingsViewModel, printerStateViewModel) {
-//    var self = this;
-//
-//
-//    self._createToolEntry = function() {
-//        return {
-//            name: ko.observable(),
-//            key: ko.observable()
-//        }
-//    };
-//
-//    self.isErrorOrClosed = ko.observable(undefined);
-//    self.isOperational = ko.observable(undefined);
-//    self.isLocked = ko.observable(undefined);
-//    self.isPrinting = ko.observable(undefined);
-//    self.isPaused = ko.observable(undefined);
-//    self.isError = ko.observable(undefined);
-//    self.isReady = ko.observable(undefined);
-//    self.isLoading = ko.observable(undefined);
-//
-//    self.extrusionAmount = ko.observable(undefined);
-//    self.controls = ko.observableArray([]);
-//
-//    self.tools = ko.observableArray([]);
-//
-//    self.feedbackControlLookup = {};
-//
-//    self.keycontrolActive = ko.observable(false);
-//    self.keycontrolHelpActive = ko.observable(false);
-//    self.keycontrolPossible = ko.computed(function() {
-//        return self.isOperational() && !self.isPrinting() && self.loginState.isUser() && !$.browser.mobile;
-//    });
-//    self.showKeycontrols = ko.computed(function() {
-//        return self.keycontrolActive() && self.keycontrolPossible();
-//    });
-//
-//    self.settings.printerProfiles.currentProfileData.subscribe(function() {
-//        self._updateExtruderCount();
-//        self.settings.printerProfiles.currentProfileData().extruder.count.subscribe(self._updateExtruderCount);
-//    });
-//    self._updateExtruderCount = function() {
-//        var tools = [];
-//
-//        var numExtruders = self.settings.printerProfiles.currentProfileData().extruder.count();
-//        if (numExtruders > 1) {
-//            // multiple extruders
-//            for (var extruder = 0; extruder < numExtruders; extruder++) {
-//                tools[extruder] = self._createToolEntry();
-//                tools[extruder]["name"](gettext("Tool") + " " + extruder);
-//                tools[extruder]["key"]("tool" + extruder);
-//=======
 $(function() {
     function ControlViewModel(parameters) {
         var self = this;
@@ -62,32 +10,10 @@ $(function() {
             return {
                 name: ko.observable(),
                 key: ko.observable()
-//>>>>>>> upstream/maintenance
             }
         };
 
 //<<<<<<< HEAD
-//        self.tools(tools);
-//    };
-//
-//    self.fromCurrentData = function(data) {
-//        self._processStateData(data.state);
-//    };
-//
-//    self.fromHistoryData = function(data) {
-//        self._processStateData(data.state);
-//    };
-//
-//    self._processStateData = function(data) {
-//        self.isErrorOrClosed(data.flags.closedOrError);
-//        self.isOperational(data.flags.operational);
-//        self.isLocked(data.flags.locked);
-//        self.isPaused(data.flags.paused);
-//        self.isPrinting(data.flags.printing);
-//        self.isError(data.flags.error);
-//        self.isReady(data.flags.ready);
-//        self.isLoading(data.flags.loading);
-//    };
 //
 //    self.fromFeedbackCommandData = function(data) {
 //        if (data.name in self.feedbackControlLookup) {
@@ -95,14 +21,7 @@ $(function() {
 //        }
 //    };
 //
-//    self.requestData = function() {
-//        $.ajax({
-//            url: API_BASEURL + "printer/command/custom",
-//            method: "GET",
-//            dataType: "json",
-//            success: function(response) {
-//                self._fromResponse(response);
-//            }
+
 //=======
         self.isErrorOrClosed = ko.observable(undefined);
         self.isOperational = ko.observable(undefined);
@@ -135,7 +54,6 @@ $(function() {
         });
         self.showKeycontrols = ko.computed(function () {
             return self.keycontrolActive() && self.keycontrolPossible();
-//>>>>>>> upstream/maintenance
         });
 
         self.settings.printerProfiles.currentProfileData.subscribe(function () {
@@ -195,6 +113,7 @@ $(function() {
                     }
                 });
             }
+        };
 //<<<<<<< HEAD
 //        } else if (control.type == "feedback_command" || control.type == "feedback") {
 //            control.output = ko.observable("");
@@ -209,22 +128,15 @@ $(function() {
 //
 
 //
-//    self.sendJogCommand = function(axis, multiplier, distance) {
-//        if (typeof distance === "undefined")
-//			distance = self.jogDistanceInMM();
-//        if (self.settings.printerProfiles.currentProfileData() && self.settings.printerProfiles.currentProfileData()["axes"] && self.settings.printerProfiles.currentProfileData()["axes"][axis] && self.settings.printerProfiles.currentProfileData()["axes"][axis]["inverted"]()) {
-//            multiplier *= -1;
-//        }
+
 //=======
-        };
-//>>>>>>> upstream/maintenance
 
         self.rerenderControls = function () {
             var allControls = self.controlsFromServer.concat(self.additionalControls);
             self.controls(self._processControls(allControls))
         };
 
-        self.requestData = function () {
+		self.requestData = function () {
             $.ajax({
                 url: API_BASEURL + "printer/command/custom",
                 method: "GET",
@@ -361,21 +273,10 @@ $(function() {
             }
         };
 
-//<<<<<<< HEAD
-//        $.ajax({
-//            url: API_BASEURL + "printer/tool",
-//            type: "POST",
-//            dataType: "json",
-//            contentType: "application/json; charset=UTF-8",
-//            data: JSON.stringify(data)
-//        });
-//    };
-//	
-
-//=======
         self.sendJogCommand = function (axis, multiplier, distance) {
             if (typeof distance === "undefined")
-                distance = $('#jog_distance button.active').data('distance');
+//                distance = $('#jog_distance button.active').data('distance');
+				distance = self.jogDistanceInMM();
             if (self.settings.printerProfiles.currentProfileData() && self.settings.printerProfiles.currentProfileData()["axes"] && self.settings.printerProfiles.currentProfileData()["axes"][axis] && self.settings.printerProfiles.currentProfileData()["axes"][axis]["inverted"]()) {
                 multiplier *= -1;
             }
@@ -405,7 +306,6 @@ $(function() {
         self.sendExtrudeCommand = function () {
             self._sendECommand(1);
         };
-//>>>>>>> upstream/maintenance
 
         self.sendRetractCommand = function () {
             self._sendECommand(-1);
@@ -495,7 +395,7 @@ $(function() {
                 dataType: "json",
                 contentType: "application/json; charset=UTF-8",
                 data: JSON.stringify(data)
-            })
+            });
         };
 
         self.displayMode = function (customControl) {
@@ -524,9 +424,10 @@ $(function() {
 
         self.onStartup = function () {
             self.requestData();
+			self._configureJogDistanceSlider();
         };
 
-        self.updateRotatorWidth = function() {
+		self.updateRotatorWidth = function() {
             var webcamImage = $("#webcam_image");
             if (self.settings.webcam_rotate90()) {
                 if (webcamImage.width() > 0) {
@@ -585,155 +486,36 @@ $(function() {
                 self.rerenderControls();
             }
         };
+	
+		self._jogDistanceMapping = [0.1, 1, 5, 10, 50, 100];
+		self._configureJogDistanceSlider = function () {
+			self.layerSlider = $("#jogDistance").slider({
+				id: "jogDistanceSlider",
+				reversed: false,
+				selection: "after",
+				orientation: "horizontal",
+				min: 0,
+				max: self._jogDistanceMapping.length - 1,
+				step: 1,
+				value: 3,
+				enabled: true,
+				formatter: function (value) {
+					return self._jogDistanceMapping[value] + "mm";
+				}
+			}).on("slide", self.updateJogDistance);
+			self.updateJogDistance();
 
-//<<<<<<< HEAD
-//    };
-//
-//    self.displayMode = function(customControl) {
-//        switch (customControl.type) {
-//            case "section":
-//                return "customControls_sectionTemplate";
-//            case "command":
-//            case "commands":
-//                return "customControls_commandTemplate";
-//            case "parametric_command":
-//            case "parametric_commands":
-//                return "customControls_parametricCommandTemplate";
-//            case "feedback_command":
-//                return "customControls_feedbackCommandTemplate";
-//            case "feedback":
-//                return "customControls_feedbackTemplate";
-//            default:
-//                return "customControls_emptyTemplate";
-//        }
-//    };
-//
-//    self.onStartup = function() {
-//        self.requestData();
-//		self._configureJogDistanceSlider();
-//    };
-//	
-//	self._jogDistanceMapping = [0.1, 1, 5, 10, 50, 100];
-//	self._configureJogDistanceSlider = function() {
-//        self.layerSlider = $("#jogDistance").slider({
-//            id: "jogDistanceSlider",
-//            reversed: false,
-//            selection: "after",
-//            orientation: "horizontal",
-//            min: 0,
-//            max: self._jogDistanceMapping.length-1,
-//            step: 1,
-//            value: 3,
-//            enabled: true,
-//            formatter: function(value) { return self._jogDistanceMapping[value] +"mm"; }
-//        }).on("slide", self.updateJogDistance);
-//		self.updateJogDistance();
-//		
-//    };
-//	
-//	self.updateJogDistance = function(){
-//		var val = self._jogDistanceMapping[$("#jogDistance").slider('getValue')];
-//		self.jogDistanceInMM(val);
-//	};
-//	
-//
-//
-//    self.onFocus = function(data, event) {
-//        if (!self.settings.feature_keyboardControl()) return;
-//        self.keycontrolActive(true);
-//    };
-//
-//    self.onMouseOver = function(data, event) {
-//        if (!self.settings.feature_keyboardControl()) return;
-//        $("#webcam_container").focus();
-//        self.keycontrolActive(true);
-//    };
-//
-//    self.onMouseOut = function(data, event) {
-//        if (!self.settings.feature_keyboardControl()) return;
-//        $("#webcam_container").blur();
-//        self.keycontrolActive(false);
-//    };
-//
-//    self.toggleKeycontrolHelp = function() {
-//        self.keycontrolHelpActive(!self.keycontrolHelpActive());
-//    };
-//
-//    self.onKeyDown = function(data, event) {
-//        if (!self.settings.feature_keyboardControl()) return;
-//
-//        var button = undefined;
-//        var visualizeClick = true;
-//
-//        switch(event.which) {
-//            case 37: // left arrow key
-//                // X-
-//                button = $("#control-xdec");
-//                break;
-//            case 38: // up arrow key
-//                // Y+
-//                button = $("#control-yinc");
-//                break;
-//            case 39: // right arrow key
-//                // X+
-//                button = $("#control-xinc");
-//                break;
-//            case 40: // down arrow key
-//                // Y-
-//                button = $("#control-ydec");
-//                break;
-//            case 49: // number 1
-//            case 97: // numpad 1
-//                // Distance 0.1
-//                button = $("#control-distance01");
-//                visualizeClick = false;
-//                break;
-//            case 50: // number 2
-//            case 98: // numpad 2
-//                // Distance 1
-//                button = $("#control-distance1");
-//                visualizeClick = false;
-//                break;
-//            case 51: // number 3
-//            case 99: // numpad 3
-//                // Distance 10
-//                button = $("#control-distance10");
-//                visualizeClick = false;
-//                break;
-//            case 52: // number 4
-//            case 100: // numpad 4
-//                // Distance 100
-//                button = $("#control-distance100");
-//                visualizeClick = false;
-//                break;
-//            case 33: // page up key
-//            case 87: // w key
-//                // z lift up
-//                button = $("#control-zinc");
-//                break;
-//            case 34: // page down key
-//            case 83: // s key
-//                // z lift down
-//                button = $("#control-zdec");
-//                break;
-//            case 36: // home key
-//                // xy home
-//                button = $("#control-xyhome");
-//                break;
-//            case 35: // end key
-//                // z home
-//                button = $("#control-zhome");
-//                break;
-//            default:
-//                event.preventDefault();
-//                return false;
-//        }
-//=======
+		};
+
+		self.updateJogDistance = function () {
+			var val = self._jogDistanceMapping[$("#jogDistance").slider('getValue')];
+			self.jogDistanceInMM(val);
+		};
+
         self.onFocus = function (data, event) {
             if (!self.settings.feature_keyboardControl()) return;
             self.keycontrolActive(true);
         };
-//>>>>>>> upstream/maintenance
 
         self.onMouseOver = function (data, event) {
             if (!self.settings.feature_keyboardControl()) return;
@@ -756,7 +538,6 @@ $(function() {
 
             var button = undefined;
             var visualizeClick = true;
-
             switch (event.which) {
                 case 37: // left arrow key
                     // X-
@@ -857,7 +638,7 @@ $(function() {
 					function (e) {
 						e.preventDefault();
 						$("#confirmation_dialog").modal("hide");
-						self.sendCustomCommand({type: 'commands', commands: ['M8', 'M3S7']});
+						self.sendCustomCommand({type: 'commands', commands: ['M8', 'M3S10']});
 						setTimeout(function () { // switch focus off after 30 seconds for safety reasons.
 							self.focus_off();
 						}, 30000);
@@ -866,7 +647,7 @@ $(function() {
 		};
 
 		self.focus_off = function () {
-//		self.sendCustomCommand({type:'command',command:'M5'});
+	//		self.sendCustomCommand({type:'command',command:'M5'});
 			self.sendCustomCommand({type: 'commands', commands: ['M5', 'M9']});
 		};
 
