@@ -397,7 +397,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		var d = '';
 
 		var valid = function (val) {
-			return !(typeof (val) !== 'number' || val === Infinity || val < 0);
+			return (isFinite(val) && (val >= 0));
 		};
 
 		// Possibly the cubed root of 6, but 1.81 works best
