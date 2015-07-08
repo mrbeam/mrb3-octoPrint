@@ -83,4 +83,4 @@ class LaserSafetyNotesPlugin(octoprint.plugin.SettingsPlugin,
 
 __plugin_name__ = "lasersafetynotes"
 __plugin_version__ = "0.1"
-__plugin_implementations__ = [LaserSafetyNotesPlugin()]
+__plugin_implementation__ = LaserSafetyNotesPlugin()

@@ -481,4 +481,4 @@ def _sanitize_name(name):
 
 __plugin_name__ = "svgtogcode"
 __plugin_version__ = "0.1"
-__plugin_implementations__ = [SvgToGcodePlugin()]
+__plugin_implementation__ = SvgToGcodePlugin()

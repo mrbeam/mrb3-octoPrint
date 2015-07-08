@@ -1718,7 +1718,8 @@ input.search-query,
 }
 
 #working_area_files .entry {
-  height: 30px;
+  /*height: 30px;*/
+  margin-bottom:.3em;
 }
 
 #working_area_files {

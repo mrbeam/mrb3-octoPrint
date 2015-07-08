@@ -311,7 +311,8 @@ $(function(){
 //			var rot = svg.data('angle') || 0;
 			var startIdx = transform.local.indexOf('r') + 1;
 			var endIdx = transform.local.indexOf(',', startIdx);
-			var rot = parseFloat(transform.local.substring(startIdx, endIdx));
+			var rot = parseFloat(transform.local.substring(startIdx, endIdx)) || 0;
+//			if(!rot) rot = 0; // avoid NaN
 			var scale = transform.localMatrix.a * 100;
 			var id = svg.attr('id');
 			var label_id = id.substr(0, id.indexOf('-'));
@@ -339,16 +340,14 @@ $(function(){
 			if(svgBB.x < waBB.x){
 				dx = -svgBB.x + 0.01;
 				outside = true; 
-			}
-			if(svgBB.x2 > waBB.x2){
+			} else if(svgBB.x2 > waBB.x2){
 				dx = -svgBB.x2 + waBB.x2 - 0.01;
 				outside = true; 
 			}
 			if(svgBB.y < waBB.y){
 				dy = -svgBB.y + 0.01;
 				outside = true; 
-			}
-			if(svgBB.y2 > waBB.y2){
+			} else 	if(svgBB.y2 > waBB.y2){
 				dy = -svgBB.y2 + waBB.y2 - 0.01;
 				outside = true; 
 			}
