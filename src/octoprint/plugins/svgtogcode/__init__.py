@@ -155,7 +155,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 
 	def on_startup(self, host, port):
 		# setup our custom logger
-		svgtogcode_logging_handler = logging.handlers.RotatingFileHandler(s.getPluginLogfilePath(postfix="engine"), maxBytes=2*1024*1024)
+		svgtogcode_logging_handler = logging.handlers.RotatingFileHandler(s.get_plugin_logfile_path(postfix="engine"), maxBytes=2*1024*1024)
 		svgtogcode_logging_handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
 		svgtogcode_logging_handler.setLevel(logging.DEBUG)
 

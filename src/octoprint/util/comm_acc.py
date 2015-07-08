@@ -24,7 +24,6 @@ from octoprint.settings import settings, default_settings
 from octoprint.events import eventManager, Events
 from octoprint.filemanager import valid_file_type
 from octoprint.filemanager.destinations import FileDestinations
-#from octoprint.util import get_exception_string, getNewTimeout, sanitize_ascii, filter_non_ascii
 from octoprint.util import get_exception_string, sanitize_ascii, filter_non_ascii, CountedEvent, RepeatedTimer
 from octoprint.util.virtual import VirtualPrinter
 
@@ -32,6 +31,9 @@ try:
 	import _winreg
 except:
 	pass
+
+# TODO needs extensive . it interferes with ordinary commands.
+REALTIME_COMMANDS = ['!','~',chr(24), '?']
 
 def serialList():
 	baselist=[]
@@ -165,7 +167,7 @@ class MachineCom(object):
 		self._grbl = settings().getBoolean(["feature", "grbl"])
 		self.line_lengths = [] # store char count of all send commands until ok is received
 		self.gcode_line_counter = 0 # counter of successful sent gcode lines
-		self.RX_BUFFER_SIZE = 128 # size of the Arduino RX Buffer. TODO: put in machine profile
+		self.RX_BUFFER_SIZE = 127 # size of the Arduino RX Buffer. TODO: put in machine profile
 
 		# hooks
 		self._pluginManager = octoprint.plugin.plugin_manager()
@@ -392,8 +394,10 @@ class MachineCom(object):
 
 	def sendCommand(self, cmd):
 		cmd = cmd.encode('ascii', 'replace')
-		if self.isPrinting() and not self.isSdFileSelected():
-			self._log("command while printing. Queueing... ")
+		if(cmd in REALTIME_COMMANDS): # send realtime even when printing
+			self._sendCommand(cmd)
+		elif self.isPrinting() and not self.isSdFileSelected():
+			self._log("command while printing. Queueing... " + cmd)
 			self._commandQueue.put(cmd)
 		elif self.isOperational() or self.isLocked():
 			self._sendCommand(cmd)
@@ -481,12 +485,12 @@ class MachineCom(object):
 	def cancelPrint(self):
 		if not self.isOperational() or self.isStreaming():
 			return
-
+		
+		with self._commandQueue.mutex:
+			self._commandQueue.queue.clear()
+		self.sendCommand('M5')
+		self.sendCommand(chr(24)) # ^X
 		self._changeState(self.STATE_OPERATIONAL)
-
-		if self.isSdFileSelected():
-			self.sendCommand("M25")    # pause print
-			self.sendCommand("M26 S0") # reset position in file to byte 0
 
 		eventManager().fire(Events.PRINT_CANCELLED, {
 			"file": self._currentFile.getFilename(),
@@ -504,6 +508,9 @@ class MachineCom(object):
 				self._pauseWaitStartTime = None
 
 			self._changeState(self.STATE_PRINTING)
+			if(self._laserOn): 
+				self.sendCommand('M3')
+			self.sendCommand('~')
 			if self.isSdFileSelected():
 				self.sendCommand("M24")
 			else:
@@ -518,6 +525,8 @@ class MachineCom(object):
 			if not self._pauseWaitStartTime:
 				self._pauseWaitStartTime = time.time()
 
+			self.sendCommand('M5')
+			self.sendCommand('!')
 			self._changeState(self.STATE_PAUSED)
 			if self.isSdFileSelected():
 				self.sendCommand("M25") # pause print
@@ -722,35 +731,27 @@ class MachineCom(object):
 
 				# GRBL Position update
 				if self._grbl :
-					if 'MPos:' in line:
+					if("Alarm lock" in line):
+						self._changeState(self.STATE_LOCKED)
 
+					if("Idle" in line and self._state == self.STATE_LOCKED):
+						self._changeState(self.STATE_OPERATIONAL)
+					
+					# TODO highly experimental. needs testing.
+					#if("Hold" in line and self._state == self.STATE_PRINTING):
+					#	self._changeState(self.STATE_PAUSED)
+					#if("Run" in line and self._state == self.STATE_PAUSED):
+					#	self._changeState(self.STATE_PRINTING)
+
+					if 'MPos:' in line:
+						# check movement
 						if grblLastStatus == line:
 							grblMoving = False
 						else:
 							grblMoving = True
-
 						grblLastStatus = line
 
-						if("Alarm lock" in line):
-							self._changeState(self.STATE_LOCKED)
-						if("Idle" in line and self._state == self.STATE_LOCKED):
-							self._changeState(self.STATE_OPERATIONAL)
-						# TODO highly experimental. needs testing.
-						#if("Queue" in line and self._state == self.STATE_PRINTING):
-						#	self._changeState(self.STATE_PAUSED)
-						#if("Run" in line and self._state == self.STATE_PAUSED):
-						#	self._changeState(self.STATE_PRINTING)
-					
-						
-						parts = line.strip("\r\n").split(":")
-
-						pos = parts[1].split(",")
-						MPos = (float(pos[0]), float(pos[1]), float(pos[2]))
-
-						pos = parts[2].split(",")
-						WPos = (float(pos[0]), float(pos[1]), float( pos[2].strip(">") ))
-					
-						self._callback.on_comm_pos_update(MPos, WPos)
+						self._update_grbl_pos(line)
 
 					if("ALARM: Hard/soft limit" in line):
 						errorMsg = "Machine Limit Hit. Please reset the machine and do a homing cycle"
@@ -1197,13 +1198,20 @@ class MachineCom(object):
 		self._doSendWithoutChecksum(commandToSend)
 
 	def _doSendWithoutChecksum(self, cmd):
+		realtime_cmd = False
+		if(cmd in REALTIME_COMMANDS):
+			realtime_cmd = True
+			
 		self._log("Send: %s" % cmd)
 		chars_in_buffer = sum(self.line_lengths)
-		if(chars_in_buffer + len(cmd)+1 >= self.RX_BUFFER_SIZE-1): # queue command if arduino serial buffer is full
-			self._log("avoiding Arduino RX buffer overflow [%d/%d], queuing cmd %d : %s" % (chars_in_buffer,  self.RX_BUFFER_SIZE,  self.gcode_line_counter, cmd))
+		# TODO needs debugging. it interferes with ordinary commands.
+		if(not realtime_cmd and (chars_in_buffer + len(cmd)+1 >= self.RX_BUFFER_SIZE-1)): # queue command if arduino serial buffer is full
+			self._log("RX buffer [%d/%d], queuing cmd %d : %s" % (chars_in_buffer,  self.RX_BUFFER_SIZE,  self.gcode_line_counter, cmd))
 			self._commandQueue.put(cmd)
 		else:
+			#if(not realtime_cmd):
 			self.line_lengths.append(len(cmd)+1) # count chars sent to the arduino
+
 			try:
 				self._serial.write(cmd + '\n')
 
@@ -1219,6 +1227,29 @@ class MachineCom(object):
 				self._log("Unexpected error while writing serial port: %s" % (get_exception_string()))
 				self._errorValue = get_exception_string()
 				self.close(True)
+
+	def _gcode_M3(self, cmd):
+		self._log("M3 command: %s" % cmd)
+		intensity = 0
+		match = self._regex_paramSInt.search(cmd)
+		if match:
+			try:
+				intensity = int(match.group(1))
+				self._laserOn = (intensity > 0)
+			except ValueError:
+				pass
+		return cmd
+
+	def _gcode_M03(self, cmd):
+		return self._gcode_M3(cmd)
+			
+	def _gcode_M5(self, cmd):
+		self._log("M5 command: %s" % cmd)
+		self._laserOn = False
+		return cmd
+
+	def _gcode_M05(self, cmd):
+		return self._gcode_M5(cmd)
 
 	def _gcode_T(self, cmd):
 		toolMatch = self._regex_paramTInt.search(cmd)
@@ -1245,45 +1276,7 @@ class MachineCom(object):
 		return "M105" # Don't send the M0 or M1 to the machine, as M0 and M1 are handled as an LCD menu pause.
 	_gcode_M1 = _gcode_M0
 
-	def _gcode_M104(self, cmd):
-		toolNum = self._currentExtruder
-		toolMatch = self._regex_paramTInt.search(cmd)
-		if toolMatch:
-			toolNum = int(toolMatch.group(1))
-		match = self._regex_paramSInt.search(cmd)
-		if match:
-			try:
-				target = float(match.group(1))
-				if toolNum in self._temp.keys() and self._temp[toolNum] is not None and isinstance(self._temp[toolNum], tuple):
-					(actual, oldTarget) = self._temp[toolNum]
-					self._temp[toolNum] = (actual, target)
-				else:
-					self._temp[toolNum] = (None, target)
-			except ValueError:
-				pass
-		return cmd
 
-	def _gcode_M140(self, cmd):
-		match = self._regex_paramSInt.search(cmd)
-		if match:
-			try:
-				target = float(match.group(1))
-				if self._bedTemp is not None and isinstance(self._bedTemp, tuple):
-					(actual, oldTarget) = self._bedTemp
-					self._bedTemp = (actual, target)
-				else:
-					self._bedTemp = (None, target)
-			except ValueError:
-				pass
-		return cmd
-
-	def _gcode_M109(self, cmd):
-		self._heatupWaitStartTime = time.time()
-		return self._gcode_M104(cmd)
-
-	def _gcode_M190(self, cmd):
-		self._heatupWaitStartTime = time.time()
-		return self._gcode_M140(cmd)
 
 	def _gcode_M110(self, cmd):
 		newLineNumber = None
@@ -1324,6 +1317,18 @@ class MachineCom(object):
 			_timeout = float(cmd[s_idx+1:])
 		self._timeout = get_new_timeout("communication") + _timeout
 		return cmd
+
+	def _update_grbl_pos(self, line):
+			parts = line.strip("\r\n").split(":")
+
+			pos = parts[1].split(",")
+			MPos = (float(pos[0]), float(pos[1]), float(pos[2]))
+
+			pos = parts[2].split(",")
+			WPos = (float(pos[0]), float(pos[1]), float( pos[2].strip(">") ))
+
+			self._callback.on_comm_pos_update(MPos, WPos)
+
 
 ### MachineCom callback ################################################################################################
 
