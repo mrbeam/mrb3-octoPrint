@@ -24,16 +24,6 @@
 //        self.updateOutput();
 //    };
 //
-
-//
-//    self.updateFilterRegex = function() {
-//        var filterRegexStr = self.activeFilters().join("|").trim();
-//        if (filterRegexStr == "") {
-//            self.filterRegex = undefined;
-//        } else {
-//            self.filterRegex = new RegExp(filterRegexStr);
-//        }
-//    };
 //
 //    self.updateOutput = function() {
 //        if (!self.log)
@@ -127,7 +117,8 @@ $(function() {
             }
         });
 
-        self.activeFilters = ko.observableArray([]);
+//        self.activeFilters = ko.observableArray([]);
+        self.activeFilters = ko.observableArray(self.filters); // all enabled by default
         self.activeFilters.subscribe(function(e) {
             self.updateFilterRegex();
         });
