@@ -173,7 +173,7 @@ function DataUpdater(allViewModels) {
                     break;
                 }
                 case "event": {
-					console.log("Event", data);
+					//console.log("Event", data);
                     var type = data["type"];
                     var payload = data["payload"];
                     var html = "";
@@ -235,6 +235,8 @@ function DataUpdater(allViewModels) {
 							hide: false, 
 							text: msg
 						});
+                    } else if (type === "RealTimeState") {
+						
                     }
 
                     var legacyEventHandlers = {

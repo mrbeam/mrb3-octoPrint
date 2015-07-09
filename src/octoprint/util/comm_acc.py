@@ -156,18 +156,21 @@ class MachineCom(object):
 		self._currentExtruder = 0
 
 		self._timeout = None
+		self._temperature_timer = None
+
 
 		self._alwaysSendChecksum = settings().getBoolean(["feature", "alwaysSendChecksum"])
 		self._currentLine = 1
 		self._resendDelta = None
 		self._lastLines = deque([], 50)
 
-
 		# enabled grbl mode if requested
 		self._grbl = settings().getBoolean(["feature", "grbl"])
 		self.line_lengths = [] # store char count of all send commands until ok is received
 		self.gcode_line_counter = 0 # counter of successful sent gcode lines
 		self.RX_BUFFER_SIZE = 127 # size of the Arduino RX Buffer. TODO: put in machine profile
+
+		self._laserOn = False # flag if laser is active or not
 
 		# hooks
 		self._pluginManager = octoprint.plugin.plugin_manager()
@@ -360,8 +363,16 @@ class MachineCom(object):
 		return self._port, self._baudrate
 
 	##~~ external interface
-
+		
 	def close(self, isError = False):
+		if self._temperature_timer is not None:
+			try:
+				self._temperature_timer.cancel()
+			except:
+				pass
+		#self._monitoring_active = False
+		#self._send_queue_active = False
+
 		printing = self.isPrinting() or self.isPaused()
 		if self._serial is not None:
 			if isError:
@@ -508,13 +519,8 @@ class MachineCom(object):
 				self._pauseWaitStartTime = None
 
 			self._changeState(self.STATE_PRINTING)
-			if(self._laserOn): 
-				self.sendCommand('M3')
 			self.sendCommand('~')
-			if self.isSdFileSelected():
-				self.sendCommand("M24")
-			else:
-				self._sendNext()
+			self._sendNext()
 
 			eventManager().fire(Events.PRINT_RESUMED, {
 				"file": self._currentFile.getFilename(),
@@ -525,12 +531,9 @@ class MachineCom(object):
 			if not self._pauseWaitStartTime:
 				self._pauseWaitStartTime = time.time()
 
-			self.sendCommand('M5')
 			self.sendCommand('!')
 			self._changeState(self.STATE_PAUSED)
-			if self.isSdFileSelected():
-				self.sendCommand("M25") # pause print
-
+			
 			eventManager().fire(Events.PRINT_PAUSED, {
 				"file": self._currentFile.getFilename(),
 				"filename": os.path.basename(self._currentFile.getFilename()),
@@ -666,7 +669,7 @@ class MachineCom(object):
 				self._bedTemp = (actual, None)
 
 	def _monitor(self):
-		### TODO hack
+		### TODO hack. Should <Hold: ...> trigger a pause? 
 		#feedbackControls = settings().getFeedbackControls()
 		feedbackControls = None
 		#pauseTriggers = settings().getPauseTriggers()
@@ -687,13 +690,12 @@ class MachineCom(object):
 		#Start monitoring the serial port.
 		self._timeout = get_new_timeout("communication")
 
-		tempRequestTimeout = get_new_timeout("temperature")
-		sdStatusRequestTimeout = get_new_timeout("sdStatus")
+		#tempRequestTimeout = get_new_timeout("temperature")
+		#sdStatusRequestTimeout = get_new_timeout("sdStatus")
 
 		startSeen = not settings().getBoolean(["feature", "waitForStartOnConnect"])
 		heatingUp = False
 		swallowOk = False
-		supportRepetierTargetTemp = settings().getBoolean(["feature", "repetierTargetTemp"])
 		grblMoving = True
 		grblLastStatus = ""
 
@@ -702,8 +704,8 @@ class MachineCom(object):
 				line = self._readline()
 				if line is None:
 					break
-				if line.strip() is not "":
-					self._timeout = get_new_timeout("communication")
+				#if line.strip() is not "":
+				#	self._timeout = get_new_timeout("communication")
 
 				##~~ debugging output handling
 				if line.startswith("//"):
@@ -836,11 +838,7 @@ class MachineCom(object):
 							self._baudrateDetectRetry -= 1
 							self._serial.write('\n')
 							self._log("Baudrate test retry: %d" % (self._baudrateDetectRetry))
-							# self._sendCommand("M105")
-							if self._grbl:
-								self._sendCommand("$")
-							else:
-								self._sendCommand("M105")
+							self._sendCommand("$")
 							self._testingBaudrate = True
 						else:
 							baudrate = self._baudrateDetectList.pop(0)
@@ -850,58 +848,25 @@ class MachineCom(object):
 								self._log("Trying baudrate: %d" % (baudrate))
 								self._baudrateDetectRetry = 5
 								self._baudrateDetectTestOk = 0
-								self._timeout = get_new_timeout("communication")
+								#self._timeout = get_new_timeout("communication")
 								self._serial.write('\n')
-								# self._sendCommand("M105")
-								if self._grbl:
-									self._sendCommand("$")
-								else:
-									self._sendCommand("M105")
+								self._sendCommand("$")
 								self._testingBaudrate = True
 							except:
 								self._log("Unexpected error while setting baudrate: %d %s" % (baudrate, get_exception_string()))
 					elif self._grbl and '$$' in line:
 						self._log("Baudrate test ok: %d" % (self._baudrateDetectTestOk))
 						self._changeState(self.STATE_OPERATIONAL)
-					elif 'ok' in line and 'T:' in line:
-						self._baudrateDetectTestOk += 1
-						if self._baudrateDetectTestOk < 10:
-							self._log("Baudrate test ok: %d" % (self._baudrateDetectTestOk))
-							self._sendCommand("M105")
-						else:
-							self._sendCommand("M999")
-							self._serial.timeout = settings().getFloat(["serial", "timeout", "connection"])
-							self._changeState(self.STATE_OPERATIONAL)
-							if self._sdAvailable:
-								self.refreshSdFiles()
-							else:
-								self.initSdCard()
-							eventManager().fire(Events.CONNECTED, {"port": self._port, "baudrate": self._baudrate})
 					else:
 						self._testingBaudrate = False
 
 				### Connection attempt
 				elif self._state == self.STATE_CONNECTING:
-					if self._grbl:
-						if "Grbl" in line:
-							self._changeState(self.STATE_LOCKED)
-							self.line_lengths = []
-							self._log("connected. reseting character counter.")
+					if "Grbl" in line:
+						self._onConnected()
 
-					else:
-						if (line == "" or "wait" in line) and startSeen:
-							self._sendCommand("M105")
-						elif "start" in line:
-							startSeen = True
-						elif "ok" in line and startSeen:
-							self._changeState(self.STATE_OPERATIONAL)
-							if self._sdAvailable:
-								self.refreshSdFiles()
-							else:
-								self.initSdCard()
-							eventManager().fire(Events.CONNECTED, {"port": self._port, "baudrate": self._baudrate})
-						elif time.time() > self._timeout:
-							self.close()
+					elif time.time() > self._timeout:
+						self.close()
 
 				### Operational
 				elif self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PAUSED or self._state == self.STATE_LOCKED:
@@ -912,15 +877,13 @@ class MachineCom(object):
 						elif not self._commandQueue.empty():
 							self._sendCommand(self._commandQueue.get())
 						else:
-							if self._grbl:
-								self._sendCommand("?")
-							else:
-								self._sendCommand("M105")
-								
-						if self._grbl:
-							tempRequestTimeout = get_new_timeout("position")
-						else:
-							tempRequestTimeout = get_new_timeout("detection") 
+							pass
+#							self._sendCommand("?")
+#								
+#						if self._grbl:
+#							tempRequestTimeout = get_new_timeout("position")
+#						else:
+#							tempRequestTimeout = get_new_timeout("detection") 
 						###print(tempRequestTimeout)
 						
 					# resend -> start resend procedure from requested line
@@ -938,41 +901,35 @@ class MachineCom(object):
 						else:
 							line = ""
 
-					if self.isSdPrinting():
-						if time.time() > tempRequestTimeout and not heatingUp:
-							if not self._grbl:
-								self._sendCommand("M105")
-							tempRequestTimeout = get_new_timeout("temperature")
+					# Even when printing request the temperature every 5 seconds.
+#					if time.time() > tempRequestTimeout and not self.isStreaming():
+#						if self._grbl:
+#							self._commandQueue.put("?")
+#							tempRequestTimeout = get_new_timeout("position")
+#						else:
+#							self._commandQueue.put("M105")
+#							tempRequestTimeout = get_new_timeout("temperature")
 
-						if time.time() > sdStatusRequestTimeout and not heatingUp:
-							self._sendCommand("M27")
-							sdStatusRequestTimeout = get_new_timeout("sdStatus")
-					else:
-						# Even when printing request the temperature every 5 seconds.
-						if time.time() > tempRequestTimeout and not self.isStreaming():
-							if self._grbl:
-								# disabled, caused race conditions during streaming resulting in a Invalid Gcode ID24
-								self._commandQueue.put("?")
-								tempRequestTimeout = get_new_timeout("position")
-								#pass
-							else:
-								self._commandQueue.put("M105")
-								tempRequestTimeout = get_new_timeout("temperature")
+					if "ok" in line and swallowOk:
+						swallowOk = False
+					elif "ok" in line:
 
-						if "ok" in line and swallowOk:
-							swallowOk = False
-						elif "ok" in line:
+						if self._resendDelta is not None:
+							self._resendNextCommand()
+						elif not self._commandQueue.empty() and not self.isStreaming():
+							self._sendCommand(self._commandQueue.get(), True)
+						else:
+							self._sendNext()
+					elif line.lower().startswith("resend") or line.lower().startswith("rs"):
+						if settings().get(["feature", "swallowOkAfterResend"]):
+							swallowOk = True
+						self._handleResendRequest(line)
+				
+#				# pos update
+#				if time.time() > tempRequestTimeout and not self.isStreaming():
+#					self._commandQueue.put("?")
+#					tempRequestTimeout = get_new_timeout("position")
 
-							if self._resendDelta is not None:
-								self._resendNextCommand()
-							elif not self._commandQueue.empty() and not self.isStreaming():
-								self._sendCommand(self._commandQueue.get(), True)
-							else:
-								self._sendNext()
-						elif line.lower().startswith("resend") or line.lower().startswith("rs"):
-							if settings().get(["feature", "swallowOkAfterResend"]):
-								swallowOk = True
-							self._handleResendRequest(line)
 			except:
 				self._logger.exception("Something crashed inside the serial connection loop, please report this in OctoPrint's bug tracker:")
 
@@ -982,6 +939,27 @@ class MachineCom(object):
 				self._changeState(self.STATE_ERROR)
 				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 		self._log("Connection closed, closing down monitor")
+
+	def _poll_temperature(self):
+		"""
+		Polls the temperature after the temperature timeout, re-enqueues itself.
+
+		If the printer is not operational, not printing from sd, busy with a long running command or heating, no poll
+		will be done.
+		"""
+		if (self.isOperational() or self.isLocked() or self.isPrinting()) and not self.isStreaming() :
+			#self.sendCommand("?", cmd_type="temperature_poll")
+			self.sendCommand("?")
+
+	def _onConnected(self):
+		self._changeState(self.STATE_LOCKED)
+		self.line_lengths = []
+		self._log("connected. reseting character counter.")
+		#self._temperature_timer = RepeatedTimer(lambda: get_interval("0.1"), self._poll_temperature, run_first=True)
+		self._temperature_timer = RepeatedTimer(0.1, self._poll_temperature, run_first=True)
+		self._temperature_timer.start()
+		eventManager().fire(Events.CONNECTED, {"port": self._port, "baudrate": self._baudrate})
+
 
 	def _openSerial(self):
 		if self._port == 'AUTO':
@@ -1201,15 +1179,15 @@ class MachineCom(object):
 		realtime_cmd = False
 		if(cmd in REALTIME_COMMANDS):
 			realtime_cmd = True
-			
-		self._log("Send: %s" % cmd)
+		
+		if(cmd != '?'):
+			self._log("Send: %s" % cmd)
 		chars_in_buffer = sum(self.line_lengths)
 		# TODO needs debugging. it interferes with ordinary commands.
 		if(not realtime_cmd and (chars_in_buffer + len(cmd)+1 >= self.RX_BUFFER_SIZE-1)): # queue command if arduino serial buffer is full
 			self._log("RX buffer [%d/%d], queuing cmd %d : %s" % (chars_in_buffer,  self.RX_BUFFER_SIZE,  self.gcode_line_counter, cmd))
 			self._commandQueue.put(cmd)
 		else:
-			#if(not realtime_cmd):
 			self.line_lengths.append(len(cmd)+1) # count chars sent to the arduino
 
 			try:
@@ -1319,15 +1297,43 @@ class MachineCom(object):
 		return cmd
 
 	def _update_grbl_pos(self, line):
-			parts = line.strip("\r\n").split(":")
+		# line example:
+		# <Idle,MPos:-434.000,-596.000,0.000,WPos:0.000,0.000,0.000,S:0,laser off:0>
+		try:
+			idx_mx_begin = line.index('MPos:') + 5
+			idx_mx_end = line.index('.', idx_mx_begin) + 2
+			idx_my_begin = line.index(',', idx_mx_end) + 1
+			idx_my_end = line.index('.', idx_my_begin) + 2
+			idx_mz_begin = line.index(',', idx_my_end) + 1
+			idx_mz_end = line.index('.', idx_mz_begin) + 2
 
-			pos = parts[1].split(",")
-			MPos = (float(pos[0]), float(pos[1]), float(pos[2]))
+			idx_wx_begin = line.index('WPos:') + 5
+			idx_wx_end = line.index('.', idx_wx_begin) + 2
+			idx_wy_begin = line.index(',', idx_wx_end) + 1
+			idx_wy_end = line.index('.', idx_wy_begin) + 2
+			idx_wz_begin = line.index(',', idx_wy_end) + 1
+			idx_wz_end = line.index('.', idx_wz_begin) + 2
+			
+			idx_intensity_begin = line.index('S:', idx_wz_end) + 2
+			idx_intensity_end = line.index(',', idx_intensity_begin)
 
-			pos = parts[2].split(",")
-			WPos = (float(pos[0]), float(pos[1]), float( pos[2].strip(">") ))
+			idx_laserstate_begin = line.index('laser ', idx_intensity_end) + 6
+			idx_laserstate_end = line.index(':', idx_laserstate_begin)
 
-			self._callback.on_comm_pos_update(MPos, WPos)
+			payload = {
+				"mx": line[idx_mx_begin:idx_mx_end],
+				 "my": line[idx_my_begin:idx_my_end],
+				"mz": line[idx_mz_begin:idx_mz_end],
+				"wx": line[idx_wx_begin:idx_wx_end],
+				 "wy": line[idx_wy_begin:idx_wy_end],
+				 "wz": line[idx_wz_begin:idx_wz_end],
+				"laser": line[idx_laserstate_begin:idx_laserstate_end],
+				"intensity": line[idx_intensity_begin:idx_intensity_end]
+			}
+			eventManager().fire(Events.RT_STATE, payload)
+		except ValueError:
+			pass
+		
 
 
 ### MachineCom callback ################################################################################################
@@ -1578,7 +1584,8 @@ class StreamingGcodeFileInformation(PrintingGcodeFileInformation):
 
 def get_new_timeout(type):
 	now = time.time()
-	return now + get_interval(type)
+	interval = get_interval(type)
+	return now + interval
 
 
 def get_interval(type):

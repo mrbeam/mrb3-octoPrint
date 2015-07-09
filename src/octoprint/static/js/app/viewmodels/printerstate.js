@@ -122,9 +122,6 @@ $(function() {
             self._processProgressData(data.progress);
             self._processZData(data.currentZ);
             self._processBusyFiles(data.busyFiles);
-			if(data.workPosition){
-				self._processPos(data.workPosition);
-			}
         };
         self._processStateData = function(data) {
             var prevPaused = self.isPaused();
@@ -272,12 +269,8 @@ $(function() {
             });
         };
 		
-		self._processPos = function (posStr) {
-			// example posStr: "X: 73.0000 Y: 192.0000 Z: 0.0000"
-			var parts = posStr.split(" ");
-			var x = parseFloat(parts[1]).toFixed(2);
-			var y = parseFloat(parts[3]).toFixed(2);
-			self.currentPos({x: x, y: y});
+		self.onEventRealTimeState = function(payload){
+			self.currentPos({x: payload.wx, y: payload.wy});
 		};
     }
 

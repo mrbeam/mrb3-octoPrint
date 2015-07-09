@@ -89,6 +89,7 @@ class Events(object):
 	
 	# GRBL
 	LIMITS_HIT = "LimitsHit"
+	RT_STATE = "RealTimeState"
 
 
 def eventManager():

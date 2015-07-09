@@ -168,9 +168,7 @@ def index():
 	plugin_names = set()
 	plugins_with_hidden_settings = ['pluginmanager']
 	for implementation in template_plugins:
-		print('plugin ', implementation._identifier)
 		if(implementation._identifier in plugins_with_hidden_settings):
-			print("blocked")
 			continue
 		name = implementation._identifier
 		plugin_names.add(name)
