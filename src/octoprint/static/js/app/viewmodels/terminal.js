@@ -1,51 +1,3 @@
-//<<<<<<< HEAD
-//function TerminalViewModel(loginStateViewModel, settingsViewModel) {
-
-//
-
-//
-
-//
-//    self.fromHistoryData = function(data) {
-//        self._processStateData(data.state);
-//        self._processHistoryLogData(data.logs);
-//    };
-//
-//    self._processCurrentLogData = function(data) {
-//        if (!self.log)
-//            self.log = [];
-//        self.log = self.log.concat(data);
-//        self.log = self.log.slice(-300);
-//        self.updateOutput();
-//    };
-//
-//    self._processHistoryLogData = function(data) {
-//        self.log = data;
-//        self.updateOutput();
-//    };
-//
-//
-//    self.updateOutput = function() {
-//        if (!self.log)
-//            return;
-//
-//        var output = "";
-//        for (var i = 0; i < self.log.length; i++) {
-//            if (self.filterRegex !== undefined && self.log[i].match(self.filterRegex)) continue;
-//            output += self.log[i] + "\n";
-//        }
-//
-//        var container = $("#terminal-output");
-//        container.text(output);
-//
-//        if (self.autoscrollEnabled()) {
-//            container.scrollTop(container[0].scrollHeight - container.height())
-//        }
-//    };
-//	
-
-
-//=======
 $(function() {
     function TerminalViewModel(parameters) {
         var self = this;
@@ -182,7 +134,7 @@ $(function() {
                 self.scrollToEnd();
             }
         };
-
+	
         self.toggleAutoscroll = function() {
             self.autoscrollEnabled(!self.autoscrollEnabled());
         };
@@ -232,7 +184,6 @@ $(function() {
         };
 
         self.fakeAck = function() {
-//>>>>>>> upstream/maintenance
             $.ajax({
                 url: API_BASEURL + "connection",
                 type: "POST",
