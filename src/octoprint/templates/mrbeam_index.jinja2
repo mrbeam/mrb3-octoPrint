@@ -56,7 +56,7 @@
 									</div>
 									<div id="statusbox">
 										
-									<div id="control" class="accordion-inner" data-bind="visible: (isReady() || isLocked()) && !isPrinting() ">
+									<div id="control" class="accordion-inner" data-bind="visible: isReady() || isLocked() ">
 										<div data-bind="visible: isLocked ">
 											Mr Beam is in a locked state as it does not know its position.
 											First remove any objects blocking the gantry's travel range.
@@ -105,7 +105,7 @@
 														</div>
 												   </div>
 													<div>
-														<button id="set_coordinate_origin_btn" class="btn" data-bind="click: setCoordinateOrigin" title="set coordinate origin"><i class="icon-screenshot"></i></button>
+														<button id="set_coordinate_origin_btn" class="btn" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: setCoordinateOrigin" title="set coordinate origin"><i class="icon-screenshot"></i></button>
 													</div>	
 											   </div>
 
@@ -146,7 +146,7 @@
 												{{ _('Timelapse') }}: <strong data-bind="text: timelapseString"></strong><br>
 												-->
 												{{ _('Approx. Total Job Time') }}: <strong data-bind="text: estimatedPrintTimeString"></strong><br>
-												<div class="progress" data-bind="visible: isPrinting()">
+												<div class="progress" data-bind="visible: isPrinting() || isPaused()">
 													<div class="bar" id="job_progressBar" data-bind="style: { width: progressString() + '%' }">{{ _('Processed') }} :  <strong data-bind="text: byteString"></strong></div>
 												</div>
 												<!--                                {{ _('Print Time') }}: <strong data-bind="text: printTimeString"></strong><br>
@@ -154,8 +154,9 @@
 												
 
 												<div class="row-fluid print-control" style="display: none;" data-bind="visible: loginState.isUser">
-													<button class="btn btn-danger span4" data-bind="click: conversion.show_conversion_dialog, enable: isOperational() && isReady() && !isPrinting() && loginState.isUser() && !workingArea.working_area_empty(), attr: {title: titlePrintButton}" id="job_print">
-														<i class="icon-white" data-bind="css: {'icon-fire': !isPaused(), 'icon-undo': isPaused(), 'wobble': isPrinting()}"></i> <span data-bind="text: (isPaused() ? '{{ _('Restart') }}' : '{{ _('Laser') }}')">{{ _('Laser') }}</span>
+													<button class="btn btn-danger span4" data-bind="click: conversion.show_conversion_dialog, enable: isOperational() && isReady() && !isPrinting() && !isPaused() && loginState.isUser() && !workingArea.working_area_empty(), attr: {title: titlePrintButton}" id="job_print">
+														<i class="icon-white icon-fire" data-bind="css: { 'wobble': isPrinting()}"></i> <span>{{ _('Laser') }}</span>
+														<!--<i class="icon-white" data-bind="css: {'icon-fire': !isPaused(), 'icon-undo': isPaused(), 'wobble': isPrinting()}"></i> <span data-bind="text: (isPaused() ? '{{ _('Restart') }}' : '{{ _('Laser') }}')">{{ _('Laser') }}</span>-->
 													</button>
 													<button class="btn span4" id="job_pause" data-bind="click: pause, enable: isOperational() && (isPrinting() || isPaused()) && loginState.isUser(), css: {active: isPaused()}, attr: {title: titlePauseButton}"><i data-bind="css: {'icon-pause': !isPaused(), 'icon-play': isPaused()}"></i> <span data-bind="visible: !isPaused()">{{ _('Pause') }}</span><span data-bind="visible: isPaused()">{{ _('Resume') }}</span></button>
 													<button class="btn span4" id="job_cancel" data-bind="click: cancel, enable: isOperational() && (isPrinting() || isPaused()) && loginState.isUser()" title="{{ _('Cancels the job') }}"><i class="icon-stop"></i> {{ _('Cancel') }}</button>

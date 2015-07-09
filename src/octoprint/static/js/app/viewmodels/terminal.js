@@ -69,8 +69,10 @@ $(function() {
             }
         });
 
-//        self.activeFilters = ko.observableArray([]);
-        self.activeFilters = ko.observableArray(self.filters); // all enabled by default
+        self.activeFilters = ko.observableArray([]);
+		// all enabled by default TODO!!!
+		//self.filters();
+        self.activeFilters = ko.observableArray(); 
         self.activeFilters.subscribe(function(e) {
             self.updateFilterRegex();
         });
