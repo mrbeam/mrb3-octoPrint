@@ -1183,9 +1183,8 @@ class MachineCom(object):
 		if(cmd != '?'):
 			self._log("Send: %s" % cmd)
 		chars_in_buffer = sum(self.line_lengths)
-		# TODO needs debugging. it interferes with ordinary commands.
 		if(not realtime_cmd and (chars_in_buffer + len(cmd)+1 >= self.RX_BUFFER_SIZE-1)): # queue command if arduino serial buffer is full
-			self._log("RX buffer [%d/%d], queuing cmd %d : %s" % (chars_in_buffer,  self.RX_BUFFER_SIZE,  self.gcode_line_counter, cmd))
+			#self._log("queuing cmd %d : %s " % (chars_in_buffer,  self.RX_BUFFER_SIZE,  self.gcode_line_counter, cmd))
 			self._commandQueue.put(cmd)
 		else:
 			self.line_lengths.append(len(cmd)+1) # count chars sent to the arduino

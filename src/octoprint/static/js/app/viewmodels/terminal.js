@@ -2,31 +2,7 @@
 //function TerminalViewModel(loginStateViewModel, settingsViewModel) {
 
 //
-//    self.log = [];
-//
-//    self.command = ko.observable(undefined);
-//
-//    self.isErrorOrClosed = ko.observable(undefined);
-//    self.isOperational = ko.observable(undefined);
-//    self.isPrinting = ko.observable(undefined);
-//    self.isPaused = ko.observable(undefined);
-//    self.isError = ko.observable(undefined);
-//    self.isReady = ko.observable(undefined);
-//    self.isLoading = ko.observable(undefined);
-//
-//    self.autoscrollEnabled = ko.observable(true);
-//
-//    self.filters = self.settings.terminalFilters;
-//    self.filterRegex = undefined;
-//
-//    self.cmdHistory = [];
-//    self.cmdHistoryIdx = -1;
-//
-//    self.activeFilters = ko.observableArray([]);
-//    self.activeFilters.subscribe(function(e) {
-//        self.updateFilterRegex();
-//        self.updateOutput();
-//    });
+
 //
 
 //
@@ -167,7 +143,12 @@ $(function() {
         };
 
         self._processCurrentLogData = function(data) {
-            self.log(self.log().concat(_.map(data, function(line) { return self._toInternalFormat(line) })));
+			var regex = self.filterRegex();
+            var lineVisible = function(line) {
+                return regex == undefined || !line.match(regex);
+            };
+			var filtered_data = _.filter(data, lineVisible);
+            self.log(self.log().concat(_.map(filtered_data, function(line) { return self._toInternalFormat(line) })));
             if (self.autoscrollEnabled()) {
                 self.log(self.log.slice(-300));
             }
