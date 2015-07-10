@@ -169,6 +169,8 @@ class MachineCom(object):
 		self._currentResendCount = 0
 		self._resendSwallowNextOk = False
 
+		self.RX_BUFFER_SIZE = 127 # size of the Arduino RX Buffer. TODO: put in machine profile
+		self.acc_line_lengths = [] # store char count of all send commands until ok is received
 		self._clear_to_send = CountedEvent(max=10, name="comm.clear_to_send")
 		self._send_queue = TypedQueue()
 		self._temperature_timer = None
@@ -260,6 +262,8 @@ class MachineCom(object):
 
 			if self._currentFile is not None:
 				self._currentFile.close()
+			self._log("entered state closed / closed with error. reseting character counter.")
+			self.acc_line_lengths = []
 
 		oldState = self.getStateString()
 		self._state = newState
@@ -444,7 +448,6 @@ class MachineCom(object):
 		self._clear_to_send.set()
 
 	def sendCommand(self, cmd, cmd_type=None, processed=False):
-		print("sendCommand", cmd)
 		cmd = cmd.encode('ascii', 'replace')
 		if not processed:
 			cmd = process_gcode_line(cmd)
@@ -1272,7 +1275,8 @@ class MachineCom(object):
 
 	def _onConnected(self):
 		self._serial.timeout = settings().getFloat(["serial", "timeout", "communication"])
-		self._temperature_timer = RepeatedTimer(lambda: get_interval("temperature"), self._poll_temperature, run_first=True)
+		#self._temperature_timer = RepeatedTimer(lambda: get_interval("temperature"), self._poll_temperature, run_first=True)
+		self._temperature_timer = RepeatedTimer(0.1, self._poll_temperature, run_first=True)
 		self._temperature_timer.start()
 
 		self._changeState(self.STATE_LOCKED)
@@ -1408,6 +1412,10 @@ class MachineCom(object):
 			return None
 		try:
 			ret = self._serial.readline()
+			if('ok' in ret or 'error' in ret):
+				if(len(self.acc_line_lengths) > 0):
+					print('buffer',sum(self.acc_line_lengths), 'deleting after ok', self.acc_line_lengths[0])
+					del self.acc_line_lengths[0]  # Delete the commands character count corresponding to the last 'ok'
 		except:
 			self._log("Unexpected error while reading serial port: %s" % (get_exception_string()))
 			self._errorValue = get_exception_string()
@@ -1590,9 +1598,12 @@ class MachineCom(object):
 		"""
 
 		self._clear_to_send.wait()
-
+		
 		while self._send_queue_active:
 			try:
+				if(self.RX_BUFFER_SIZE - sum(self.acc_line_lengths) < 50):
+					continue
+					
 				# wait until we have something in the queue
 				entry = self._send_queue.get()
 
@@ -1722,6 +1733,7 @@ class MachineCom(object):
 
 	def _doSendWithoutChecksum(self, cmd):
 		self._log("Send: %s" % cmd)
+		self.acc_line_lengths.append(len(cmd)+1) # Track number of characters in grbl serial read buffer
 		try:
 			self._serial.write(cmd + '\n')
 		except serial.SerialTimeoutException:
