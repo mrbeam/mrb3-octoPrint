@@ -147,7 +147,7 @@
 												-->
 												{{ _('Approx. Total Job Time') }}: <strong data-bind="text: estimatedPrintTimeString"></strong><br>
 												<div class="progress" data-bind="visible: isPrinting() || isPaused()">
-													<div class="bar" id="job_progressBar" data-bind="style: { width: progressString() + '%' }">{{ _('Processed') }} :  <strong data-bind="text: byteString"></strong></div>
+													<div class="bar" id="job_progressBar" data-bind="style: { width: progressString() + '%' }">&nbsp;{{ _('Processed') }} :  <strong data-bind="text: byteString"></strong></div>
 												</div>
 												<!--                                {{ _('Print Time') }}: <strong data-bind="text: printTimeString"></strong><br>
 																				{{ _('Print Time Left') }}: <strong data-bind="text: printTimeLeftString"></strong><br>-->

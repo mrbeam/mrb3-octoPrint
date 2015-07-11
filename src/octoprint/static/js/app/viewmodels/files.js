@@ -615,6 +615,6 @@ $(function() {
     OCTOPRINT_VIEWMODELS.push([
         GcodeFilesViewModel,
         ["printerStateViewModel", "loginStateViewModel", "slicingViewModel"],
-        ["#files_wrapper", "#files_search", "#files_filter"]
+        ["#files_accordion"]
     ]);
 });
