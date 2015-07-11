@@ -895,8 +895,8 @@ class MachineCom(object):
 					#	self._changeState(self.STATE_OPERATIONAL)
 					
 					# TODO highly experimental. needs testing.
-					#if("Hold" in line and self._state == self.STATE_PRINTING):
-					#	self._changeState(self.STATE_PAUSED)
+					if("Hold" in line and self._state == self.STATE_PRINTING):
+						self._changeState(self.STATE_PAUSED)
 					#if("Run" in line and self._state == self.STATE_PAUSED):
 					#	self._changeState(self.STATE_PRINTING)
 
@@ -1184,7 +1184,7 @@ class MachineCom(object):
 					if line == "" and time.time() > self._timeout:
 						if not self._long_running_command:
 							self._log("Communication timeout during printing, forcing a line")
-							self._sendCommand("M105")
+							self._sendCommand("?")
 							self._clear_to_send.set()
 						else:
 							self._logger.debug("Ran into a communication timeout, but a command known to be a long runner is currently active")
@@ -1276,7 +1276,7 @@ class MachineCom(object):
 	def _onConnected(self):
 		self._serial.timeout = settings().getFloat(["serial", "timeout", "communication"])
 		#self._temperature_timer = RepeatedTimer(lambda: get_interval("temperature"), self._poll_temperature, run_first=True)
-		self._temperature_timer = RepeatedTimer(0.1, self._poll_temperature, run_first=True)
+		self._temperature_timer = RepeatedTimer(0.2, self._poll_temperature, run_first=True)
 		self._temperature_timer.start()
 
 		self._changeState(self.STATE_LOCKED)
@@ -1568,6 +1568,9 @@ class MachineCom(object):
 		if not cmd:
 			return None
 
+		if cmd == '!': return 'Hold'
+		if cmd == '~': return 'Resume'
+
 		gcode = self._regex_command.search(cmd)
 		if not gcode:
 			return None
@@ -1752,6 +1755,13 @@ class MachineCom(object):
 	##~~ command handlers
 	def _gcode_H_sent(self, cmd, cmd_type=None):
 		self._changeState(self.STATE_HOMING)
+		return cmd
+	
+	def _gcode_Hold_sent(self, cmd, cmd_type=None):
+		self._changeState(self.STATE_PAUSED)
+		return cmd
+	def _gcode_Resume_sent(self, cmd, cmd_type=None):
+		self._changeState(self.STATE_PRINTING)
 		return cmd
 
 	def _gcode_T_sent(self, cmd, cmd_type=None):
