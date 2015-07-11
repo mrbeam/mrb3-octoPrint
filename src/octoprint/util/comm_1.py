@@ -527,9 +527,9 @@ class MachineCom(object):
 			# TODO fetch init sequence from machine profile
 			#self.sendCommand("$H") # homing here results in invalid GCode ID33 on G02/03 commands. WTF?
 			#self.sendCommand("G92X0Y0Z0")
-			self.sendCommand("G90")
-			self.sendCommand("M08")
-			self.sendCommand("G21")
+			#self.sendCommand("G90")
+			#self.sendCommand("M08")
+			#self.sendCommand("G21")
 			
 			self._currentFile.start()
 
@@ -614,7 +614,14 @@ class MachineCom(object):
 		if not self.isOperational() or self.isStreaming():
 			return
 
+		#self.sendCommand(chr(24)) # no necessity to reset 
+
 		self._changeState(self.STATE_OPERATIONAL)
+		with self._send_queue.mutex:
+			self._send_queue.queue.clear()
+		self.sendCommand('M5')
+		self.sendCommand('G0X0Y0')
+		self.sendCommand('M9')
 
 		if self.isSdFileSelected():
 			self.sendCommand("M25")    # pause print
@@ -631,7 +638,7 @@ class MachineCom(object):
 			"origin": self._currentFile.getFileLocation()
 		}
 
-		self.sendGcodeScript("afterPrintCancelled", replacements=dict(event=payload))
+		#self.sendGcodeScript("afterPrintCancelled", replacements=dict(event=payload))
 		eventManager().fire(Events.PRINT_CANCELLED, payload)
 
 	def setPause(self, pause):
@@ -652,10 +659,11 @@ class MachineCom(object):
 				self._pauseWaitTimeLost = self._pauseWaitTimeLost + (time.time() - self._pauseWaitStartTime)
 				self._pauseWaitStartTime = None
 
-			self._changeState(self.STATE_PRINTING)
+			#self._changeState(self.STATE_PRINTING)
 
-			self.sendGcodeScript("beforePrintResumed", replacements=dict(event=payload))
+			#self.sendGcodeScript("beforePrintResumed", replacements=dict(event=payload))
 
+			self.sendCommand('~')
 			if self.isSdFileSelected():
 				self.sendCommand("M24")
 				self.sendCommand("M27")
@@ -671,11 +679,12 @@ class MachineCom(object):
 		elif pause and self.isPrinting():
 			if not self._pauseWaitStartTime:
 				self._pauseWaitStartTime = time.time()
-
-			self._changeState(self.STATE_PAUSED)
+			
+			self.sendCommand('!')
+			#self._changeState(self.STATE_PAUSED)
 			if self.isSdFileSelected():
 				self.sendCommand("M25") # pause print
-			self.sendGcodeScript("afterPrintPaused", replacements=dict(event=payload))
+			#self.sendGcodeScript("afterPrintPaused", replacements=dict(event=payload))
 
 			eventManager().fire(Events.PRINT_PAUSED, payload)
 
@@ -885,7 +894,7 @@ class MachineCom(object):
 				if self._grbl :
 					if(self._state == self.STATE_HOMING and 'ok' in line):
 						self._changeState(self.STATE_OPERATIONAL)
-						#self._onHomingDone();
+						self._onHomingDone();
 						
 					if("Alarm lock" in line):
 						self._changeState(self.STATE_LOCKED)
@@ -1288,7 +1297,13 @@ class MachineCom(object):
 
 		payload = dict(port=self._port, baudrate=self._baudrate)
 		eventManager().fire(Events.CONNECTED, payload)
-		self.sendGcodeScript("afterPrinterConnected", replacements=dict(event=payload))
+		#self.sendGcodeScript("afterPrinterConnected", replacements=dict(event=payload))
+
+	def _onHomingDone(self):
+		self.sendCommand("G92X0Y0Z0")
+		self.sendCommand("G90")
+		self.sendCommand("G21")
+
 
 	def _sendFromQueue(self):
 		if not self._commandQueue.empty() and not self.isStreaming():
@@ -1462,7 +1477,7 @@ class MachineCom(object):
 				self._changeState(self.STATE_OPERATIONAL)
 				eventManager().fire(Events.PRINT_DONE, payload)
 
-				self.sendGcodeScript("afterPrintDone", replacements=dict(event=payload))
+				#self.sendGcodeScript("afterPrintDone", replacements=dict(event=payload))
 		return line
 
 	def _sendNext(self):
@@ -1604,7 +1619,8 @@ class MachineCom(object):
 		
 		while self._send_queue_active:
 			try:
-				if(self.RX_BUFFER_SIZE - sum(self.acc_line_lengths) < 50):
+				if(self.RX_BUFFER_SIZE - sum(self.acc_line_lengths) < 20):
+					time.sleep(0.1)
 					continue
 					
 				# wait until we have something in the queue
