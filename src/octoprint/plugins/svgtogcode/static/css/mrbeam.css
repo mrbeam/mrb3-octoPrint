@@ -1407,19 +1407,11 @@ td.settings_printerProfiles_profiles_action a.disabled {
 .slider .slider-selection {
   color: #ffffff;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-  background-color: #006dcc;
-  background-image: -moz-linear-gradient(top, #0088cc, #0044cc);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#0088cc), to(#0044cc));
-  background-image: -webkit-linear-gradient(top, #0088cc, #0044cc);
-  background-image: -o-linear-gradient(top, #0088cc, #0044cc);
-  background-image: linear-gradient(to bottom, #0088cc, #0044cc);
-  background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff0088cc', endColorstr='#ff0044cc', GradientType=0);
+
+  background-color: #888;
+  background-image: none;
   border-color: #0044cc #0044cc #002a80;
   border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-  *background-color: #0044cc;
-  /* Darken IE7 buttons by default so they stand out more given they won't have borders */
-  filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
 }
 .slider .slider-selection:hover,
 .slider .slider-selection:focus,
@@ -1428,7 +1420,7 @@ td.settings_printerProfiles_profiles_action a.disabled {
 .slider .slider-selection.disabled,
 .slider .slider-selection[disabled] {
   color: #ffffff;
-  background-color: #0044cc;
+  background-color: #AAA;
   *background-color: #003bb3;
 }
 .slider .slider-selection:active,
