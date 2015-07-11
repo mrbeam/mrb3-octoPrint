@@ -631,19 +631,15 @@ $(function() {
 		self.jogDistanceInMM = ko.observable(undefined);
 
 		self.focus_on = function () {
-
-			$("#confirmation_dialog .confirmation_dialog_message").text(gettext("The laser will now be enabled. Protect yourself and everybody in the room appropriately before proceeding!"));
-			$("#confirmation_dialog .confirmation_dialog_acknowledge").unbind("click");
-			$("#confirmation_dialog .confirmation_dialog_acknowledge").click(
-					function (e) {
+			var callback = function (e) {
 						e.preventDefault();
 						$("#confirmation_dialog").modal("hide");
 						self.sendCustomCommand({type: 'commands', commands: ['M8', 'M3S10']});
 						setTimeout(function () { // switch focus off after 30 seconds for safety reasons.
 							self.focus_off();
 						}, 30000);
-					});
-			$("#confirmation_dialog").modal("show");
+					};
+			self.printerState.show_safety_glasses_warning(callback);
 		};
 
 		self.focus_off = function () {

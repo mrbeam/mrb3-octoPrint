@@ -190,7 +190,7 @@ $(function() {
 
 
 		self.show_safety_glasses_warning = function (callback) {
-			$('#confirmation_dialog .confirmation_dialog_message').html();
+			$('#confirmation_dialog .confirmation_dialog_message div').remove();
 			jQuery('<div/>', {
 				class: "safety_glasses_heads_up"
 			}).appendTo("#confirmation_dialog .confirmation_dialog_message");
@@ -198,7 +198,6 @@ $(function() {
 				class: "safety_glasses_warning",
 				text: gettext("The laser will now start. Protect yourself and everybody in the room appropriately before proceeding!")
 			}).appendTo("#confirmation_dialog .confirmation_dialog_message");
-			//$("#confirmation_dialog .confirmation_dialog_message").text(gettext("The laser will now start. Protect yourself and everybody in the room appropriately before proceeding!"));
 			$("#confirmation_dialog .confirmation_dialog_acknowledge").unbind("click");
 			$("#confirmation_dialog .confirmation_dialog_acknowledge").click(
 					function (e) {

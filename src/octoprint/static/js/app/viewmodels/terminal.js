@@ -245,8 +245,14 @@ $(function() {
 
 			var parts = command.match(/^(M3|M03)(S[0-9.]+)?/i);
 			if (parts !== null) {
-
-				$("#confirmation_dialog .confirmation_dialog_message").text(gettext("The laser will now be enabled. Protect yourself and everybody in the room appropriately before proceeding!"));
+				$('#confirmation_dialog .confirmation_dialog_message div').remove();
+				jQuery('<div/>', {
+					class: "safety_glasses_heads_up"
+				}).appendTo("#confirmation_dialog .confirmation_dialog_message");
+				jQuery('<div/>', {
+					class: "safety_glasses_warning",
+					text: gettext("The laser will now start. Protect yourself and everybody in the room appropriately before proceeding!")
+				}).appendTo("#confirmation_dialog .confirmation_dialog_message");
 				$("#confirmation_dialog .confirmation_dialog_acknowledge").unbind("click");
 				$("#confirmation_dialog .confirmation_dialog_acknowledge").click(
 						function (e) {
