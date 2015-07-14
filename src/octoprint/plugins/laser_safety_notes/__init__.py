@@ -55,7 +55,7 @@ class LaserSafetyNotesPlugin(octoprint.plugin.SettingsPlugin,
 	def on_settings_save(self, data):
 		if "has_agreed" in data:
 			has_agreed = data["has_agreed"] in octoprint.settings.valid_boolean_trues
-			s.setBoolean(["agreed_to_safety_notes"], has_agreed)
+			s.set_boolean(["agreed_to_safety_notes"], has_agreed)
 
 	##~~ TemplatePlugin API
 

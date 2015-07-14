@@ -279,7 +279,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 					self._svgtogcode_logger.setLevel(logging.DEBUG)
 				else:
 					self._svgtogcode_logger.setLevel(logging.CRITICAL)
-			s.setBoolean(["debug_logging"], new_debug_logging)
+			s.set_boolean(["debug_logging"], new_debug_logging)
 
 	##~~ TemplatePlugin API
 

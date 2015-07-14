@@ -127,8 +127,9 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 		return {
 			"checks": {
 				"octoprint": {
-					"type": "github_release",
-					"user": "foosel",
+					#"type": "github_release",
+					"type": "github_commit",
+					"user": "mrbeam",
 					"repo": "OctoPrint",
 					"update_script": "{{python}} \"{update_script}\" --python=\"{{python}}\" \"{{folder}}\" {{target}}".format(update_script=os.path.join(self._basefolder, "scripts", "update-octoprint.py")),
 					"restart": "octoprint"
