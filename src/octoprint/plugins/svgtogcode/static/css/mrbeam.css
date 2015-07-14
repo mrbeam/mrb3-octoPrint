@@ -1656,14 +1656,14 @@ input.search-query,
 }
 
 #area_preview {
-	background-image: url(../img/crosshair.png); 
+	background-image: url(/plugin/svgtogcode/static/img/crosshair.png); 
 	background-repeat: no-repeat;
 	background-size: 30px auto;
 	background-position: -30px -30px;
 }
 
 #focus_description {
-	background-image: url(../img/focus_adjust_steps.png); 
+	background-image: url(/plugin/svgtogcode/static/img/focus_adjust_steps.png); 
 	background-repeat: no-repeat;
 	background-size: contain;
 	width: 100%;
@@ -1736,7 +1736,7 @@ input.search-query,
 }
 
 .safety_glasses_heads_up {
-	background-image:url(../img/safety_glasses_heads_up500.png);
+	background-image:url(/plugin/svgtogcode/static/img/safety_glasses_heads_up500.png);
 	background-repeat: no-repeat;
 	background-position: center;
 	background-size: contain;
