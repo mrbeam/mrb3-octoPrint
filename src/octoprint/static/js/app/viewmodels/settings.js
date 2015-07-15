@@ -561,7 +561,7 @@ $(function() {
 				}
 			});
 		};
-
+		
 		self.collectData = function (){
 			var data = ko.mapping.toJS(self.settings);
 			data = _.extend(data, {
@@ -623,6 +623,10 @@ $(function() {
 				}
 			});
 			return data;
+		};
+		
+		self.onAfterBinding = function(){
+			
 		};
 	};
 

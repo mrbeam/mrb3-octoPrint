@@ -44,7 +44,7 @@
         <label class="control-label" for="settings-serialTimeoutCommunication">{{ _('Communication timeout') }}</label>
         <div class="controls">
             <div class="input-append">
-                <input type="number" step="any" min="0" class="input-mini text-right" data-bind="value: serial_timeoutCommunication" id="settings-serialTimeoutCommunication">
+                <input type="number" step="any" min="0" class="input-mini text-right" data-bind="event: {change: saveall}, value: serial_timeoutCommunication" id="settings-serialTimeoutCommunication">
                 <span class="add-on">s</span>
             </div>
         </div>
