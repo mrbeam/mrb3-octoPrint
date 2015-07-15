@@ -34,7 +34,8 @@ def get_latest(target, check):
 	if "user" not in check or "repo" not in check:
 		raise ConfigurationInvalid("Update configuration for %s of type github_commit needs all of user and repo" % target)
 
-	branch = "master"
+	#branch = "master"
+	branch = "mrbeam-stable"
 	if "branch" in check:
 		branch = check["branch"]
 
