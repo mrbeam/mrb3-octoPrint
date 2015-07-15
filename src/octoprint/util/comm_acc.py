@@ -1477,6 +1477,9 @@ class MachineCom(object):
 				self._changeState(self.STATE_OPERATIONAL)
 				eventManager().fire(Events.PRINT_DONE, payload)
 
+				self._sendCommand("M5")
+				self._sendCommand("G0X0Y0")
+				self._sendCommand("M9")
 				#self.sendGcodeScript("afterPrintDone", replacements=dict(event=payload))
 		return line
 
