@@ -81,7 +81,8 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		}
 
 		var arr;
-		var d = path_elem.attr('d').trim();
+		var d = path_elem.attr('d');
+		d = (d || "").trim();
 		var arr_orig;
 		arr = Snap.parsePathString(d); 
 		if (!toCubics) {  
