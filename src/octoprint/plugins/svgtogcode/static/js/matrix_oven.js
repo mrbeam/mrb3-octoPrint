@@ -62,8 +62,8 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		//if(elem.type !== 'path') console.log("bake: converting " + elem.type + " to path");
 		var path_elem = elem.convertToPath();
 
-		if (!path_elem || path_elem.attr(d) === '')
-			return 'M 0 0';
+		if (!path_elem || path_elem.attr('d') === '' || path_elem.attr('d') === null)
+			return;
 
 		// Rounding coordinates to dec decimals
 		if (dec || dec === 0) {
