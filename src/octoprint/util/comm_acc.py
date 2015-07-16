@@ -945,6 +945,9 @@ class MachineCom(object):
 						self._errorValue = errorMsg
 						self._changeState(self.STATE_LOCKED)
 						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+						
+					if("error:" in line):
+						self.handle_grbl_error(line)
 
 
 				##~~ SD file list
@@ -1159,7 +1162,7 @@ class MachineCom(object):
 							self._changeState(self.STATE_ERROR)
 							eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 					elif 'start' in line or 'ok' in line:
-						self._onConnected()
+						self._onConnected(self.STATE_LOCKED)
 						self._clear_to_send.set()
 
 
@@ -1168,9 +1171,12 @@ class MachineCom(object):
 				elif self._state == self.STATE_CONNECTING:
 					#line = self.__readline()
 					if "Grbl" in line:
-						self._onConnected()
+						self._onConnected(self.STATE_LOCKED)
 #						self._clear_to_send.set()
+					elif "<Idle" in line:
+						self._onConnected(self.STATE_OPERATIONAL)
 					elif time.time() > self._timeout:
+						print("TIMEOUT_CLOSE")
 						self.close()
 
 				### Operational
@@ -1282,13 +1288,16 @@ class MachineCom(object):
 		if self.isOperational() and self.isSdPrinting() and not self._long_running_command and not self._heating:
 			self.sendCommand("M27", cmd_type="sd_status_poll")
 
-	def _onConnected(self):
+	def _onConnected(self, nextState):
 		self._serial.timeout = settings().getFloat(["serial", "timeout", "communication"])
 		#self._temperature_timer = RepeatedTimer(lambda: get_interval("temperature"), self._poll_temperature, run_first=True)
 		self._temperature_timer = RepeatedTimer(0.2, self._poll_temperature, run_first=True)
 		self._temperature_timer.start()
 
-		self._changeState(self.STATE_LOCKED)
+		if(nextState == None):
+			self._changeState(self.STATE_LOCKED)
+		else:
+			self._changeState(nextState)
 
 		#if self._sdAvailable:
 		#	self.refreshSdFiles()
@@ -1429,7 +1438,7 @@ class MachineCom(object):
 			ret = self._serial.readline()
 			if('ok' in ret or 'error' in ret):
 				if(len(self.acc_line_lengths) > 0):
-					print('buffer',sum(self.acc_line_lengths), 'deleting after ok', self.acc_line_lengths[0])
+					#print('buffer',sum(self.acc_line_lengths), 'deleting after ok', self.acc_line_lengths[0])
 					del self.acc_line_lengths[0]  # Delete the commands character count corresponding to the last 'ok'
 		except:
 			self._log("Unexpected error while reading serial port: %s" % (get_exception_string()))
@@ -1927,6 +1936,68 @@ class MachineCom(object):
 		except ValueError:
 			pass
 
+	def handle_grbl_error(self, line):
+		#self._log("grbl error: %s" % line)
+		if("Expected command letter" in line): 
+			#G-code is composed of G-code "words", which consists of a letter followed by a number value. This error occurs when the letter prefix of a G-code word is missing in the G-code block (aka line).
+			pass
+		
+		elif("Bad number format" in line):  
+			#The number value suffix of a G-code word is missing in the G-code block, or when configuring a $Nx=line or $x=val Grbl setting and the x is not a number value.
+			pass
+
+		elif("Invalid statement" in line):  
+			#The issued Grbl $ system command is not recognized or is invalid.
+			pass
+
+		elif("Value < 0" in line):  
+			#The value of a $x=val Grbl setting, F feed rate, N line number, P word, T tool number, or S spindle speed is negative.
+			pass
+
+		elif("Setting disabled" in line):  
+			#Homing is disabled when issuing a $H command.
+			pass
+
+		elif("Value < 3 usec" in line):  
+			#Step pulse time length cannot be less than 3 microseconds (for technical reasons).
+			pass
+		
+		elif("EEPROM read fail. Using defaults" in line):  
+			#If Grbl can't read data contained in the EEPROM, this error is returned. Grbl will also clear and restore the effected data back to defaults.
+			pass
+
+		elif("Not idle" in line):  
+			#Certain Grbl $ commands are blocked depending Grbl's current state, or what its doing. In general, Grbl blocks any command that fetches from or writes to the EEPROM since the AVR microcontroller will shutdown all of the interrupts for a few clock cycles when this happens. There is no work around, other than blocking it. This ensures both the serial and step generator interrupts are working smoothly throughout operation.
+			pass
+
+		elif("Alarm lock" in line):  
+			#Grbl enters an ALARM state when Grbl doesn't know where it is and will then block all G-code commands from being executed. This error occurs if G-code commands are sent while in the alarm state. Grbl has two alarm scenarios: When homing is enabled, Grbl automatically goes into an alarm state to remind the user to home before doing anything; When something has went critically wrong, usually when Grbl can't guarantee positioning. This typically happens when something causes Grbl to force an immediate stop while its moving from a hard limit being triggered or a user commands an ill-timed reset.
+			pass
+
+		elif("Homing not enabled" in line):  
+			#Soft limits cannot be enabled if homing is not enabled, because Grbl has no idea where it is when you startup your machine unless you perform a homing cycle.
+			pass
+
+		elif("Line overflow" in line):  
+			#Grbl has to do everything it does within 2KB of RAM. Not much at all. So, we had to make some decisions on what's important. Grbl limits the number of characters in each line to less than 80 characters (70 in v0.8, 50 in v0.7 or earlier), excluding spaces or comments. The G-code standard mandates 256 characters, but Grbl simply doesn't have the RAM to spare. However, we don't think there will be any problems with this with all of the expected G-code commands sent to Grbl. This error almost always occurs when a user or CAM-generated G-code program sends position values that are in double precision (i.e. -2.003928578394852), which is not realistic or physically possible. Users and GUIs need to send Grbl floating point values in single precision (i.e. -2.003929) to avoid this error.
+			pass
+
+		elif("Modal group violation" in line):  
+			#The G-code parser has detected two G-code commands that belong to the same modal group in the block/line. Modal groups are sets of G-code commands that mutually exclusive. For example, you can't issue both a G0 rapids and G2 arc in the same line, since they both need to use the XYZ target position values in the line. LinuxCNC.org has some great documentation on modal groups.
+			pass
+
+		elif("Unsupported command" in line):  
+			#The G-code parser doesn't recognize or support one of the G-code commands in the line. Check your G-code program for any unsupported commands and either remove them or update them to be compatible with Grbl.
+			pass
+
+		elif("Undefined feed rate" in line):  
+			#There is no feed rate programmed, and a G-code command that requires one is in the block/line. The G-code standard mandates F feed rates to be undefined upon a reset or when switching from inverse time mode to units mode. Older Grbl versions had a default feed rate setting, which was illegal and was removed in Grbl v0.9.
+			pass
+
+		elif("Invalid gcode ID" in line): 
+			#XX
+			pass
+		
 
 ### MachineCom callback ################################################################################################
 
