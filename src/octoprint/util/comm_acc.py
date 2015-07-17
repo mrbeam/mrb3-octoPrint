@@ -896,12 +896,15 @@ class MachineCom(object):
 						self._changeState(self.STATE_OPERATIONAL)
 						self._onHomingDone();
 						
+					# TODO check if "Alarm" is enough
 					if("Alarm lock" in line):
 						self._changeState(self.STATE_LOCKED)
+					if("['$H'|'$X' to unlock]" in line):
+						self._changeState(self.STATE_LOCKED)
 
-					# TODO handle $X unlocking
-					#if("Idle" in line and (self._state == self.STATE_LOCKED or self._state == self.STATE_HOMING)   ):
-					#	self._changeState(self.STATE_OPERATIONAL)
+					# TODO maybe better in _gcode_X_sent ...
+					if("Idle" in line and (self._state == self.STATE_LOCKED)   ):
+						self._changeState(self.STATE_OPERATIONAL)
 					
 					# TODO highly experimental. needs testing.
 					if("Hold" in line and self._state == self.STATE_PRINTING):
