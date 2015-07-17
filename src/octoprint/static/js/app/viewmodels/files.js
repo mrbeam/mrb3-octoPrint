@@ -7,6 +7,8 @@ $(function() {
         self.loginState = parameters[1];
         self.slicing = parameters[2];
 
+		self.workingArea = undefined; // will be injected by the working area
+
         self.isErrorOrClosed = ko.observable(undefined);
         self.isOperational = ko.observable(undefined);
         self.isPrinting = ko.observable(undefined);
@@ -383,18 +385,29 @@ $(function() {
 
             //~~ Gcode upload
 
-            self.uploadButton = $("#gcode_upload");
+			self.uploadButton = $("#gcode_upload");
             function gcode_upload_done(e, data) {
                 var filename = undefined;
                 var location = undefined;
-                if (data.result.files.hasOwnProperty("sdcard")) {
-                    filename = data.result.files.sdcard.name;
-                    location = "sdcard";
-                } else if (data.result.files.hasOwnProperty("local")) {
+//                if (data.result.files.hasOwnProperty("sdcard")) {
+//                    filename = data.result.files.sdcard.name;
+//                    location = "sdcard";
+//                } else if (data.result.files.hasOwnProperty("local")) {
+				if(data.result.files.hasOwnProperty("local")){
                     filename = data.result.files.local.name;
                     location = "local";
-                }
-                self.requestData(filename, location);
+
+					var f = data.result.files.local;
+					if(_.endsWith(filename.toLowerCase(), ".svg")){
+						f.type = "model"
+						self.workingArea.placeSVG(f);
+					}
+					if(_.endsWith(filename.toLowerCase(), ".gco")){
+						f.type = "machinecode"
+						self.workingArea.placeGcode(f);
+					}
+				}
+				self.requestData(filename, location);
                 if (_.endsWith(filename.toLowerCase(), ".stl")) {
                     self.slicing.show(location, filename);
                 }
@@ -406,9 +419,8 @@ $(function() {
                 }
             }
 
-
             function gcode_upload_fail(e, data) {
-                var error = "<p>" + gettext("Could not upload the file. Make sure that it is a GCODE file and has the extension \".gcode\" or \".gco\" or that it is an STL file with the extension \".stl\".") + "</p>";
+	            var error = "<p>" + gettext("Could not upload the file. Make sure that it is a SVG file and has the extension \".svg\" or a GCode file and has extension \".gco\" or \".gcode\" ") + "</p>";
                 error += pnotifyAdditionalInfo("<pre>" + data.jqXHR.responseText + "</pre>");
                 new PNotify({
                     title: "Upload failed",
@@ -574,7 +586,7 @@ $(function() {
                     if (dropZoneLocal) dropZoneLocalBackground.removeClass("hover");
                     if (dropZoneSd) dropZoneSdBackground.removeClass("hover");
                     if (dropZone) dropZoneBackground.removeClass("hover");
-                }, 100);
+				}, 1000);
             });
 
             self.requestData();

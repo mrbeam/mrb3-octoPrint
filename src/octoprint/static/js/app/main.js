@@ -108,52 +108,6 @@ $(function() {
             alwaysVisible: true,
             scrollBy: "102px"
         });
-//
-//        //~~ Gcode upload
-//
-//        function gcode_upload_done(e, data) {
-//            var filename = undefined;
-//            var location = undefined;
-//            if (data.result.files.hasOwnProperty("sdcard")) {
-//                filename = data.result.files.sdcard.name;
-//                location = "sdcard";
-//            } else if (data.result.files.hasOwnProperty("local")) {
-//                filename = data.result.files.local.name;
-//                location = "local";
-//            }
-//            gcodeFilesViewModel.requestData(filename, location);
-//=======
-
-           
-//<<<<<<< HEAD
-//			
-//			if(data.result.files.hasOwnProperty("local")){
-//				var f = data.result.files.local;
-//				if(_.endsWith(filename.toLowerCase(), ".svg")){
-//					f.type = "model"
-//					viewModelMap['workingAreaViewModel'].placeSVG(f);
-//				}
-//				if(_.endsWith(filename.toLowerCase(), ".gco")){
-//					f.type = "machinecode"
-//					viewModelMap['workingAreaViewModel'].placeGcode(f);
-//				}
-//			}
-//        }
-//
-//        function gcode_upload_fail(e, data) {
-//            var error = "<p>" + gettext("Could not upload the file. Make sure that it is a SVG file and has the extension \".svg\" or a GCode file and has extension \".gco\" or \".gcode\" ") + "</p>";
-//            error += pnotifyAdditionalInfo("<pre>" + data.jqXHR.responseText + "</pre>");
-//            new PNotify({
-//                title: "Upload failed",
-//                text: error,
-//                type: "error",
-//                hide: false
-//            });
-//            $("#gcode_upload_progress .bar").css("width", "0%");
-//            $("#gcode_upload_progress").removeClass("progress-striped").removeClass("active");
-//            $("#gcode_upload_progress .bar").text("");
-//        }
-//=======
 
         // map any additional view model bindings we might need to make
         var additionalBindings = {};
@@ -245,17 +199,6 @@ $(function() {
         }
         log.info("... dependency resolution done");
 
-//<<<<<<< HEAD
-//            window.dropZoneTimeout = setTimeout(function () {
-//                window.dropZoneTimeout = null;
-//                dropOverlay.removeClass("in");
-//                if (dropZoneLocal) dropZoneLocalBackground.removeClass("hover");
-//                if (dropZoneSd) dropZoneSdBackground.removeClass("hover");
-//                if (dropZone) dropZoneBackground.removeClass("hover");
-//            }, 1000);
-//        });
-//=======
-//>>>>>>> upstream/maintenance
 
         var dataUpdater = new DataUpdater(allViewModels);
 
@@ -457,17 +400,6 @@ $(function() {
         $(".dropdown input, .dropdown label").click(function(e) {
             e.stopPropagation();
         });
-
-
-//<<<<<<< HEAD
-//            if (printerStateViewModel.isSdReady() && loginStateViewModel.isUser()) {
-//                enable_sd_dropzone();
-//            } else {
-//                disable_sd_dropzone();
-//            }
-//        }
-//		
-//=======
 
 
         // prevent default action for drag-n-drop

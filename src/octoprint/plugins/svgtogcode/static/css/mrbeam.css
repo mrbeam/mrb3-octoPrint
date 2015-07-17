@@ -1621,7 +1621,8 @@ input.search-query,
 }
 #wa_filelist .file_list_entry .title {
 	max-width: 80%;
-	/*float: left;*/
+	text-overflow: ellipsis;
+	overflow: hidden;
 }
 #wa_filelist .file_list_entry .detail_information {
 	clear: both;

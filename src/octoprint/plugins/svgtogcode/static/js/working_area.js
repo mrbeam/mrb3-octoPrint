@@ -635,6 +635,10 @@ $(function(){
 				}
 			});
 		};
+		
+		self.onBeforeBinding = function(){
+			self.files.workingArea = self;
+		};
 	}
 
 

@@ -63,7 +63,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		var path_elem = elem.convertToPath();
 
 		if (!path_elem || path_elem.attr('d') === '' || path_elem.attr('d') === null)
-			return;
+			path_elem.attr('d', 'M 0 0');
 
 		// Rounding coordinates to dec decimals
 		if (dec || dec === 0) {
