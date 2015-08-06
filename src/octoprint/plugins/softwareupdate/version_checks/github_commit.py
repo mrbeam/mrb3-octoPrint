@@ -21,11 +21,11 @@ def _get_latest_commit(user, repo, branch):
 	log_github_ratelimit(logger, r)
 
 	if not r.status_code == requests.codes.ok:
-		return None
+		return None, None
 
 	reference = r.json()
 	if not "object" in reference or not "sha" in reference["object"]:
-		return None
+		return None, None
 
 	return reference["object"]["sha"]
 
