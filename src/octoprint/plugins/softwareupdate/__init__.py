@@ -384,6 +384,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 		try:
 			version_checker = self._get_version_checker(target, check)
 			information, is_current = version_checker.get_latest(target, check)
+			self._logger.info("Update plugin: %s/%s/%s/%s, current: %s, remote: %s, local: %s" % (check['type'], check['user'], check['repo'], check['branch'], check['current'], information['remote']['value'], information['local']['value']))
 			if information is not None and not is_current:
 				update_available = True
 		except exceptions.UnknownCheckType:
