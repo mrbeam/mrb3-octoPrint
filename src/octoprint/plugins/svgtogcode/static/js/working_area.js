@@ -111,7 +111,7 @@ $(function(){
 					url: API_BASEURL + "printer/printhead",
 					type: "POST",
 					dataType: "json",
-					contentType: "application/json; charset=UTF-8",
+					contentType: "application/json; charset=UTF8",
 					data: JSON.stringify({"command": "position", x:x, y:y})
 				});
 			}
@@ -387,6 +387,49 @@ $(function(){
 			
 		};
 		
+		self.placeIMG = function (file) {
+			var url = self._getIMGserveUrl(file);
+			var img = new Image();
+			img.onload = function () {
+
+				var wpx = this.width;
+				var hpx = this.height;
+
+				var dimPT = self.getUsefulDimensions(wpx, hpx);
+				var wPT = dimPT[0];
+				var hPT = dimPT[1];
+
+				var y = self.mm2svgUnits(self.workingAreaHeightMM()) - hPT;
+				var newImg = snap.image(url, 0, y, wPT, hPT);
+				var id = self.getEntryId(file);
+				var previewId = self.generateUniqueId(id); // appends # if multiple times the same design is placed.
+				newImg.attr({id: previewId, filter: 'url(#grayscale_filter)'});
+				snap.select("#userContent").append(newImg);
+				newImg.transformable();
+				newImg.ftRegisterCallback(self.svgTransformUpdate);
+				file.id = previewId;
+				file.previewId = previewId;
+				file.url = url;
+				file.subtype = "bitmap";
+				self.placedDesigns.push(file);
+			};
+			img.src = url;
+		};
+		
+		self.removeIMG = function(file){
+			self.removeSVG(file);
+		};
+
+		self.getUsefulDimensions = function(wpx, hpx){
+			var maxWidthMM = wpx * 0.25; // TODO parametrize
+			var aspectRatio = wpx / hpx;
+			var destWidthMM = Math.min(self.workingAreaWidthMM(), 100, maxWidthMM);
+			var destHeightMM = destWidthMM / aspectRatio;
+			var destWidthPT = self.mm2svgUnits(destWidthMM);
+			var destHeightPT = self.mm2svgUnits(destHeightMM);
+			return [destWidthPT, destHeightPT];
+		};
+		
 		self.getDocumentDimensionsInPt = function(doc_width, doc_height, doc_viewbox){
 			if(doc_width === null){
 				// assume defaults if not set
@@ -426,7 +469,7 @@ $(function(){
 		};
 		
 		self.getDocumentViewBoxMatrix = function(widthStr, heightStr, vbox){
-			var dim = self.getDocumentDimensionsInPt(widthStr, heightStr, vbox)
+			var dim = self.getDocumentDimensionsInPt(widthStr, heightStr, vbox);
 			if(vbox !== null ){
 				var widthPx = dim[0];
 				var heightPx = dim[1];
@@ -488,13 +531,23 @@ $(function(){
 			}
 			
 		};
+
+		self._getIMGserveUrl = function(file){
+			return self._getSVGserveUrl(file);
+		};
 		
 		self.templateFor = function(data) {
-			var extension = data.name.split('.').pop().toLowerCase();
-			if (extension === "svg") {
-				return "wa_template_" + data.type + "_svg";
+			if(data.type === "model" || data.type === "machinecode"){
+				var extension = data.name.split('.').pop().toLowerCase();
+				if (extension === "svg") {
+					return "wa_template_" + data.type + "_svg";
+				} else if (_.contains(['jpg', 'jpeg', 'png', 'gif', 'bmp', 'pcx', 'webp'], extension)) {
+					return "wa_template_" + data.type + "_img";
+				} else {
+					return "wa_template_" + data.type;
+				}
 			} else {
-				return "wa_template_" + data.type;
+				return "wa_template_dummy";
 			}
 		};
 		

@@ -245,12 +245,26 @@ $(function() {
             return data["prints"]["last"]["success"] ? "text-success" : "text-error";
         };
 
+//		self.templateFor = function(data) {
+//			var extension = data.name.split('.').pop().toLowerCase();
+//			if (extension === "svg") {
+//				return "files_template_" + data.type + "_svg";
+//			} else {
+//				return "files_template_" + data.type;
+//			}
+//		};
 		self.templateFor = function(data) {
-			var extension = data.name.split('.').pop().toLowerCase();
-			if (extension === "svg") {
-				return "files_template_" + data.type + "_svg";
+			if(data.type === "model" || data.type === "machinecode"){
+				var extension = data.name.split('.').pop().toLowerCase();
+				if (extension === "svg") {
+					return "files_template_" + data.type + "_svg";
+				} else if (_.contains(['jpg', 'jpeg', 'png', 'gif', 'bmp', 'pcx', 'webp'], extension)) {
+					return "files_template_" + data.type + "_img";
+				} else {
+					return "files_template_" + data.type;
+				}
 			} else {
-				return "files_template_" + data.type;
+				return "files_template_dummy";
 			}
 		};
 		

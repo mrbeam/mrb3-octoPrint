@@ -220,6 +220,31 @@
 													</div>
 												</div>
 											</script>
+											
+											<script type="text/html" id="wa_template_model_img">
+												<div class="file_list_entry">
+													<div class="title muted pull-left" data-bind="text: name"></div>
+													<div class="btn-group action-buttons pull-right">
+														<div class="btn btn-mini" data-bind="click: function() { $root.toggleTransformHandles($data); }"><i class="icon-move" title="{{ _('Transform') }}"></i></div>
+														<div class="btn btn-mini" data-bind="click: function() { $root.removeIMG($data); }"><i class="icon-remove" title="{{ _('Remove') }}"></i></div>
+													</div>
+													<div class="detail_information" >
+														<div class="local_transformation muted">
+															<i class="icon-move" title="{{ _('translation') }}"></i>
+															<span class="translation" >0,0</span>
+															<i class="icon-resize-full" title="{{ _('scale') }}"></i>
+															<span class="scale" >100%</span>
+															<i class="icon-repeat" title="{{ _('rotation') }}"></i>
+															<span class="rotation" >0°</span>
+															
+														</div>
+														<div class="misfit_warning" >
+															<i class="icon-exclamation-sign" style="color:red;" title="{{ _('exceeds working area') }}"> Design exceeds the working area.</i>
+															<a href="#" data-bind="click: function(){ $root.fitSVG($data) } ">Make it fit</a>
+														</div>
+													</div>
+												</div>
+											</script>
 
 
 											
@@ -241,6 +266,9 @@
 											height: workingAreaHeightPx()+'px'
 										}
 									 ">
+									<filter id = "grayscale_filter">
+										<feColorMatrix in = "SourceGraphic" type = "saturate" values = "0"/>
+									</filter>
 									<g id="scaleGroup" data-bind="attr: { transform: scaleMatrix() }">
 										<rect data-bind="click: move_laser" 
 											  id="coordGrid" x="0" y="0" width="0" height="0" 
@@ -522,6 +550,38 @@
 																<div class="btn btn-mini" data-bind="click: function() { if ($root.enableRemove($data)) { $root.removeFile($data); } else { return; } }, css: {disabled: !$root.enableRemove($data)}"><i class="icon-trash" title="{{ _('Remove') }}"></i></div>-->
 																<div class="btn" data-bind="click: function() { if(!$root.workingArea.isPlaced($data)){ $root.workingArea.placeSVG($data); } }, css: {disabled: $root.workingArea.isPlaced($data)}"><i class="icon-ok" title="{{ _('Use') }}">Add</i></div>
 															</div>
+														</div>
+													</script>
+													
+													<script type="text/html" id="files_template_model_img">
+														<div class="file_list_entry">
+															<i class="icon-camera file_list_icon"></i>
+															<div class="title muted dropdown" >
+																<a type="button" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+																	<span  data-bind="text: name"></span>
+																	<span class="caret"></span>
+																</a>
+																<ul class="dropdown-menu" role="menu">
+																	<li>
+																		<a class="" data-bind="attr: {href: $root.downloadLink($data), css: {disabled: !$root.downloadLink($data)}}"><i class="icon-download-alt" title="{{ _('Download') }}"></i> {{ _('Download') }}</a>
+																	</li>
+																	<li>
+																		<a class="" data-bind="click: function() { if ($root.enableRemove($data)) { $root.removeFile($data); } else { return; } }, css: {disabled: !$root.enableRemove($data)}"><i class="icon-trash" title="{{ _('Remove') }}"></i> {{ _('Remove') }}</a>
+																	</li>
+																</ul>
+															</div>
+															<div class="uploaded">{{ _('Uploaded') }}: <span data-bind="text: formatTimeAgo(date)"></span></div>
+															<div class="size">{{ _('Size') }}: <span data-bind="text: formatSize(size)"></span></div>
+															<div class="btn-group action-buttons">
+<!--																<a class="btn btn-mini" data-bind="attr: {href: $root.downloadLink($data), css: {disabled: !$root.downloadLink($data)}}"><i class="icon-download-alt" title="{{ _('Download') }}"></i></a>
+																<div class="btn btn-mini" data-bind="click: function() { if ($root.enableRemove($data)) { $root.removeFile($data); } else { return; } }, css: {disabled: !$root.enableRemove($data)}"><i class="icon-trash" title="{{ _('Remove') }}"></i></div>-->
+																<div class="btn" data-bind="click: function() { if(!$root.workingArea.isPlaced($data)){ $root.workingArea.placeIMG($data); } }, css: {disabled: $root.workingArea.isPlaced($data)}"><i class="icon-ok" title="{{ _('Use') }}">Add</i></div>
+															</div>
+														</div>
+													</script>
+													
+													<script type="text/html" id="files_template_model_dummy">
+														<div class="file_list_entry">
 														</div>
 													</script>
 

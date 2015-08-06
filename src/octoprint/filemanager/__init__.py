@@ -24,8 +24,10 @@ def full_extension_tree():
 	result = dict(
 		# extensions for 3d model files
 		model=dict(
-			stl=["svg"]
+			stl=["svg"],
+			image=['jpg', 'jpeg', 'png', 'gif', 'bmp', 'pcx', 'webp']
 		),
+
 		# extensions for printable machine code
 		machinecode=dict(
 			gcode=["gcode", "gco", "g", "nc"]
