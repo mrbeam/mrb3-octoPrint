@@ -631,6 +631,23 @@ $(function(){
 			}
 		};
 		
+		self.getPlacedSvgs = function() {
+			var svgFiles = [];
+			ko.utils.arrayForEach(self.placedDesigns(), function(design) {
+				if(design.type === 'model'){
+				var extension = design.name.split('.').pop().toLowerCase();
+					if (extension === "svg") {
+						svgFiles.push(design);
+					}
+				}
+			});
+			return svgFiles;
+		};
+		
+		self.getPlacedImages = function(){
+			return snap.selectAll("#userContent image");
+		};
+		
 		self.getPlacedGcodes = ko.computed(function() {
 			var gcodeFiles = [];
 			ko.utils.arrayForEach(self.placedDesigns(), function(design) {

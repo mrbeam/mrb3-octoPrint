@@ -4,27 +4,83 @@
         <h3 data-bind="text: title"></h3>
     </div>
     <div class="modal-body">
-        <p>{{ _('Please select your laser intensity and speed:') }}</p>
         <form class="form-horizontal">
-            <div class="control-group">
-                <label class="control-label">{{ _('Laser intensity') }} (1-1000)</label>
-                <div class="controls">
-                    <div class="input-append">
-                        <input id="svgtogcode_intensity_slider" type="text" data-bind="slicerValue: laserIntensity">
-                        <input id="svgtogcode_intensity" class="slider_manual_input" type="text" data-bind="value: laserIntensity, valueUpdate: 'keyup'">
-                    </div>
-                </div>
+			<div data-bind="visible: show_vector_parameters ">
+				<p>{{ _('Vector graphic parameters:') }}</p>
+
+				<div class="control-group">
+					<label class="control-label">{{ _('Laser intensity') }} (1-1000)</label>
+					<div class="controls">
+						<div class="input-append">
+							<input id="svgtogcode_intensity_slider" type="text" data-bind="slicerValue: laserIntensity">
+							<input id="svgtogcode_intensity" class="slider_manual_input" type="text" data-bind="value: laserIntensity, valueUpdate: 'keyup'">
+						</div>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">{{ _('Speed') }} (<span data-bind="text: minSpeed">20</span> - <span data-bind="text: maxSpeed">3000</span>)</label>
+					<div class="controls">
+						<div class="input-append">
+							<input id="svgtogcode_feedrate_slider" class="uninitialized" type="text" data-bind="value: laserSpeed">
+							<input id="svgtogcode_feedrate" class="slider_manual_input" type="text" data-bind="value: laserSpeed, valueUpdate: 'keyup'">
+						</div>
+					</div>
+				</div>
+				<div class="control-group" data-bind="visible: showExpertSettings ">
+					<label class="control-label">{{ _('Pierce Time (ms)') }} </label>
+					<div class="controls">
+						<div class="input-append">
+							<input type="text" data-bind="value: pierceTime">
+						</div>
+					</div>
+				</div>
             </div>
-            <div class="control-group">
-                <label class="control-label">{{ _('Speed') }} (<span data-bind="text: minSpeed">20</span> - <span data-bind="text: maxSpeed">3000</span>)</label>
-                <div class="controls">
-                    <div class="input-append">
-                        <input id="svgtogcode_feedrate_slider" class="uninitialized" type="text" data-bind="value: laserSpeed">
-                        <input id="svgtogcode_feedrate" class="slider_manual_input" type="text" data-bind="value: laserSpeed, valueUpdate: 'keyup'">
-                    </div>
-                </div>
-            </div>
-            <div class="control-group">
+			
+			<div data-bind="visible: show_image_parameters ">
+				<p>{{ _('Image engraving parameters:') }}</p>
+				<div class="control-group" >
+					<label class="control-label">{{ _('Laser intensity') }}</label>
+					<div class="controls">
+						<div class="input-append">
+							<input id="svgtogcode_img_intensity_white" class="slider_manual_input" type="text" data-bind="value: imgIntensityWhite, valueUpdate: 'keyup'">
+							<div class="svgtogcode_grayscale">&nbsp;</div>
+							<input id="svgtogcode_img_intensity_black" class="slider_manual_input noleftspace" type="text" data-bind="value: imgIntensityBlack, valueUpdate: 'keyup'">
+						</div>
+					</div>
+
+					<label class="control-label">{{ _('Engraving speed') }}</label>
+					<div class="controls">
+						<div class="input-append">
+							<input id="svgtogcode_img_feedrate_white" class="slider_manual_input" type="text" data-bind="value: imgFeedrateWhite, valueUpdate: 'keyup'">
+							<div class="svgtogcode_grayscale">&nbsp;</div>
+							<input id="svgtogcode_img_feedrate_black" class="slider_manual_input noleftspace" type="text" data-bind="value: imgFeedrateBlack, valueUpdate: 'keyup'">
+						</div>
+					</div>
+				</div>
+				<div class="control-group" data-bind="visible: showExpertSettings">
+					<label class="control-label">{{ _('Preprocessing') }}</label>
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: imgDithering">{{ _('Dithering') }}
+						</label>
+					</div>
+				
+					
+					<div class="controls">
+						<label class="XXcontrol-label">
+							<input id="svgtogcode_img_sharpening" class="" size="2" type="text" data-bind="value: imgContrast">
+							{{ _('Contrast') }}</label>
+					</div>
+
+					<div class="controls">
+						<label class="XXcontrol-label">
+							<input id="svgtogcode_img_sharpening" class="" size="2" type="text" data-bind="value: imgSharpening">
+							{{ _('Sharpening') }}</label>
+					</div>
+				</div>
+			</div>
+			
+            <div class="control-group" data-bind="visible: showExpertSettings ">
                 <label class="control-label">{{ _('GCode Filename') }}</label>
                 <div class="controls">
                     <div class="input-append">
@@ -36,6 +92,12 @@
         </form>
     </div>
     <div class="modal-footer">
+		<div class="pull-left">
+			<label class="checkbox">
+				<input type="checkbox" data-bind="checked: showExpertSettings">show advanced settings
+			</label>
+		</div>
+
         <a href="#" class="btn" data-dismiss="modal" aria-hidden="true">{{ _('Cancel') }}</a>
         <a href="#" class="btn btn-primary" data-bind="click: function() { if ($root.enableConvertButton()) { $root.convert() } }, enabled: enableConvertButton, css: {disabled: !$root.enableConvertButton()}">{{ _('Convert') }}</a>
     </div>

@@ -15,8 +15,14 @@ $(function(){
 
 		self.defaultSlicer = undefined;
 		self.defaultProfile = undefined;
-
+		
+		// expert settings
+		self.showExpertSettings = ko.observable(false);
 		self.gcodeFilename = ko.observable();
+		self.pierceTime = ko.observable(0);
+
+		// vector settings
+		self.show_vector_parameters = ko.observable(true);
 		self.laserIntensity = ko.observable(undefined);
 		self.laserSpeed = ko.observable(undefined);
 		self.maxSpeed = ko.observable(3000);
@@ -26,6 +32,16 @@ $(function(){
 		self.slicers = ko.observableArray();
 		self.profile = ko.observable();
 		self.profiles = ko.observableArray();
+		
+		// image engraving stuff
+		self.show_image_parameters = ko.observable(false);
+		self.imgIntensityWhite = ko.observable(0);
+		self.imgIntensityBlack = ko.observable(1000);
+		self.imgFeedrateWhite = ko.observable(3000); // TODO use machineprofile maximum
+		self.imgFeedrateBlack = ko.observable(500);
+		self.imgDithering = ko.observable(false);
+		self.imgSharpening = ko.observable(1);
+		self.imgContrast = ko.observable(1);
 
 		self.maxSpeed.subscribe(function(val){
 			self._configureFeedrateSlider();
@@ -44,6 +60,8 @@ $(function(){
 		self.show_conversion_dialog = function() {
 			self.svg = self.workingArea.getCompositionSVG();
 			self.gcodeFilesToAppend = self.workingArea.getPlacedGcodes();
+			self.show_image_parameters(self.workingArea.getPlacedImages().length > 0);
+			self.show_vector_parameters(self.workingArea.getPlacedSvgs().length > 0);
 			
 			if(self.svg !== undefined){
 				if(self.laserIntensity() === undefined){
@@ -246,6 +264,7 @@ $(function(){
 			self.files.conversion = self;
 			self._configureIntensitySlider();
 			self._configureFeedrateSlider();
+//			self._configureImgSliders();
 		};
 
 		self._configureIntensitySlider = function() {
@@ -302,6 +321,25 @@ $(function(){
 
 		self._calcRealSpeed = function(sliderVal){
 			return Math.round(self.minSpeed() + sliderVal/100 * (self.maxSpeed() - self.minSpeed()));
+		};
+		
+		self._configureImgSliders = function() {
+			self.intensitySlider = $("#svgtogcode_img_intensity_slider").slider({
+				//id: "svgtogcode_img_intensity_slider_impl",
+				//reversed: false,
+				//selection: "after",
+//				orientation: "horizontal",
+//				min: 0,
+//				max: 1000,
+//				step: 1,
+				value: [200,500],
+//				enabled: true,
+				//formatter: function(value) { return "" ; }
+			}).on("slideStop", function(ev){
+				//self.imgIntensity(ev.value);
+				//console.log(ev.value);
+			});
+
 		};
 
 	}
