@@ -51,6 +51,16 @@ $(function() {
         //~~ Initialize PNotify
 
         PNotify.prototype.options.styling = "bootstrap2";
+		PNotify.prototype.options.delay = 3000;
+		PNotify.prototype.options.animate_speed = "fast";
+		PNotify.prototype.options.animation = {
+			effect_in: "fade",
+			options_in: { easing: 'easeInExpo'},
+			effect_out: "fade",
+			options_out: { easing: 'easeInExpo'}
+		};
+		PNotify.prototype.options.buttons.sticker = false;
+		PNotify.prototype.options.cornerclass = 'ui-pnotify-sharp';
 
         //~~ Initialize view models
 

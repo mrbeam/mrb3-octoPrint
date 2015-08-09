@@ -553,6 +553,7 @@ class SlicingManager(object):
 		return self.get_slicer(slicer, require_configured=require_configured).get_slicer_profile(path)
 
 	def _save_profile_to_path(self, slicer, path, profile, allow_overwrite=True, overrides=None, require_configured=False):
+		print('_save_profile_to_path', overrides)
 		self.get_slicer(slicer, require_configured=require_configured).save_slicer_profile(path, profile, allow_overwrite=allow_overwrite, overrides=overrides)
 
 	def _get_default_profile(self, slicer):

@@ -49,6 +49,7 @@ $(function(){
 
 		// TODO check if still in use
 		self.show = function(target, file) {
+			alert('still in use (line52, convert.js)');
 			self.target = target;
 			self.file = file;
 			self.title(_.sprintf(gettext("Converting %(filename)s"), {filename: self.file}));
@@ -224,6 +225,14 @@ $(function(){
 					command: "convert",
 					"profile.speed": self.laserSpeed(),
 					"profile.intensity": self.laserIntensity(),
+					"profile.pierce_time": self.pierceTime(),
+					"profile.intensity_black" : self.imgIntensityBlack(),
+					"profile.intensity_white" : self.imgIntensityWhite(),
+					"profile.feedrate_black" : self.imgFeedrateBlack(),
+					"profile.feedrate_white" : self.imgFeedrateWhite(),
+					"profile.img_contrast" : self.imgContrast(),
+					"profile.img_sharpening" : self.imgSharpening(),
+					"profile.img_dithering" : self.imgDithering(),
 					slicer: "svgtogcode",
 					gcode: gcodeFilename
 				};
@@ -249,8 +258,6 @@ $(function(){
 
 				self.gcodeFilename(undefined);
 				self.svg = undefined;
-				//self.slicer(self.defaultSlicer);
-				//self.profile(self.defaultProfile);
 			}
 		};
 
