@@ -406,6 +406,7 @@ $(function(){
 				newImg.attr({id: previewId, filter: 'url(#grayscale_filter)'});
 				snap.select("#userContent").append(newImg);
 				newImg.transformable();
+				newImg.ftDisableRotate();
 				newImg.ftRegisterCallback(self.svgTransformUpdate);
 				file.id = previewId;
 				file.previewId = previewId;

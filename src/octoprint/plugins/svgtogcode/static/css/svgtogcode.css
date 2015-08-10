@@ -28,7 +28,7 @@ table th.settings_plugin_svgtogcode_profiles_key,table td.settings_plugin_svgtog
 }
 
 .slider_manual_input.noleftspace{
-	margin-left: 0em; 
+	margin-left: 0; 
 }
 
 svg text {
@@ -38,4 +38,30 @@ svg text {
 	cursor: default;
 	pointer-events: none;
 	
+}
+
+.img_slider{
+	margin-bottom: 24px;
+}
+
+.img_preprocessing_preview {
+    background-size: 150px;
+	display: inline-block;
+	width: 150px;
+	height: 150px;
+}
+
+.img_preprocessing_preview.after {
+    position:relative;
+}
+.img_preprocessing_preview.after>div {
+	position: absolute;
+	top:0;
+	left:0;
+}
+
+.img_preprocessing_preview.after .contrast, 
+.img_preprocessing_preview.after .sharpened, 
+.img_preprocessing_preview.after .sharpened_contrast {
+	opacity: 0;
 }

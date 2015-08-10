@@ -231,10 +231,14 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 				this.data('ftCallbacks').push(callback);
 			}
 		};
+		
+		Element.prototype.ftDisableRotate = function(){
+			this.data('block_rotation', true);	
+		};
 	});
 
 	function rectObjFromBB ( bb ) {
-		return { x: bb.x, y: bb.y, width: bb.width, height: bb.height } 
+		return { x: bb.x, y: bb.y, width: bb.width, height: bb.height };
 	}
 
 	function elementDragStart( mainEl, x, y, ev ) {
@@ -292,11 +296,13 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		var unscale = mainEl.data('unscale');
 		handle.attr({ cx: +handle.data('ocx') + dx*unscale, cy: +handle.data('ocy') + dy*unscale });
 		
-		var angle = Snap.angle( mainBB.cx, mainBB.cy, handle.attr('cx'), handle.attr('cy') ) - 180;
-		if(event.shiftKey){
-			angle = Math.round(angle/30) * 30;
-		} 
-		mainEl.data("angle", angle );
+		if(!mainEl.data('block_rotation')){
+			var angle = Snap.angle( mainBB.cx, mainBB.cy, handle.attr('cx'), handle.attr('cy') ) - 180;
+			if(event.shiftKey){
+				angle = Math.round(angle/30) * 30;
+			} 
+			mainEl.data("angle", angle );
+		}
 		
 		var distance = calcDistance( mainBB.cx, mainBB.cy, handle.attr('cx'), handle.attr('cy') );
 		var scale = distance / mainEl.data("scaleFactor");

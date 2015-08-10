@@ -42,6 +42,21 @@ $(function(){
 		self.imgDithering = ko.observable(false);
 		self.imgSharpening = ko.observable(1);
 		self.imgContrast = ko.observable(1);
+		
+		// preprocessing preview
+		self.sharpenedPreview = ko.computed(function(){
+			if(self.imgDithering()) return 0;
+			else {
+				return (self.imgSharpening() - 1) - (self.imgContrast() - 1)/2;
+			}
+		}, self);
+		self.contrastPreview = ko.computed(function(){
+			if(self.imgDithering()) return 0;
+			else {
+				return (self.imgContrast() - 1) - (self.imgSharpening() - 1)/2;
+			}
+		}, self);
+		
 
 		self.maxSpeed.subscribe(function(val){
 			self._configureFeedrateSlider();
@@ -271,7 +286,7 @@ $(function(){
 			self.files.conversion = self;
 			self._configureIntensitySlider();
 			self._configureFeedrateSlider();
-//			self._configureImgSliders();
+			self._configureImgSliders();
 		};
 
 		self._configureIntensitySlider = function() {
@@ -331,23 +346,29 @@ $(function(){
 		};
 		
 		self._configureImgSliders = function() {
-			self.intensitySlider = $("#svgtogcode_img_intensity_slider").slider({
-				//id: "svgtogcode_img_intensity_slider_impl",
-				//reversed: false,
-				//selection: "after",
-//				orientation: "horizontal",
-//				min: 0,
-//				max: 1000,
-//				step: 1,
-				value: [200,500],
-//				enabled: true,
-				//formatter: function(value) { return "" ; }
-			}).on("slideStop", function(ev){
-				//self.imgIntensity(ev.value);
-				//console.log(ev.value);
+			self.contrastSlider = $("#svgtogcode_contrast_slider").slider({
+				step: .1,
+				min: 1,
+				max: 2,
+				value: 1,
+				tooltip: 'hide',
+			}).on("slide", function(ev){
+				self.imgContrast(ev.value);
+			});
+			
+			self.sharpeningSlider = $("#svgtogcode_sharpening_slider").slider({
+				step: .1,
+				min: 1,
+				max: 2,
+				value: 1,
+				class: 'img_slider',
+				tooltip: 'hide',
+			}).on("slide", function(ev){
+				self.imgSharpening(ev.value);
 			});
 
 		};
+
 
 	}
 	

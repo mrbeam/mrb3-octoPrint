@@ -58,28 +58,41 @@
 					</div>
 				</div>
 				<div class="control-group" data-bind="visible: showExpertSettings">
-					<label class="control-label">{{ _('Preprocessing') }}</label>
+					<p >{{ _('Image Preprocessing') }}</p>
+					<div class="controls">
+						<div class="img_preprocessing_preview before" style="background-image:url(/plugin/svgtogcode/static/img/kitty_grayscale.png);" >before</div>
+						<div class="img_preprocessing_preview after" style="background-image:url(/plugin/svgtogcode/static/img/kitty_grayscale.png);" >after
+							<div class="img_preprocessing_preview contrast" style="background-image:url(/plugin/svgtogcode/static/img/kitty_contrast.png);" data-bind="style: { opacity: contrastPreview }" ></div>
+							<div class="img_preprocessing_preview sharpened" style="background-image:url(/plugin/svgtogcode/static/img/kitty_sharpened.png);" data-bind="style: { opacity: sharpenedPreview }" ></div>
+							<div class="img_preprocessing_preview dithered" style="background-image:url(/plugin/svgtogcode/static/img/kitty_dithered_150.png);" data-bind="visible: imgDithering"></div>
+						
+						</div>
+					</div>
+					
+					<div data-bind="disable:imgDithering ">
+						<label class="control-label">{{ _('Contrast') }}</label>
+						<div class="controls img_slider">
+							<input id="svgtogcode_contrast_slider" type="text" data-bind="value: imgContrast" >
+						</div>
+						<div style="clear:both"></div>	
+
+						<label class="control-label">{{ _('Sharpening') }}</label>
+						<div class="controls img_slider">
+							<input id="svgtogcode_sharpening_slider" class="uninitialized" type="text" data-bind="value: imgSharpening">
+						</div>
+						<div style="clear:both"></div>
+					</div>
+						
+					<label class="control-label">{{ _('Dithering') }}</label>
 					<div class="controls">
 						<label class="checkbox">
 							<input type="checkbox" data-bind="checked: imgDithering">{{ _('Dithering') }}
 						</label>
 					</div>
-				
-					
-					<div class="controls">
-						<label class="XXcontrol-label">
-							<input id="svgtogcode_img_sharpening" class="" size="2" type="text" data-bind="value: imgContrast">
-							{{ _('Contrast') }}</label>
-					</div>
-
-					<div class="controls">
-						<label class="XXcontrol-label">
-							<input id="svgtogcode_img_sharpening" class="" size="2" type="text" data-bind="value: imgSharpening">
-							{{ _('Sharpening') }}</label>
-					</div>
 				</div>
 			</div>
-			
+
+			<p>{{ _('Store GCode after conversion:') }}</p>
             <div class="control-group" data-bind="visible: showExpertSettings ">
                 <label class="control-label">{{ _('GCode Filename') }}</label>
                 <div class="controls">
