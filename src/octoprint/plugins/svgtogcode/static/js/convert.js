@@ -63,14 +63,14 @@ $(function(){
 		});
 
 		// TODO check if still in use
-		self.show = function(target, file) {
-			alert('still in use (line52, convert.js)');
-			self.target = target;
-			self.file = file;
-			self.title(_.sprintf(gettext("Converting %(filename)s"), {filename: self.file}));
-			self.gcodeFilename(self.file.substr(0, self.file.lastIndexOf(".")));
-			$("#dialog_vector_graphics_conversion").modal("show");
-		};
+//		self.show = function(target, file) {
+//			alert('still in use (line52, convert.js)');
+//			self.target = target;
+//			self.file = file;
+//			self.title(_.sprintf(gettext("Converting %(filename)s"), {filename: self.file}));
+//			self.gcodeFilename(self.file.substr(0, self.file.lastIndexOf(".")));
+//			$("#dialog_vector_graphics_conversion").modal("show");
+//		};
 
 		// shows conversion dialog and extracts svg first
 		self.show_conversion_dialog = function() {
@@ -369,6 +369,14 @@ $(function(){
 
 		};
 
+		// TODO debug this.
+		self.showExpertSettings.subscribe(function(){
+//			var wh = $(window).height();
+//			var h = $('#dialog_vector_graphics_conversion').outerHeight();
+//			var d = Math.max((wh - h) / 2, 10);
+//			$('#dialog_vector_graphics_conversion').css('top', d + 'px');
+			//$("#dialog_vector_graphics_conversion").modal("show");
+		});
 
 	}
 	

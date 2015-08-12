@@ -110,8 +110,9 @@ $(function() {
 
 
         //~~ File list
+		var h = $('#wa_filelist').innerHeight()
         $(".gcode_files").slimScroll({
-            height: "80vh",
+            'height': h+"px",
             size: "5px",
             distance: "0",
             railVisible: true,

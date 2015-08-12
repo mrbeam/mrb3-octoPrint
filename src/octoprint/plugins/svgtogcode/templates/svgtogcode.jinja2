@@ -1,4 +1,4 @@
-<div id="dialog_vector_graphics_conversion" class="modal hide fade autoModal">
+<div id="dialog_vector_graphics_conversion" class="modal hide fade">
     <div class="modal-header">
         <a href="#" class="close" data-dismiss="modal" aria-hidden="true">&times;</a>
         <h3 data-bind="text: title"></h3>
@@ -42,18 +42,18 @@
 					<label class="control-label">{{ _('Laser intensity') }}</label>
 					<div class="controls">
 						<div class="input-append">
-							<input id="svgtogcode_img_intensity_white" class="img_intensity_input" type="number" min="0" max="1000" data-bind="value: imgIntensityWhite, valueUpdate: 'keyup'">
+							<input id="svgtogcode_img_intensity_white" class="img_intensity_input" type="number" min="0" max="1000" data-bind="value: imgIntensityWhite">
 							<div class="svgtogcode_grayscale">&nbsp;</div>
-							<input id="svgtogcode_img_intensity_black" class="img_intensity_input" type="number" min="0" max="1000" data-bind="value: imgIntensityBlack, valueUpdate: 'keyup'">
+							<input id="svgtogcode_img_intensity_black" class="img_intensity_input" type="number" min="0" max="1000" data-bind="value: imgIntensityBlack">
 						</div>
 					</div>
 
 					<label class="control-label">{{ _('Engraving speed') }}</label>
 					<div class="controls">
 						<div class="input-append">
-							<input id="svgtogcode_img_feedrate_white" class="img_intensity_input" type="number" data-bind="value: imgFeedrateWhite, valueUpdate: 'keyup'">
+							<input id="svgtogcode_img_feedrate_white" class="img_intensity_input" type="number"  min="30" data-bind="value: imgFeedrateWhite">
 							<div class="svgtogcode_grayscale">&nbsp;</div>
-							<input id="svgtogcode_img_feedrate_black" class="img_intensity_input" type="number" data-bind="value: imgFeedrateBlack, valueUpdate: 'keyup'">
+							<input id="svgtogcode_img_feedrate_black" class="img_intensity_input" type="number"  min="30" data-bind="value: imgFeedrateBlack">
 						</div>
 					</div>
 				</div>
