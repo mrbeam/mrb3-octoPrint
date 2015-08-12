@@ -36,7 +36,7 @@ $(function(){
 		// image engraving stuff
 		self.show_image_parameters = ko.observable(false);
 		self.imgIntensityWhite = ko.observable(0);
-		self.imgIntensityBlack = ko.observable(1000);
+		self.imgIntensityBlack = ko.observable(500);
 		self.imgFeedrateWhite = ko.observable(3000); // TODO use machineprofile maximum
 		self.imgFeedrateBlack = ko.observable(500);
 		self.imgDithering = ko.observable(false);

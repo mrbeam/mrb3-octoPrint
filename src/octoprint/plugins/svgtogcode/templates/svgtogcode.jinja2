@@ -1,4 +1,4 @@
-<div id="dialog_vector_graphics_conversion" class="modal hide fade">
+<div id="dialog_vector_graphics_conversion" class="modal hide fade autoModal">
     <div class="modal-header">
         <a href="#" class="close" data-dismiss="modal" aria-hidden="true">&times;</a>
         <h3 data-bind="text: title"></h3>
@@ -42,18 +42,18 @@
 					<label class="control-label">{{ _('Laser intensity') }}</label>
 					<div class="controls">
 						<div class="input-append">
-							<input id="svgtogcode_img_intensity_white" class="slider_manual_input" type="text" data-bind="value: imgIntensityWhite, valueUpdate: 'keyup'">
+							<input id="svgtogcode_img_intensity_white" class="img_intensity_input" type="number" min="0" max="1000" data-bind="value: imgIntensityWhite, valueUpdate: 'keyup'">
 							<div class="svgtogcode_grayscale">&nbsp;</div>
-							<input id="svgtogcode_img_intensity_black" class="slider_manual_input noleftspace" type="text" data-bind="value: imgIntensityBlack, valueUpdate: 'keyup'">
+							<input id="svgtogcode_img_intensity_black" class="img_intensity_input" type="number" min="0" max="1000" data-bind="value: imgIntensityBlack, valueUpdate: 'keyup'">
 						</div>
 					</div>
 
 					<label class="control-label">{{ _('Engraving speed') }}</label>
 					<div class="controls">
 						<div class="input-append">
-							<input id="svgtogcode_img_feedrate_white" class="slider_manual_input" type="text" data-bind="value: imgFeedrateWhite, valueUpdate: 'keyup'">
+							<input id="svgtogcode_img_feedrate_white" class="img_intensity_input" type="number" data-bind="value: imgFeedrateWhite, valueUpdate: 'keyup'">
 							<div class="svgtogcode_grayscale">&nbsp;</div>
-							<input id="svgtogcode_img_feedrate_black" class="slider_manual_input noleftspace" type="text" data-bind="value: imgFeedrateBlack, valueUpdate: 'keyup'">
+							<input id="svgtogcode_img_feedrate_black" class="img_intensity_input" type="number" data-bind="value: imgFeedrateBlack, valueUpdate: 'keyup'">
 						</div>
 					</div>
 				</div>
@@ -67,6 +67,7 @@
 							<div class="img_preprocessing_preview dithered" style="background-image:url(/plugin/svgtogcode/static/img/kitty_dithered_150.png);" data-bind="visible: imgDithering"></div>
 						
 						</div>
+						<div class="photo_attribution"><a href="http://www.christianholmer.com" target="_blank">Photo: Christian Holmér</a></div>
 					</div>
 					
 					<div data-bind="disable:imgDithering ">
@@ -92,8 +93,8 @@
 				</div>
 			</div>
 
-			<p>{{ _('Store GCode after conversion:') }}</p>
             <div class="control-group" data-bind="visible: showExpertSettings ">
+				<p>{{ _('Store GCode after conversion:') }}</p>
                 <label class="control-label">{{ _('GCode Filename') }}</label>
                 <div class="controls">
                     <div class="input-append">

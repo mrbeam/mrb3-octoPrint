@@ -18,5 +18,10 @@ I don't know anything about).
 
 sys.path.insert(0, os.path.join(basedir, "src"))
 
+#import sys
+#sys.path.append('/home/teja/Downloads/pyvmmonitor/public_api')
+#import pyvmmonitor
+#pyvmmonitor.connect()
+
 import octoprint
 octoprint.main()

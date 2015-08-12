@@ -23,12 +23,12 @@ table th.settings_plugin_svgtogcode_profiles_key,table td.settings_plugin_svgtog
 
 .svgtogcode_grayscale {
 	background-image: linear-gradient(90deg, #FFFFFF, #000000); 
-	width:130px;
+	width:220px;
 	display: inline-block;
 }
 
-.slider_manual_input.noleftspace{
-	margin-left: 0; 
+.img_intensity_input {
+	width: 3em;
 }
 
 svg text {
@@ -64,4 +64,16 @@ svg text {
 .img_preprocessing_preview.after .sharpened, 
 .img_preprocessing_preview.after .sharpened_contrast {
 	opacity: 0;
+}
+
+.photo_attribution {
+	margin-bottom: 1em;
+}
+.photo_attribution a {
+    color: #999;
+    font-size: smaller;
+}
+
+.autoModal.modal .modal-body{
+    max-height: 100%;
 }
