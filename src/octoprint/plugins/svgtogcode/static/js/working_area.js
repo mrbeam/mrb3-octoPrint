@@ -424,7 +424,7 @@ $(function(){
 		self.getUsefulDimensions = function(wpx, hpx){
 			var maxWidthMM = wpx * 0.25; // TODO parametrize
 			var aspectRatio = wpx / hpx;
-			var destWidthMM = Math.min(self.workingAreaWidthMM(), 100, maxWidthMM);
+			var destWidthMM = Math.min(self.workingAreaWidthMM() - 2, maxWidthMM);
 			var destHeightMM = destWidthMM / aspectRatio;
 			var destWidthPT = self.mm2svgUnits(destWidthMM);
 			var destHeightPT = self.mm2svgUnits(destHeightMM);
