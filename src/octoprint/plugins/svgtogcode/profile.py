@@ -146,7 +146,6 @@ class Profile(object):
 	def merge_profile(cls, profile, overrides=None):
 		import copy
 
-		print overrides
 		result = copy.deepcopy(defaults)
 		for k in result.keys():
 			profile_value = None
