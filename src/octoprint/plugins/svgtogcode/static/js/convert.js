@@ -71,16 +71,6 @@ $(function(){
 			self._configureFeedrateSlider();
 		});
 
-		// TODO check if still in use
-//		self.show = function(target, file) {
-//			alert('still in use (line52, convert.js)');
-//			self.target = target;
-//			self.file = file;
-//			self.title(_.sprintf(gettext("Converting %(filename)s"), {filename: self.file}));
-//			self.gcodeFilename(self.file.substr(0, self.file.lastIndexOf(".")));
-//			$("#dialog_vector_graphics_conversion").modal("show");
-//		};
-
 		// shows conversion dialog and extracts svg first
 		self.show_conversion_dialog = function() {
 			self.svg = self.workingArea.getCompositionSVG();
@@ -359,7 +349,7 @@ $(function(){
 			self.contrastSlider = $("#svgtogcode_contrast_slider").slider({
 				step: .1,
 				min: 1,
-				max: 2,
+				max: self.contrastMax,
 				value: 1,
 				tooltip: 'hide',
 			}).on("slide", function(ev){
@@ -369,7 +359,7 @@ $(function(){
 			self.sharpeningSlider = $("#svgtogcode_sharpening_slider").slider({
 				step: 1,
 				min: 1,
-				max: 25,
+				max: self.sharpeningMax,
 				value: 1,
 				class: 'img_slider',
 				tooltip: 'hide',
@@ -385,7 +375,6 @@ $(function(){
 //			var h = $('#dialog_vector_graphics_conversion').outerHeight();
 //			var d = Math.max((wh - h) / 2, 10);
 //			$('#dialog_vector_graphics_conversion').css('top', d + 'px');
-			//$("#dialog_vector_graphics_conversion").modal("show");
 		});
 
 	}
