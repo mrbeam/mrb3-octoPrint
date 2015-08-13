@@ -34,26 +34,35 @@ $(function(){
 		self.profiles = ko.observableArray();
 		
 		// image engraving stuff
+		// preset values are a good start for wood engraving
 		self.show_image_parameters = ko.observable(false);
 		self.imgIntensityWhite = ko.observable(0);
 		self.imgIntensityBlack = ko.observable(500);
-		self.imgFeedrateWhite = ko.observable(3000); // TODO use machineprofile maximum
-		self.imgFeedrateBlack = ko.observable(500);
+		self.imgFeedrateWhite = ko.observable(1500); 
+		self.imgFeedrateBlack = ko.observable(250);
 		self.imgDithering = ko.observable(false);
 		self.imgSharpening = ko.observable(1);
 		self.imgContrast = ko.observable(1);
+		self.beamDiameter = ko.observable(0.2);
 		
-		// preprocessing preview
+		self.sharpeningMax = 25;
+		self.contrastMax = 2;
+		
+		// preprocessing preview ... returns opacity 0.0 - 1.0
 		self.sharpenedPreview = ko.computed(function(){
 			if(self.imgDithering()) return 0;
 			else {
-				return (self.imgSharpening() - 1) - (self.imgContrast() - 1)/2;
+				var sharpeningPercents = (self.imgSharpening() - 1)/(self.sharpeningMax - 1);
+				var contrastPercents = (self.imgContrast() - 1)/(self.contrastMax - 1);
+				return sharpeningPercents - contrastPercents/2;
 			}
 		}, self);
 		self.contrastPreview = ko.computed(function(){
 			if(self.imgDithering()) return 0;
 			else {
-				return (self.imgContrast() - 1) - (self.imgSharpening() - 1)/2;
+				var sharpeningPercents = (self.imgSharpening() - 1)/(self.sharpeningMax - 1);
+				var contrastPercents = (self.imgContrast() - 1)/(self.contrastMax - 1);
+				return contrastPercents - sharpeningPercents/2;
 			}
 		}, self);
 		
@@ -248,6 +257,7 @@ $(function(){
 					"profile.img_contrast" : self.imgContrast(),
 					"profile.img_sharpening" : self.imgSharpening(),
 					"profile.img_dithering" : self.imgDithering(),
+					"profile.beam_diameter" : self.beamDiameter(),
 					slicer: "svgtogcode",
 					gcode: gcodeFilename
 				};
@@ -357,9 +367,9 @@ $(function(){
 			});
 			
 			self.sharpeningSlider = $("#svgtogcode_sharpening_slider").slider({
-				step: .1,
+				step: 1,
 				min: 1,
-				max: 2,
+				max: 25,
 				value: 1,
 				class: 'img_slider',
 				tooltip: 'hide',

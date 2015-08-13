@@ -58,6 +58,13 @@
 					</div>
 				</div>
 				<div class="control-group" data-bind="visible: showExpertSettings">
+					<label class="control-label">{{ _('Line distance') }}</label>
+					<div class="controls">
+						<div class="input-append">
+							<input id="svgtogcode_img_feedrate_white" class="img_intensity_input" type="number" max="0.5" min="0.1" step="0.05" data-bind="value: beamDiameter">mm
+						</div>
+					</div>
+					
 					<p >{{ _('Image Preprocessing') }}</p>
 					<div class="controls">
 						<div class="img_preprocessing_preview before" style="background-image:url(/plugin/svgtogcode/static/img/kitty_grayscale.png);" >before</div>

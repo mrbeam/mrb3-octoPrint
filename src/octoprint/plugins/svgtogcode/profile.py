@@ -10,36 +10,6 @@ from . import s
 
 import re
 
-#class SupportLocationTypes(object):
-#	NONE = "none"
-#	TOUCHING_BUILDPLATE = "buildplate"
-#	EVERYWHERE = "everywhere"
-#
-#class SupportDualTypes(object):
-#	BOTH = "both"
-#	FIRST = "first"
-#	SECOND = "second"
-#
-#class SupportTypes(object):
-#	GRID = "grid"
-#	LINES = "lines"
-#
-#class PlatformAdhesionTypes(object):
-#	NONE = "none"
-#	BRIM = "brim"
-#	RAFT = "raft"
-#
-#class MachineShapeTypes(object):
-#	SQUARE = "square"
-#	CIRCULAR = "circular"
-#
-#class GcodeFlavors(object):
-#	REPRAP = "reprap"
-#	REPRAP_VOLUME = "reprap_volume"
-#	ULTIGCODE = "ultigcode"
-#	MAKERBOT = "makerbot"
-#	BFB = "bfb"
-#	MACH3 = "mach3"
 
 
 defaults = dict(
@@ -48,12 +18,12 @@ defaults = dict(
 	beam_diameter = 0.25,
 	intensity_white = 0,
 	intensity_black = 500,
-	feedrate_white = 1000,
-	feedrate_black = 500,
+	feedrate_white = 1500,
+	feedrate_black = 250,
 	pierce_time = 0,
-	contrast = 1.0,
-	sharpening = 1.0,
-	dither = False
+	img_contrast = 1.0,
+	img_sharpening = 1.0,
+	img_dithering = False
 )
 
 
@@ -176,7 +146,7 @@ class Profile(object):
 	def merge_profile(cls, profile, overrides=None):
 		import copy
 
-		print("# overrides", overrides)
+		print overrides
 		result = copy.deepcopy(defaults)
 		for k in result.keys():
 			profile_value = None
@@ -253,91 +223,7 @@ class Profile(object):
 			return default
 		return int(value * 1000)
 
-	# TODO remove safely
-#	def get_gcode_template(self, key):
-#		extruder_count = s.globalGetInt(["printerParameters", "numExtruders"])
-#
-#		if key in self.profile:
-#			gcode = self.profile[key]
-#		else:
-#			gcode = defaults[key]
-#
-#		if key in ("start_gcode", "end_gcode"):
-#			return gcode[extruder_count-1]
-#		else:
-#			return gcode
-	
-	# TODO remove safely
-#	def get_machine_extruder_offset(self, extruder, axis):
-#		return 0.0
-	
-	# TODO remove safely
-#	def get_profile_string(self):
-#		import base64
-#		import zlib
-#
-#		import copy
-#		profile = copy.deepcopy(defaults)
-#		profile.update(self.profile)
-#
-#		result = []
-#		for k, v in profile.items():
-#			if isinstance(v, (str, unicode)):
-#				result.append("{k}={v}".format(k=k, v=v.encode("utf-8")))
-#			else:
-#				result.append("{k}={v}".format(k=k, v=v))
-#
-#		return base64.b64encode(zlib.compress("\b".join(result), 9))
-#	
-	# TODO remove safely
-#	def replaceTagMatch(self, m):
-#		import time
-#
-#		pre = m.group(1)
-#		tag = m.group(2)
-#
-#		if tag == 'time':
-#			return pre + time.strftime('%H:%M:%S')
-#		if tag == 'date':
-#			return pre + time.strftime('%d-%m-%Y')
-#		if tag == 'day':
-#			return pre + ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][int(time.strftime('%w'))]
-#		if tag == 'profile_string':
-#			return pre + 'svgtogcode_OCTO_PROFILE_STRING:%s' % (self.get_profile_string())
-#
-#		if pre == 'F' and tag == 'max_z_speed':
-#			f = self.get_float("travel_speed") * 60
-#		elif pre == 'F' and tag in ['print_speed', 'retraction_speed', 'travel_speed', 'bottom_layer_speed', 'cool_min_feedrate']:
-#			f = self.get_float(tag) * 60
-#		elif self.get(tag):
-#			f = self.get(tag)
-#		else:
-#			return '%s?%s?' % (pre, tag)
-#
-#		if (f % 1) == 0:
-#			return pre + str(int(f))
-#
-#		return pre + str(f)
-#
 
-	# TODO remove safely
-#	def get_gcode(self, key):
-#		if key == "start_gcode":
-#			return ""
-#		else:
-#			return ""
-
-#	def calculate_edge_width_and_line_count(self):
-#		wall_thickness = self.get_float("wall_thickness")
-#		return wall_thickness, 1
-
-	# TODO remove safely
-#	def calculate_solid_layer_count(self):
-#		return 1
-
-	# TODO remove safely
-#	def calculate_minimal_extruder_count(self):
-#		return 1
 
 	def convert_to_engine(self):
 
@@ -350,9 +236,9 @@ class Profile(object):
 			"--img-speed-white" : self.get_int("feedrate_white"),
 			"--img-speed-black" : self.get_int("feedrate_black"),
 			"--pierce-time" : self.get_float("pierce_time"),
-			"--contrast": self.get_float("contrast"),
-			"--sharpening": self.get_float("sharpening"),
-			"--dither": self.get_boolean("dither")
+			"--contrast": self.get_float("img_contrast"),
+			"--sharpening": self.get_float("img_sharpening"),
+			"--img-dithering": self.get_boolean("img_dithering")
 		}
 
 		return settings
