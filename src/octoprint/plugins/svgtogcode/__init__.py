@@ -345,99 +345,162 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 			path, _ = os.path.splitext(model_path)
 			machinecode_path = path + ".gco"
 
-		if on_progress:
-			if not on_progress_args:
+		if on_progress is not None:
+			if on_progress_args is None:
 				on_progress_args = ()
-			if not on_progress_kwargs:
+			if on_progress_kwargs is None:
 				on_progress_kwargs = dict()
 
+		#on_progress_kwargs["_progress"] = your_plugins_slicing_progress
+		#on_progress(*on_progress_args, **on_progress_kwargs)
 		self._svgtogcode_logger.info("### Slicing %s to %s using profile stored at %s" % (model_path, machinecode_path, profile_path))
 
-		engine_settings = self._convert_to_engine(profile_path)
+		direct_call = True
+		if(direct_call):
+			## direct call
+			from os.path import expanduser
+			homedir = expanduser("~")
+			converter_path = homedir+"/mrbeam-inkscape-ext"
+			
+			hostname = socket.gethostname()
+			if("Bucanero" in hostname):				
+				converter_path = '/home/teja/workspace/mrbeam-inkscape-ext'
 
-		from os.path import expanduser
-		homedir = expanduser("~")
-		executable = homedir + "/mrbeam-inkscape-ext/mrbeam.py"
-		log_path = homedir + "/.octoprint/logs/svgtogcode.log"
-		log_enabled = s.get(["debug_logging"])
-		
-		# debugging stuff. TODO remove
-		hostname = socket.gethostname()
-		if("Bucanero" in hostname):
-			executable = homedir + "/workspace/mrbeam-inkscape-ext/mrbeam.py"
-		
-		# executable = s.get(["svgtogcode_engine"])
-		
-		if not executable:
-			return False, "Path to SVG converter is not configured "
-
-		dest_dir, dest_file = os.path.split(machinecode_path)
-		working_dir, _ = os.path.split(executable)
-		args = ['python "%s"' % executable, '-f "%s"' % dest_file, '-d "%s"' % dest_dir]
-		args += ['--no-header=True']
-		for k, v in engine_settings.items():
-			args += ['"%s=%s"' % (k, str(v))]
-		fill_enabled = False # disabled as highly experimental
-		args += ['--fill-areas=%s' % fill_enabled]
-		args += ['--create-log=%s' % log_enabled, '"--log-filename=%s"' % log_path,'"%s"' % model_path]
-
-		#python ~/mrbeam-inkscape-ext/standalone.py -f output.gcode -d output/path --engraving-laser-speed=300
-		#  --laser-intensity=1000  --create-log=false path/to/input.svg
-
-		import sarge
-		command = " ".join(args)
-		self._logger.info("Running %r in %s" % (command, working_dir))
-		try:
-			p = sarge.run(command, cwd=working_dir, async=True, stdout=sarge.Capture(), stderr=sarge.Capture())
-			p.wait_events()
-			try:
-				with self._slicing_commands_mutex:
-					self._slicing_commands[machinecode_path] = p.commands[0]
-
-				line_seen = False
-				while p.returncode is None:
-					line = p.stdout.readline(timeout=0.5)
-					if not line:
-						if line_seen:
-							break
-						else:
-							continue
-
-					line_seen = True
-					self._svgtogcode_logger.debug(line.strip())
-
-					if on_progress is not None:
-						pass
-			finally:
-				p.close()
-
-			with self._cancelled_jobs_mutex:
-				if machinecode_path in self._cancelled_jobs:
-					self._svgtogcode_logger.info("### Cancelled")
-					raise octoprint.slicing.SlicingCancelled()
-
-			self._svgtogcode_logger.info("### Finished, returncode %d" % p.returncode)
-			if p.returncode == 0:
-				return True, None
+			import sys
+			sys.path.append(converter_path)
+			from mrbeam import Laserengraver
+			
+			profile = Profile(self._load_profile(profile_path))
+			params = profile.convert_to_engine2()
+			
+			dest_dir, dest_file = os.path.split(machinecode_path)
+			params['directory'] = dest_dir
+			params['file'] = dest_file
+			params['noheaders'] = "true" # TODO... booleanify
+			
+			params['fill_areas'] = False # disabled as highly experimental
+			if(s.get(["debug_logging"])):
+				log_path = homedir + "/.octoprint/logs/svgtogcode.log"
+				params['log_filename'] = log_path
 			else:
-				self._logger.warn("Could not slice, got return code %r" % p.returncode)
-				return False, "Got returncode %r" % p.returncode
+				params['log_filename'] = ''
 
-		except octoprint.slicing.SlicingCancelled as e:
-			raise e
-		except:
-			self._logger.exception("Could not slice, got an unknown error")
-			return False, "Unknown error, please consult the log file"
+			
+			print("### params ", params)
+			try:
+				engine = Laserengraver(params, model_path)
+				engine.affect()
+			
+				self._svgtogcode_logger.info("### Conversion finished")
+				return True, None # TODO add analysis about out of working area, ignored elements, invisible elements, text elements
+			except octoprint.slicing.SlicingCancelled as e:
+				raise e
+			except Exception as e:
+				print e.__doc__
+				print e.message
+				self._logger.exception("Conversion error ({0}): {1}".format(e.__doc__, e.message))
+				return False, "Unknown error, please consult the log file"
+				
+			finally:
+				with self._cancelled_jobs_mutex:
+					if machinecode_path in self._cancelled_jobs:
+						self._cancelled_jobs.remove(machinecode_path)
+				with self._slicing_commands_mutex:
+					if machinecode_path in self._slicing_commands:
+						del self._slicing_commands[machinecode_path]
 
-		finally:
-			with self._cancelled_jobs_mutex:
-				if machinecode_path in self._cancelled_jobs:
-					self._cancelled_jobs.remove(machinecode_path)
-			with self._slicing_commands_mutex:
-				if machinecode_path in self._slicing_commands:
-					del self._slicing_commands[machinecode_path]
+				self._svgtogcode_logger.info("-" * 40)
 
-			self._svgtogcode_logger.info("-" * 40)
+		else:
+			## shell call 
+			engine_settings = self._convert_to_engine(profile_path)
+
+			from os.path import expanduser
+			homedir = expanduser("~")
+			executable = homedir + "/mrbeam-inkscape-ext/mrbeam.py"
+			log_path = homedir + "/.octoprint/logs/svgtogcode.log"
+			log_enabled = s.get(["debug_logging"])
+
+			# debugging stuff. TODO remove
+			hostname = socket.gethostname()
+			if("Bucanero" in hostname):
+				executable = homedir + "/workspace/mrbeam-inkscape-ext/mrbeam.py"
+
+			# executable = s.get(["svgtogcode_engine"])
+
+			if not executable:
+				return False, "Path to SVG converter is not configured "
+
+			dest_dir, dest_file = os.path.split(machinecode_path)
+			working_dir, _ = os.path.split(executable)
+			args = ['python "%s"' % executable, '-f "%s"' % dest_file, '-d "%s"' % dest_dir]
+			args += ['--no-header=True']
+			for k, v in engine_settings.items():
+				args += ['"%s=%s"' % (k, str(v))]
+			fill_enabled = False # disabled as highly experimental
+			if(fill_enabled):
+				args += ['--fill-areas']
+			if(log_enabled):
+				args += ['"--log-filename=%s"' % log_path]
+			args += ['"%s"' % model_path]
+
+
+			import sarge
+			command = " ".join(args)
+			self._logger.info("Running %r" % (command))
+			try:
+				p = sarge.run(command, cwd=working_dir, async=True, stdout=sarge.Capture(), stderr=sarge.Capture())
+				p.wait_events()
+				try:
+					with self._slicing_commands_mutex:
+						self._slicing_commands[machinecode_path] = p.commands[0]
+
+					line_seen = False
+					while p.returncode is None:
+						line = p.stdout.readline(timeout=0.5)
+						if not line:
+							if line_seen:
+								break
+							else:
+								continue
+
+						line_seen = True
+						self._svgtogcode_logger.debug(line.strip())
+
+						if on_progress is not None:
+							pass
+				finally:
+					p.close()
+
+				with self._cancelled_jobs_mutex:
+					if machinecode_path in self._cancelled_jobs:
+						self._svgtogcode_logger.info("### Cancelled")
+						raise octoprint.slicing.SlicingCancelled()
+
+
+				self._svgtogcode_logger.info("### Finished, returncode %d" % p.returncode)
+				if p.returncode == 0:
+					return True, None
+				else:
+					self._logger.warn("Could not slice, got return code %r" % p.returncode)
+					return False, "Got returncode %r" % p.returncode
+
+			except octoprint.slicing.SlicingCancelled as e:
+				raise e
+			except:
+				self._logger.exception("Could not slice, got an unknown error")
+				return False, "Unknown error, please consult the log file"
+
+			finally:
+				with self._cancelled_jobs_mutex:
+					if machinecode_path in self._cancelled_jobs:
+						self._cancelled_jobs.remove(machinecode_path)
+				with self._slicing_commands_mutex:
+					if machinecode_path in self._slicing_commands:
+						del self._slicing_commands[machinecode_path]
+
+				self._svgtogcode_logger.info("-" * 40)
+		# end if False
 
 	def cancel_slicing(self, machinecode_path):
 		with self._slicing_commands_mutex:

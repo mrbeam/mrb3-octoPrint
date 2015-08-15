@@ -165,18 +165,22 @@ $(function(){
 			}
 			
 			self.loadGcode(file, function(gcode){
-				self.parser.parse(gcode, /(m0?3)|(m0?5)/i, function(block){
+				var pathCallback = function(path){
 					var points = [];
 					var intensity = -1;
-					for (var idx = 0; idx < block.length; idx++) {
-						var item = block[idx];
+					for (var idx = 0; idx < path.length; idx++) {
+						var item = path[idx];
 						points.push( [ item.x, item.y ] );
 						intensity = item.laser;
 					}
 					if(points.length > 0)
 					self.draw_gcode(points, intensity, '#'+previewId);
 					
-				});
+				};
+				var imgCallback = function(x,y,w,h){
+					self.draw_gcode_img_placeholder(x,y,w,h, '#'+previewId)
+				};
+				self.parser.parse(gcode, /(m0?3)|(m0?5)/i, pathCallback, imgCallback);
 			});
 		};
 		
@@ -668,6 +672,15 @@ $(function(){
 			});
 			snap.select(target).append(p);
 		};
+		
+		self.draw_gcode_img_placeholder = function(x,y,w,h, target){
+			var i = snap.rect(x,y,w,h).attr({
+				fill: '#AAAAFF',
+				stroke: 'none'
+			});
+			snap.select(target).append(i);
+		};
+		
 		self.clear_gcode = function(){
 //			console.log("gcodeprev clear");
 			snap.select('#gCodePreview').clear();

@@ -13,14 +13,24 @@ import re
 
 
 defaults = dict(
+	# general settings
+	svgDPI = 90,
+	pierce_time = 0,
+	
+	# vector settings
 	speed = 300,
 	intensity = 500,
+	fill_areas = False,
+	cross_fill = False,
+	fill_angle = 0,
+	fill_spacing = 0.25,
+	
+	# pixel settings
 	beam_diameter = 0.25,
 	intensity_white = 0,
 	intensity_black = 500,
 	feedrate_white = 1500,
 	feedrate_black = 250,
-	pierce_time = 0,
 	img_contrast = 1.0,
 	img_sharpening = 1.0,
 	img_dithering = False
@@ -238,6 +248,30 @@ class Profile(object):
 			"--contrast": self.get_float("img_contrast"),
 			"--sharpening": self.get_float("img_sharpening"),
 			"--img-dithering": self.get_boolean("img_dithering")
+		}
+
+		return settings
+	
+	
+	def convert_to_engine2(self):
+
+		settings = {
+			"engraving_laser_speed": self.get_int("speed"),
+			"laser_intensity": self.get_int("intensity"),
+			"beam_diameter" : self.get_float("beam_diameter"),
+			"intensity_white" : self.get_int("intensity_white"),
+			"intensity_black" : self.get_int("intensity_black"),
+			"speed_white" : self.get_int("feedrate_white"),
+			"speed_black" : self.get_int("feedrate_black"),
+			"pierce_time" : self.get_float("pierce_time"),
+			"contrast": self.get_float("img_contrast"),
+			"sharpening": self.get_float("img_sharpening"),
+			"dithering": self.get_boolean("img_dithering"),
+			"fill_areas": self.get_boolean("fill_areas"),
+			"cross_fill": self.get_boolean("cross_fill"),
+			"fill_angle": self.get_float("fill_angle"),
+			"fill_spacing": self.get_float("fill_spacing"),
+			"svgDPI": self.get_float("svgDPI")
 		}
 
 		return settings

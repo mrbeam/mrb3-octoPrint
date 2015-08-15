@@ -4,7 +4,7 @@ $(function() {
 
 		self.toolOffsets = [{x: 0, y: 0}];
 
-		self.parse = function(gcode, blockDelimiter, blockCallback ) {
+		self.parse = function(gcode, pathDelimiter, pathCallback, imgCallback ) {
 			var argChar, numSlice;
 
 			var x, y, z, pi, pj, pp = 0;
@@ -14,6 +14,7 @@ $(function() {
 			var f, lastF = 4000;
 			var extrude = false, extrudeRelative = false, retract = 0;
 			var positionRelative = false;
+			var withinPixelCode = false;
 
 			var dcExtrude = false;
 			var assumeNonDC = false;
@@ -27,6 +28,29 @@ $(function() {
 
 			var model = [];
 			for (var i = 0; i < gcode_lines.length; i++) {
+				var l = gcode_lines[i];
+				if(l.startsWith(';Image')) {
+					withinPixelCode = true;
+					// ;Image: 24.71x18.58 @ 2.59,1.70
+					var re = /;Image: ([-+]?[0-9]*\.?[0-9]+)x([-+]?[0-9]*\.?[0-9]+) @ ([-+]?[0-9]*\.?[0-9]+),([-+]?[0-9]*\.?[0-9]+)/;
+					var match = l.match(re);
+					if(match){
+						var w = parseFloat(match[1]);
+						var h = parseFloat(match[2]);
+						var x = parseFloat(match[3]);
+						var y = parseFloat(match[4]);
+						if(typeof imgCallback === 'function'){
+							imgCallback(x,y,w,h);
+						}
+					}
+				}
+				if(l.startsWith(';EndImage')) withinPixelCode = false;
+
+				if(withinPixelCode){
+					continue;
+				}
+				var line = l.split(/[\(;]/)[0];
+				
 				x = undefined;
 				y = undefined;
 				z = undefined;
@@ -37,7 +61,6 @@ $(function() {
 				retract = 0;
 
 				extrude = false;
-				var line = gcode_lines[i].split(/[\(;]/)[0];
 
 				var addToModel = false;
 				var convertAndAddToModel = false;
@@ -402,15 +425,15 @@ $(function() {
 						prevY = y;
 				}
 
-				if (typeof (blockCallback) === 'function' && typeof (blockDelimiter) !== 'undefined' && blockDelimiter.test(line)) {
-					blockCallback(model);
+				if (typeof (pathCallback) === 'function' && typeof (pathDelimiter) !== 'undefined' && pathDelimiter.test(line)) {
+					pathCallback(model);
 					model = model.slice(-1); // keep the last element as start of the next block
 				}
 			}
 
 			prevZ = z;
-			if (typeof (blockCallback) === 'function' && model.length > 0) {
-				blockCallback(model);
+			if (typeof (pathCallback) === 'function' && model.length > 0) {
+				pathCallback(model);
 			}
 		};
 

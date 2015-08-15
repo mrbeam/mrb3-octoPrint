@@ -186,6 +186,10 @@ class AbstractAnalysisQueue(object):
 				time.sleep(1.0)
 
 	def _analyze(self, entry, high_priority=False):
+		if(True):
+			self._logger.warn("Avoiding analysis of {entry}".format(**locals()))
+			return
+		
 		path = entry.absolute_path
 		if path is None or not os.path.exists(path):
 			return
