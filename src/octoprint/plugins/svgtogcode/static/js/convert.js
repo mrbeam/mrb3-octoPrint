@@ -12,7 +12,14 @@ $(function(){
 		self.target = undefined;
 		self.file = undefined;
 		self.data = undefined;
+		self.slicing_progress = ko.observable(0);
+		self.slicing_in_progress = ko.observable(false);
 
+		self.title = ko.observable(undefined);
+		self.slicer = ko.observable();
+		self.slicers = ko.observableArray();
+		self.profile = ko.observable();
+		self.profiles = ko.observableArray();
 		self.defaultSlicer = undefined;
 		self.defaultProfile = undefined;
 		
@@ -27,11 +34,6 @@ $(function(){
 		self.laserSpeed = ko.observable(undefined);
 		self.maxSpeed = ko.observable(3000);
 		self.minSpeed = ko.observable(20);
-		self.title = ko.observable(undefined);
-		self.slicer = ko.observable();
-		self.slicers = ko.observableArray();
-		self.profile = ko.observable();
-		self.profiles = ko.observableArray();
 		
 		// image engraving stuff
 		// preset values are a good start for wood engraving
@@ -88,7 +90,6 @@ $(function(){
 					self.laserSpeed(speed);
 				}
 
-				// TODO: js svg conversion
 				var gcodeFile = self.create_gcode_filename(self.workingArea.placedDesigns());
 				self.gcodeFilename(gcodeFile);
 				
@@ -127,7 +128,6 @@ $(function(){
 				
 				return gcode_name;
 			} else { 
-//				return "tmp"+Date.now()+".gco"; 
 				console.error("no designs placed.");
 				return;
 			}
@@ -269,8 +269,6 @@ $(function(){
 					data: JSON.stringify(data)
 				});
 
-				$("#dialog_vector_graphics_conversion").modal("hide");
-
 				self.gcodeFilename(undefined);
 				self.svg = undefined;
 			}
@@ -287,6 +285,31 @@ $(function(){
 			self._configureIntensitySlider();
 			self._configureFeedrateSlider();
 			self._configureImgSliders();
+		};
+		
+		self.onSlicingProgress = function(slicer, model_path, machinecode_path, progress){
+			self.slicing_progress(progress);
+		};
+		self.onEventSlicingStarted = function(payload){
+			self.slicing_in_progress(true);
+			console.log("onSlicingDone" , payload);
+		};
+		self.onEventSlicingDone = function(payload){
+			// payload
+//			gcode: "angelina_20091211_0193_11more_i1000s300.gco"
+//			gcode_location: "local"
+//			stl: "local/angelina_jolie_20091211_0193_11more_i1000s300.svg"
+//			time: 30.612739086151123
+			$("#dialog_vector_graphics_conversion").modal("hide");
+			self.slicing_in_progress(false);
+		};
+		self.onEventSlicingCancelled = function(payload){
+			self.slicing_in_progress(false);
+			console.log("onSlicingCancelled" , payload);
+		};
+		self.onEventSlicingFailed = function(payload){
+			self.slicing_in_progress(false);
+			console.log("onSlicingFailed" , payload);
 		};
 
 		self._configureIntensitySlider = function() {
@@ -351,7 +374,7 @@ $(function(){
 				min: 1,
 				max: self.contrastMax,
 				value: 1,
-				tooltip: 'hide',
+				tooltip: 'hide'
 			}).on("slide", function(ev){
 				self.imgContrast(ev.value);
 			});
@@ -362,19 +385,15 @@ $(function(){
 				max: self.sharpeningMax,
 				value: 1,
 				class: 'img_slider',
-				tooltip: 'hide',
+				tooltip: 'hide'
 			}).on("slide", function(ev){
 				self.imgSharpening(ev.value);
 			});
 
 		};
 
-		// TODO debug this.
 		self.showExpertSettings.subscribe(function(){
-//			var wh = $(window).height();
-//			var h = $('#dialog_vector_graphics_conversion').outerHeight();
-//			var d = Math.max((wh - h) / 2, 10);
-//			$('#dialog_vector_graphics_conversion').css('top', d + 'px');
+			$('#dialog_vector_graphics_conversion').trigger('resize');
 		});
 
 	}

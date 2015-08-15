@@ -301,7 +301,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 			type="svgtogcode",
 			name="svgtogcode",
 			same_device=True,
-			progress_report=False
+			progress_report=True
 		)
 
 	def get_slicer_default_profile(self):

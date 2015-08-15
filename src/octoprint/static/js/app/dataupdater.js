@@ -110,6 +110,8 @@ function DataUpdater(allViewModels) {
 
             var gcodeUploadProgress = $("#gcode_upload_progress");
             var gcodeUploadProgressBar = $(".bar", gcodeUploadProgress);
+			var slicingProgress = $("#slicing_progress");
+			var slicingProgressBar = $(".bar", slicingProgress);
 
             switch (prop) {
                 case "connected": {
@@ -163,8 +165,7 @@ function DataUpdater(allViewModels) {
                     break;
                 }
                 case "slicingProgress": {
-                    gcodeUploadProgressBar.text(_.sprintf(gettext("Slicing ... (%(percentage)d%%)"), {percentage: Math.round(data["progress"])}));
-
+                    slicingProgressBar.text(_.sprintf(gettext("Slicing ... (%(percentage)d%%)"), {percentage: Math.round(data["progress"])}));
                     _.each(self.allViewModels, function(viewModel) {
                         if (viewModel.hasOwnProperty("onSlicingProgress")) {
                             viewModel.onSlicingProgress(data["slicer"], data["model_path"], data["machinecode_path"], data["progress"]);
@@ -189,27 +190,26 @@ function DataUpdater(allViewModels) {
                         html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + payload.error + '</pre>');
                         new PNotify({title: gettext("Rendering failed"), text: html, type: "error", hide: false});
                     } else if (type == "SlicingStarted") {
-                        gcodeUploadProgress.addClass("progress-striped").addClass("active");
-                        gcodeUploadProgressBar.css("width", "100%");
+                        slicingProgressBar.css("width", "0%");
+                        slicingProgress.addClass("progress-striped").addClass("active");
                         if (payload.progressAvailable) {
-                            gcodeUploadProgressBar.text(_.sprintf(gettext("Slicing ... (%(percentage)d%%)"), {percentage: 0}));
+                            slicingProgressBar.text(_.sprintf(gettext("Slicing ... (%(percentage)d%%)"), {percentage: 0}));
                         } else {
-                            gcodeUploadProgressBar.text(gettext("Slicing ..."));
+                            slicingProgressBar.text(gettext("Slicing ..."));
                         }
                     } else if (type == "SlicingDone") {
-						console.log("slicingDone Event: payload: ", payload);
-                        gcodeUploadProgress.removeClass("progress-striped").removeClass("active");
-                        gcodeUploadProgressBar.css("width", "0%");
-                        gcodeUploadProgressBar.text("");
+                        slicingProgress.removeClass("progress-striped").removeClass("active");
+                        slicingProgressBar.css("width", "0%");
+                        slicingProgressBar.text("");
                         new PNotify({title: gettext("Slicing done"), text: _.sprintf(gettext("Sliced %(stl)s to %(gcode)s, took %(time).2f seconds"), payload), type: "success"});
                     } else if (type == "SlicingCancelled") {
-                        gcodeUploadProgress.removeClass("progress-striped").removeClass("active");
-                        gcodeUploadProgressBar.css("width", "0%");
-                        gcodeUploadProgressBar.text("");
+                        slicingProgressBar.css("width", "0%");
+                        slicingProgress.removeClass("progress-striped").removeClass("active");
+                        slicingProgressBar.text("");
                     } else if (type == "SlicingFailed") {
-                        gcodeUploadProgress.removeClass("progress-striped").removeClass("active");
-                        gcodeUploadProgressBar.css("width", "0%");
-                        gcodeUploadProgressBar.text("");
+                        slicingProgressBar.css("width", "0%");
+                        slicingProgress.removeClass("progress-striped").removeClass("active");
+                        slicingProgressBar.text("");
 
                         html = _.sprintf(gettext("Could not slice %(stl)s to %(gcode)s: %(reason)s"), payload);
                         new PNotify({title: gettext("Slicing failed"), text: html, type: "error", hide: false});
