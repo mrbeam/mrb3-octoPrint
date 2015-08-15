@@ -1205,32 +1205,7 @@ ul.dropdown-menu li a {
   padding: 3px 0;
   height: 30px;
 }
-/** GCODE viewer */
-#gcode .progress {
-  width: 582px;
-}
-#gcode .progress .bar {
-  -webkit-transition: width 0s linear;
-  -moz-transition: width 0s linear;
-  -o-transition: width 0s linear;
-  transition: width 0s linear;
-}
-#gcode #gcode_layer_slider {
-  height: 568px;
-  float: right;
-}
-#gcode #gcode_layer_slider .slider-handle {
-  width: 14px;
-  height: 14px;
-  margin-left: -3px;
-  margin-top: -7px;
-}
-#gcode #gcode_command_slider .slider-handle {
-  width: 14px;
-  height: 14px;
-  margin-left: -7px;
-  margin-top: -3px;
-}
+
 /** Terminal output */
 #term #terminal-output {
   min-height: 70vh;

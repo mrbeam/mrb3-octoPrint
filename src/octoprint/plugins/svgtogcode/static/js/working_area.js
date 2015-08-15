@@ -687,7 +687,6 @@ $(function(){
 		};
 
 		self.onStartup = function(){
-			GCODE.workingArea = self; // Temporary hack to use the gcode parser from the gCodeViewer
 			self.state.workingArea = self;
 			self.files.workingArea = self;
 			
