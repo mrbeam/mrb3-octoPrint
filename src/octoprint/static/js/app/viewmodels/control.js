@@ -6,6 +6,7 @@ $(function() {
         self.settings = parameters[1];
 	    self.printerState = parameters[2];
 
+		self._focus_timout = undefined;
         self._createToolEntry = function () {
             return {
                 name: ko.observable(),
@@ -23,6 +24,23 @@ $(function() {
 //
 
 //=======
+//<<<<<<< HEAD
+//        } else if (control.type == "feedback_command" || control.type == "feedback") {
+//            control.output = ko.observable("");
+//            self.feedbackControlLookup[control.name] = control.output;
+//        } else if (control.type == "section") {
+//            control.children = self._processControls(control.children);
+//        }
+//        return control;
+//    };
+//	
+
+//
+
+//
+
+//=======
+
         self.isErrorOrClosed = ko.observable(undefined);
         self.isOperational = ko.observable(undefined);
         self.isPrinting = ko.observable(undefined);
@@ -114,22 +132,7 @@ $(function() {
                 });
             }
         };
-//<<<<<<< HEAD
-//        } else if (control.type == "feedback_command" || control.type == "feedback") {
-//            control.output = ko.observable("");
-//            self.feedbackControlLookup[control.name] = control.output;
-//        } else if (control.type == "section") {
-//            control.children = self._processControls(control.children);
-//        }
-//        return control;
-//    };
-//	
 
-//
-
-//
-
-//=======
 
         self.rerenderControls = function () {
             var allControls = self.controlsFromServer.concat(self.additionalControls);
@@ -632,18 +635,28 @@ $(function() {
 
 		self.focus_on = function () {
 			var callback = function (e) {
-						e.preventDefault();
-						$("#confirmation_dialog").modal("hide");
-						self.sendCustomCommand({type: 'commands', commands: ['M8', 'M3S10']});
-						setTimeout(function () { // switch focus off after 30 seconds for safety reasons.
-							self.focus_off();
-						}, 30000);
-					};
+				if (typeof self._focus_timout !== 'undefined') {
+					clearTimeout(self._focus_timout);
+				}
+
+				e.preventDefault();
+				$("#confirmation_dialog").modal("hide");
+				self.sendCustomCommand({type: 'commands', commands: ['M8', 'M3S10']});
+				self._focus_timout = setTimeout(function () { // switch focus off after 30 seconds for safety reasons.
+					self.focus_off();
+					new PNotify({
+						title: gettext("Focus mode off"),
+						text: gettext("For safety reasons the focus mode was disabled after 30 seconds."),
+					});
+				}, 30000);
+			};
 			self.printerState.show_safety_glasses_warning(callback);
 		};
 
 		self.focus_off = function () {
-	//		self.sendCustomCommand({type:'command',command:'M5'});
+			if(typeof self._focus_timout !== 'undefined'){
+				clearTimeout(self._focus_timout);
+			}
 			self.sendCustomCommand({type: 'commands', commands: ['M5', 'M9']});
 		};
 
