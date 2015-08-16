@@ -33,27 +33,27 @@
 					</div>
 					<div class="controls alert alert-info hint" data-bind="visible: showHints">
 						<span class="icon icon-question-sign" aria-hidden="true"></span>
-						Sets the velocity of the laserhead. The slower the movement the deeper the effect on the material. 
+						Sets the velocity of the laser head. The slower the movement the deeper the effect on the material. 
 						Cutting needs slower movement than engraving. 
 						The effect in general is dependent from the material and its color and surface.
 					</div>
 				</div>
+            </div>
 
-				<div class="control-group" data-bind="visible: showExpertSettings ">
-					<label class="control-label">{{ _('Pierce Time (ms)') }} </label>
-					<div class="controls">
-						<div class="input-append">
-							<input type="text" data-bind="value: pierceTime">
-						</div>
-					</div>
-					<div class="controls alert alert-info hint" data-bind="visible: showHints">
-						<span class="icon icon-question-sign" aria-hidden="true"></span>
-						Some (especially bright) materials require the laser to dwell a little until the surface has absorbed enough energy to be affected.
-						This parameter sets the amount of time in milliseconds the movement is paused after the laser is switched on. 
-						If the result shows gaps in lines for example increase this value carefully. The higher the value the higher the risk of material ignition.
+			<div class="control-group" data-bind="visible: showExpertSettings ">
+				<label class="control-label">{{ _('Pierce Time (ms)') }} </label>
+				<div class="controls">
+					<div class="input-append">
+						<input type="number" min="0" max="2000" style="width:4em;" data-bind="value: pierceTime">
 					</div>
 				</div>
-            </div>
+				<div class="controls alert alert-info hint" data-bind="visible: showHints">
+					<span class="icon icon-question-sign" aria-hidden="true"></span>
+					Some (especially bright) materials require the laser to dwell a little until the surface has absorbed enough energy to be affected.
+					This parameter sets the amount of time in milliseconds the movement is paused after the laser is switched on. 
+					If the result shows gaps in lines for example increase this value carefully. The higher the value the higher the risk of material ignition.
+				</div>
+			</div>
 			
 			<div data-bind="visible: show_image_parameters ">
 				<p>{{ _('Image engraving parameters:') }}</p>
