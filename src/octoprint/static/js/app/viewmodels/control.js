@@ -14,32 +14,6 @@ $(function() {
             }
         };
 
-//<<<<<<< HEAD
-//
-//    self.fromFeedbackCommandData = function(data) {
-//        if (data.name in self.feedbackControlLookup) {
-//            self.feedbackControlLookup[data.name](data.output);
-//        }
-//    };
-//
-
-//=======
-//<<<<<<< HEAD
-//        } else if (control.type == "feedback_command" || control.type == "feedback") {
-//            control.output = ko.observable("");
-//            self.feedbackControlLookup[control.name] = control.output;
-//        } else if (control.type == "section") {
-//            control.children = self._processControls(control.children);
-//        }
-//        return control;
-//    };
-//	
-
-//
-
-//
-
-//=======
 
         self.isErrorOrClosed = ko.observable(undefined);
         self.isOperational = ko.observable(undefined);
@@ -646,7 +620,7 @@ $(function() {
 					self.focus_off();
 					new PNotify({
 						title: gettext("Focus mode off"),
-						text: gettext("For safety reasons the focus mode was disabled after 30 seconds."),
+						text: gettext("For safety reasons the focus mode was disabled after 30 seconds.")
 					});
 				}, 30000);
 			};

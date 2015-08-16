@@ -690,7 +690,6 @@ $(function(){
 		};
 		
 		self.clear_gcode = function(){
-//			console.log("gcodeprev clear");
 			snap.select('#gCodePreview').clear();
 		};
 
