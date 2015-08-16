@@ -269,8 +269,6 @@ $(function(){
 					data: JSON.stringify(data)
 				});
 
-				self.gcodeFilename(undefined);
-				self.svg = undefined;
 			}
 		};
 
@@ -300,11 +298,16 @@ $(function(){
 //			gcode_location: "local"
 //			stl: "local/angelina_jolie_20091211_0193_11more_i1000s300.svg"
 //			time: 30.612739086151123
+			self.gcodeFilename(undefined);
+			self.svg = undefined;
 			$("#dialog_vector_graphics_conversion").modal("hide");
 			self.slicing_in_progress(false);
 		};
 		self.onEventSlicingCancelled = function(payload){
+			self.gcodeFilename(undefined);
+			self.svg = undefined;
 			self.slicing_in_progress(false);
+			$("#dialog_vector_graphics_conversion").modal("hide");
 			console.log("onSlicingCancelled" , payload);
 		};
 		self.onEventSlicingFailed = function(payload){

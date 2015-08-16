@@ -31,16 +31,17 @@ $(function() {
 				var l = gcode_lines[i];
 				if(l.startsWith(';Image')) {
 					withinPixelCode = true;
-					// ;Image: 24.71x18.58 @ 2.59,1.70
-					var re = /;Image: ([-+]?[0-9]*\.?[0-9]+)x([-+]?[0-9]*\.?[0-9]+) @ ([-+]?[0-9]*\.?[0-9]+),([-+]?[0-9]*\.?[0-9]+)/;
+					// ;Image: 24.71x18.58 @ 2.59,1.70|http://localhost:5000/serve/files/local/filename.png
+					var re = /;Image: ([-+]?[0-9]*\.?[0-9]+)x([-+]?[0-9]*\.?[0-9]+) @ ([-+]?[0-9]*\.?[0-9]+),([-+]?[0-9]*\.?[0-9]+)\|(.*)$/;
 					var match = l.match(re);
 					if(match){
 						var w = parseFloat(match[1]);
 						var h = parseFloat(match[2]);
 						var x = parseFloat(match[3]);
 						var y = parseFloat(match[4]);
+						var file_id = match[5];
 						if(typeof imgCallback === 'function'){
-							imgCallback(x,y,w,h);
+							imgCallback(x,y,w,h, file_id);
 						}
 					}
 				}

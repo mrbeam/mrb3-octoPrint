@@ -177,8 +177,8 @@ $(function(){
 					self.draw_gcode(points, intensity, '#'+previewId);
 					
 				};
-				var imgCallback = function(x,y,w,h){
-					self.draw_gcode_img_placeholder(x,y,w,h, '#'+previewId)
+				var imgCallback = function(x,y,w,h, url){
+					self.draw_gcode_img_placeholder(x,y,w,h,url, '#'+previewId)
 				};
 				self.parser.parse(gcode, /(m0?3)|(m0?5)/i, pathCallback, imgCallback);
 			});
@@ -407,7 +407,7 @@ $(function(){
 				var newImg = snap.image(url, 0, y, wPT, hPT);
 				var id = self.getEntryId(file);
 				var previewId = self.generateUniqueId(id); // appends # if multiple times the same design is placed.
-				newImg.attr({id: previewId, filter: 'url(#grayscale_filter)'});
+				newImg.attr({id: previewId, filter: 'url(#grayscale_filter)', 'data-serveurl': url});
 				snap.select("#userContent").append(newImg);
 				newImg.transformable();
 				newImg.ftDisableRotate();
@@ -673,12 +673,20 @@ $(function(){
 			snap.select(target).append(p);
 		};
 		
-		self.draw_gcode_img_placeholder = function(x,y,w,h, target){
+		self.draw_gcode_img_placeholder = function(x,y,w,h,url, target){
 			var i = snap.rect(x,y,w,h).attr({
-				fill: '#AAAAFF',
-				stroke: 'none'
+				stroke: '#AA0000',
+				'stroke-width': 1
 			});
 			snap.select(target).append(i);
+			if(url !== ""){
+				var p = snap.image(url,x,y,w,h).attr({
+					transform: 'matrix(1,0,0,-1,0,'+ String(h) +')',
+					filter: 'url(#gcimage_preview)'
+				});
+				
+			} 
+			snap.select(target).append(p);
 		};
 		
 		self.clear_gcode = function(){

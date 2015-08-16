@@ -266,8 +266,15 @@
 											height: workingAreaHeightPx()+'px'
 										}
 									 ">
-									<filter id = "grayscale_filter">
-										<feColorMatrix in = "SourceGraphic" type = "saturate" values = "0"/>
+									<filter id="grayscale_filter">
+										<feColorMatrix in="SourceGraphic" type="saturate" values="0"/>
+									</filter>
+									<filter id="gcimage_preview">
+										<feComponentTransfer>
+											<feFuncR type="table" tableValues="1"></feFuncR>
+											<feFuncG type="table" tableValues="0.2 1"></feFuncG>
+											<feFuncB type="table" tableValues="0.2 1"></feFuncB>
+										</feComponentTransfer>
 									</filter>
 									<g id="scaleGroup" data-bind="attr: { transform: scaleMatrix() }">
 										<rect data-bind="click: move_laser" 
