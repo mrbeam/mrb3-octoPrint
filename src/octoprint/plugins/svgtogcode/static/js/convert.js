@@ -24,6 +24,7 @@ $(function(){
 		self.defaultProfile = undefined;
 		
 		// expert settings
+		self.showHints = ko.observable(false);
 		self.showExpertSettings = ko.observable(false);
 		self.gcodeFilename = ko.observable();
 		self.pierceTime = ko.observable(0);
