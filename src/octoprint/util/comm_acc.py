@@ -528,8 +528,10 @@ class MachineCom(object):
 			#self.sendCommand("$H") # homing here results in invalid GCode ID33 on G02/03 commands. WTF?
 			#self.sendCommand("G92X0Y0Z0")
 			#self.sendCommand("G90")
-			#self.sendCommand("M08")
 			#self.sendCommand("G21")
+			
+			# ensure fan is on whatever gcode follows.
+			self.sendCommand("M08")
 			
 			self._currentFile.start()
 
