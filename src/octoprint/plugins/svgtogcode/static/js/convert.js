@@ -146,7 +146,7 @@ $(function(){
 		});
 
 		self.enableConvertButton = ko.computed(function() {
-			if (self.laserIntensity() === undefined || self.laserSpeed() === undefined || self.gcodeFilename() === undefined) {
+			if (self.slicing_in_progress() || self.laserIntensity() === undefined || self.laserSpeed() === undefined || self.gcodeFilename() === undefined) {
 				return false;
 			} else {
 				var tmpIntensity = self.laserIntensity();
