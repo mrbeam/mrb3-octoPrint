@@ -116,6 +116,7 @@ class MachineCom(object):
 	STATE_TRANSFERING_FILE = 11
 	STATE_LOCKED = 12
 	STATE_HOMING = 13
+	STATE_FLASHING = 14
 
 
 
@@ -316,6 +317,8 @@ class MachineCom(object):
 			return "Locked"
 		if self._state == self.STATE_HOMING:
 			return "Homing"
+		if self._state == self.STATE_FLASHING:
+			return "Flashing"
 		return "?%d?" % (self._state)
 
 	def getErrorString(self):
@@ -332,8 +335,12 @@ class MachineCom(object):
 
 	def isLocked(self):
 		return self._state == self.STATE_LOCKED
+
 	def isHoming(self):
 		return self._state == self.STATE_HOMING
+
+	def isFlashing(self):
+		return self._state == self.STATE_FLASHING
 
 	def isPrinting(self):
 		return self._state == self.STATE_PRINTING
@@ -856,13 +863,12 @@ class MachineCom(object):
 			return True
 
 	def _flashGrbl(self):
-		self._log("flashing grbl version: " + self._requiredGrblVer)
+		self._changeState(self.STATE_FLASHING)
 		self._serial.close()
-		self._changeState(self.STATE_CLOSED)
 		import subprocess
 		params = ["avrdude", "-patmega328p", "-carduino", "-b" + str(self._baudrate), "-P" + str(self._port), "-D", "-Uflash:w:grbl.junior.hex"]
-		#params = ['pwd']
-		if subprocess.call(params) is False:
+		returnCode = subprocess.call(params)
+		if returnCode == False:
 			self._log("successfully flashed new grbl version")
 		else:
 			self._log("error during flashing of new grbl version")
@@ -981,7 +987,6 @@ class MachineCom(object):
 						self._openSerial()
 						self._changeState(self.STATE_CONNECTING)
 
-
 					if("Invalid gcode" in line and self._state == self.STATE_PRINTING):
 						# TODO Pause machine instead of resetting it.
 						errorMsg = line
@@ -1009,7 +1014,6 @@ class MachineCom(object):
 
 					if("error:" in line):
 						self.handle_grbl_error(line)
-
 
 				##~~ SD file list
 				# if we are currently receiving an sd file list, each line is just a filename, so just read it and abort processing
