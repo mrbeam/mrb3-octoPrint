@@ -866,7 +866,7 @@ class MachineCom(object):
 		self._changeState(self.STATE_FLASHING)
 		self._serial.close()
 		import subprocess
-		params = ["avrdude", "-patmega328p", "-carduino", "-b" + str(self._baudrate), "-P" + str(self._port), "-D", "-Uflash:w:grbl.junior.hex"]
+		params = ["avrdude", "-patmega328p", "-carduino", "-b" + str(self._baudrate), "-P" + str(self._port), "-D", "-Uflash:w:grbl.hex"]
 		returnCode = subprocess.call(params)
 		if returnCode == False:
 			self._log("successfully flashed new grbl version")
