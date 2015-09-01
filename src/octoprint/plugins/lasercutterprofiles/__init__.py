@@ -28,112 +28,8 @@ default_settings = {
 	"current_profile_id": "_mrbeam_junior"
 }
 s = octoprint.plugin.plugin_settings("lasercutterprofiles", defaults=default_settings)
-static_folder = os.path.join(os.path.dirname(__file__), 'static')
-blueprint = flask.Blueprint("plugin.lasercutterprofiles", __name__, static_folder=static_folder)
 laserCutterProfileManager = LaserCutterProfileManager(s)
 
-@blueprint.route("/profiles", methods=["GET"])
-def laserCutterProfilesList():
-	all_profiles = laserCutterProfileManager.get_all()
-	return jsonify(dict(profiles=_convert_profiles(all_profiles)))
-
-@blueprint.route("/profiles", methods=["POST"])
-@restricted_access
-def laserCutterProfilesAdd():
-	if not "application/json" in request.headers["Content-Type"]:
-		return make_response("Expected content-type JSON", 400)
-
-	try:
-		json_data = request.json
-	except JSONBadRequest:
-		return make_response("Malformed JSON body in request", 400)
-
-	if not "profile" in json_data:
-		return make_response("No profile included in request", 400)
-
-	base_profile = laserCutterProfileManager.get_default()
-	if "basedOn" in json_data and isinstance(json_data["basedOn"], basestring):
-		other_profile = laserCutterProfileManager.get(json_data["basedOn"])
-		if other_profile is not None:
-			base_profile = other_profile
-
-	if "id" in base_profile:
-		del base_profile["id"]
-	if "name" in base_profile:
-		del base_profile["name"]
-	if "default" in base_profile:
-		del base_profile["default"]
-
-	new_profile = json_data["profile"]
-	make_default = False
-	if "default" in new_profile:
-		make_default = True
-		del new_profile["default"]
-
-	profile = dict_merge(base_profile, new_profile)
-	try:
-		saved_profile = laserCutterProfileManager.save(profile, allow_overwrite=False, make_default=make_default)
-	except InvalidProfileError:
-		return make_response("Profile is invalid", 400)
-	except CouldNotOverwriteError:
-		return make_response("Profile already exists and overwriting was not allowed", 400)
-	#except Exception as e:
-	#	return make_response("Could not save profile: %s" % e.message, 500)
-	else:
-		return jsonify(dict(profile=_convert_profile(saved_profile)))
-
-@blueprint.route("/profiles/<string:identifier>", methods=["GET"])
-def laserCutterProfilesGet(identifier):
-	profile = laserCutterProfileManager.get(identifier)
-	if profile is None:
-		return make_response("Unknown profile: %s" % identifier, 404)
-	else:
-		return jsonify(_convert_profile(profile))
-
-@blueprint.route("/profiles/<string:identifier>", methods=["DELETE"])
-@restricted_access
-def laserCutterProfilesDelete(identifier):
-	laserCutterProfileManager.remove(identifier)
-	return NO_CONTENT
-
-@blueprint.route("/profiles/<string:identifier>", methods=["PATCH"])
-@restricted_access
-def laserCutterProfilesUpdate(identifier):
-	if not "application/json" in request.headers["Content-Type"]:
-		return make_response("Expected content-type JSON", 400)
-
-	try:
-		json_data = request.json
-	except JSONBadRequest:
-		return make_response("Malformed JSON body in request", 400)
-
-	if not "profile" in json_data:
-		return make_response("No profile included in request", 400)
-
-	profile = laserCutterProfileManager.get(identifier)
-	if profile is None:
-		profile = laserCutterProfileManager.get_default()
-
-	new_profile = json_data["profile"]
-	new_profile = dict_merge(profile, new_profile)
-
-	make_default = False
-	if "default" in new_profile:
-		make_default = True
-		del new_profile["default"]
-
-	new_profile["id"] = identifier
-
-	try:
-		saved_profile = laserCutterProfileManager.save(new_profile, allow_overwrite=True, make_default=make_default)
-	except InvalidProfileError:
-		return make_response("Profile is invalid", 400)
-	except CouldNotOverwriteError:
-		return make_response("Profile already exists and overwriting was not allowed", 400)
-	#except Exception as e:
-	#	return make_response("Could not save profile: %s" % e.message, 500)
-	else:
-		return jsonify(dict(profile=_convert_profile(saved_profile)))
 
 def _convert_profiles(profiles):
 	result = dict()
@@ -160,6 +56,7 @@ class LaserCutterProfilesPlugin(octoprint.plugin.SettingsPlugin,
 				octoprint.plugin.AssetPlugin,
                  octoprint.plugin.TemplatePlugin):
 
+	# TODO global shouldn't be necessary anymore.
 	global laserCutterProfileManager
 	
 	def __init__(self):
@@ -210,9 +107,109 @@ class LaserCutterProfilesPlugin(octoprint.plugin.SettingsPlugin,
 	
 	##~~ BlueprintPlugin API
 
-	def get_blueprint(self):
-		global blueprint
-		return blueprint
+	@octoprint.plugin.BlueprintPlugin.route("/profiles", methods=["GET"])
+	def laserCutterProfilesList(self):
+		all_profiles = laserCutterProfileManager.get_all()
+		return jsonify(dict(profiles=_convert_profiles(all_profiles)))
+
+	@octoprint.plugin.BlueprintPlugin.route("/profiles", methods=["POST"])
+	@restricted_access
+	def laserCutterProfilesAdd(self):
+		if not "application/json" in request.headers["Content-Type"]:
+			return make_response("Expected content-type JSON", 400)
+
+		try:
+			json_data = request.json
+		except JSONBadRequest:
+			return make_response("Malformed JSON body in request", 400)
+
+		if not "profile" in json_data:
+			return make_response("No profile included in request", 400)
+
+		base_profile = laserCutterProfileManager.get_default()
+		if "basedOn" in json_data and isinstance(json_data["basedOn"], basestring):
+			other_profile = laserCutterProfileManager.get(json_data["basedOn"])
+			if other_profile is not None:
+				base_profile = other_profile
+
+		if "id" in base_profile:
+			del base_profile["id"]
+		if "name" in base_profile:
+			del base_profile["name"]
+		if "default" in base_profile:
+			del base_profile["default"]
+
+		new_profile = json_data["profile"]
+		make_default = False
+		if "default" in new_profile:
+			make_default = True
+			del new_profile["default"]
+
+		profile = dict_merge(base_profile, new_profile)
+		try:
+			saved_profile = laserCutterProfileManager.save(profile, allow_overwrite=False, make_default=make_default)
+		except InvalidProfileError:
+			return make_response("Profile is invalid", 400)
+		except CouldNotOverwriteError:
+			return make_response("Profile already exists and overwriting was not allowed", 400)
+		#except Exception as e:
+		#	return make_response("Could not save profile: %s" % e.message, 500)
+		else:
+			return jsonify(dict(profile=_convert_profile(saved_profile)))
+
+	@octoprint.plugin.BlueprintPlugin.route("/profiles/<string:identifier>", methods=["GET"])
+	def laserCutterProfilesGet(self, identifier):
+		profile = laserCutterProfileManager.get(identifier)
+		if profile is None:
+			return make_response("Unknown profile: %s" % identifier, 404)
+		else:
+			return jsonify(_convert_profile(profile))
+
+	@octoprint.plugin.BlueprintPlugin.route("/profiles/<string:identifier>", methods=["DELETE"])
+	@restricted_access
+	def laserCutterProfilesDelete(self, identifier):
+		laserCutterProfileManager.remove(identifier)
+		return NO_CONTENT
+
+	@octoprint.plugin.BlueprintPlugin.route("/profiles/<string:identifier>", methods=["PATCH"])
+	@restricted_access
+	def laserCutterProfilesUpdate(self, identifier):
+		### TODO use self._printer to set new working area size
+		if not "application/json" in request.headers["Content-Type"]:
+			return make_response("Expected content-type JSON", 400)
+
+		try:
+			json_data = request.json
+		except JSONBadRequest:
+			return make_response("Malformed JSON body in request", 400)
+
+		if not "profile" in json_data:
+			return make_response("No profile included in request", 400)
+
+		profile = laserCutterProfileManager.get(identifier)
+		if profile is None:
+			profile = laserCutterProfileManager.get_default()
+
+		new_profile = json_data["profile"]
+		new_profile = dict_merge(profile, new_profile)
+
+		make_default = False
+		if "default" in new_profile:
+			make_default = True
+			del new_profile["default"]
+
+		new_profile["id"] = identifier
+
+		try:
+			saved_profile = laserCutterProfileManager.save(new_profile, allow_overwrite=True, make_default=make_default)
+		except InvalidProfileError:
+			return make_response("Profile is invalid", 400)
+		except CouldNotOverwriteError:
+			return make_response("Profile already exists and overwriting was not allowed", 400)
+		#except Exception as e:
+		#	return make_response("Could not save profile: %s" % e.message, 500)
+		else:
+			return jsonify(dict(profile=_convert_profile(saved_profile)))
 
 def _sanitize_name(name):
 	if name is None:
