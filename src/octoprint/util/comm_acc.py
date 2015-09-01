@@ -116,7 +116,8 @@ class MachineCom(object):
 	STATE_TRANSFERING_FILE = 11
 	STATE_LOCKED = 12
 	STATE_HOMING = 13
-	
+	STATE_FLASHING = 14
+
 
 
 	def __init__(self, port = None, baudrate=None, callbackObject=None, printerProfileManager=None):
@@ -316,6 +317,8 @@ class MachineCom(object):
 			return "Locked"
 		if self._state == self.STATE_HOMING:
 			return "Homing"
+		if self._state == self.STATE_FLASHING:
+			return "Flashing"
 		return "?%d?" % (self._state)
 
 	def getErrorString(self):
@@ -332,9 +335,13 @@ class MachineCom(object):
 
 	def isLocked(self):
 		return self._state == self.STATE_LOCKED
+
 	def isHoming(self):
 		return self._state == self.STATE_HOMING
-	
+
+	def isFlashing(self):
+		return self._state == self.STATE_FLASHING
+
 	def isPrinting(self):
 		return self._state == self.STATE_PRINTING
 
@@ -529,10 +536,10 @@ class MachineCom(object):
 			#self.sendCommand("G92X0Y0Z0")
 			#self.sendCommand("G90")
 			#self.sendCommand("G21")
-			
+
 			# ensure fan is on whatever gcode follows.
 			self.sendCommand("M08")
-			
+
 			self._currentFile.start()
 
 			self._changeState(self.STATE_PRINTING)
@@ -616,7 +623,7 @@ class MachineCom(object):
 		if not self.isOperational() or self.isStreaming():
 			return
 
-		#self.sendCommand(chr(24)) # no necessity to reset 
+		#self.sendCommand(chr(24)) # no necessity to reset
 
 		self._changeState(self.STATE_OPERATIONAL)
 		with self._send_queue.mutex:
@@ -681,7 +688,7 @@ class MachineCom(object):
 		elif pause and self.isPrinting():
 			if not self._pauseWaitStartTime:
 				self._pauseWaitStartTime = time.time()
-			
+
 			self.sendCommand('!')
 			#self._changeState(self.STATE_PAUSED)
 			if self.isSdFileSelected():
@@ -820,6 +827,53 @@ class MachineCom(object):
 
 	##~~ Serial monitor processing received messages
 
+	@staticmethod
+	def _writeGrblVersionToFile(versionDict):
+		if versionDict['dirty'] == '-dirty':
+			versionDict['dirty'] = True
+		versionDict['lastConnect'] = time.time()
+		import yaml
+		versionFile = os.path.join(settings().getBaseFolder("logs"), 'grbl_Version.yml')
+		with open(versionFile, 'w') as outfile:
+			outfile.write(yaml.dump(versionDict, default_flow_style=True))
+
+	def _compareGrblVersion(self, versionDict):
+		with open("src/octoprint/util/grblVersionRequirement.yml", 'r') as infile:
+			import yaml
+			grblReqDict = yaml.load(infile)
+		requiredGrblVer = str(grblReqDict['grbl']) + '_' + str(grblReqDict['git'])
+		if grblReqDict['dirty'] is not(None):
+			requiredGrblVer += '-dirty'
+		if grblReqDict['minor'] != '':
+			requiredGrblVer += ':' + grblReqDict['minor']
+		actualGrblVer = str(versionDict['grbl']) + '_' + str(versionDict['git'])
+		if versionDict['dirty'] is not(None):
+			actualGrblVer += '-dirty'
+		if versionDict['minor'] != '':
+			actualGrblVer += ':' + versionDict['minor']
+		# compare actual and required grbl version
+		self._requiredGrblVer = requiredGrblVer
+		self._actualGrblVer = actualGrblVer
+		if requiredGrblVer != actualGrblVer:
+			self._log("unsupported grbl version detected...")
+			self._log("required: " + requiredGrblVer)
+			self._log("detected: " + actualGrblVer)
+			return False
+		else:
+			return True
+
+	def _flashGrbl(self):
+		self._changeState(self.STATE_FLASHING)
+		self._serial.close()
+		import subprocess
+		params = ["avrdude", "-patmega328p", "-carduino", "-b" + str(self._baudrate), "-P" + str(self._port), "-D", "-Uflash:w:grbl.hex"]
+		returnCode = subprocess.call(params)
+		if returnCode == False:
+			self._log("successfully flashed new grbl version")
+		else:
+			self._log("error during flashing of new grbl version")
+		self._openSerial()
+
 	def _monitor(self):
 		feedback_controls, feedback_matcher = convert_feedback_controls(settings().get(["controls"]))
 		feedback_errors = []
@@ -897,7 +951,7 @@ class MachineCom(object):
 					if(self._state == self.STATE_HOMING and 'ok' in line):
 						self._changeState(self.STATE_OPERATIONAL)
 						self._onHomingDone();
-						
+
 					# TODO check if "Alarm" is enough
 					if("Alarm lock" in line):
 						self._changeState(self.STATE_LOCKED)
@@ -907,7 +961,7 @@ class MachineCom(object):
 					# TODO maybe better in _gcode_X_sent ...
 					if("Idle" in line and (self._state == self.STATE_LOCKED)   ):
 						self._changeState(self.STATE_OPERATIONAL)
-					
+
 					# TODO highly experimental. needs testing.
 					if("Hold" in line and self._state == self.STATE_PRINTING):
 						self._changeState(self.STATE_PAUSED)
@@ -933,7 +987,6 @@ class MachineCom(object):
 						self._openSerial()
 						self._changeState(self.STATE_CONNECTING)
 
-						
 					if("Invalid gcode" in line and self._state == self.STATE_PRINTING):
 						# TODO Pause machine instead of resetting it.
 						errorMsg = line
@@ -943,17 +996,24 @@ class MachineCom(object):
 						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 						self._openSerial()
 						self._changeState(self.STATE_CONNECTING)
-						
+
 					if("Grbl" in line and self._state == self.STATE_PRINTING):
 						errorMsg = "Machine reset."
 						self._log(errorMsg)
 						self._errorValue = errorMsg
 						self._changeState(self.STATE_LOCKED)
 						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
-						
+
+					if("Grbl" in line):
+						versionMatch = re.search("Grbl (?P<grbl>.+)_(?P<git>[0-9a-f]{7})(?P<dirty>-dirty)?(?P<minor>.*) \[.+\]", line)
+						if(versionMatch):
+							versionDict = versionMatch.groupdict()
+							self._writeGrblVersionToFile(versionDict)
+							if self._compareGrblVersion(versionDict) is False:
+								self._flashGrbl()
+
 					if("error:" in line):
 						self.handle_grbl_error(line)
-
 
 				##~~ SD file list
 				# if we are currently receiving an sd file list, each line is just a filename, so just read it and abort processing
@@ -1633,13 +1693,13 @@ class MachineCom(object):
 		"""
 
 		self._clear_to_send.wait()
-		
+
 		while self._send_queue_active:
 			try:
 				if(self.RX_BUFFER_SIZE - sum(self.acc_line_lengths) < 20):
 					time.sleep(0.1)
 					continue
-					
+
 				# wait until we have something in the queue
 				entry = self._send_queue.get()
 
@@ -1789,7 +1849,7 @@ class MachineCom(object):
 	def _gcode_H_sent(self, cmd, cmd_type=None):
 		self._changeState(self.STATE_HOMING)
 		return cmd
-	
+
 	def _gcode_Hold_sent(self, cmd, cmd_type=None):
 		self._changeState(self.STATE_PAUSED)
 		return cmd
@@ -1920,7 +1980,7 @@ class MachineCom(object):
 			idx_wy_end = line.index('.', idx_wy_begin) + 2
 			idx_wz_begin = line.index(',', idx_wy_end) + 1
 			idx_wz_end = line.index('.', idx_wz_begin) + 2
-			
+
 			idx_intensity_begin = line.index('S:', idx_wz_end) + 2
 			idx_intensity_end = line.index(',', idx_intensity_begin)
 
@@ -1943,66 +2003,66 @@ class MachineCom(object):
 
 	def handle_grbl_error(self, line):
 		#self._log("grbl error: %s" % line)
-		if("Expected command letter" in line): 
+		if("Expected command letter" in line):
 			#G-code is composed of G-code "words", which consists of a letter followed by a number value. This error occurs when the letter prefix of a G-code word is missing in the G-code block (aka line).
 			pass
-		
-		elif("Bad number format" in line):  
+
+		elif("Bad number format" in line):
 			#The number value suffix of a G-code word is missing in the G-code block, or when configuring a $Nx=line or $x=val Grbl setting and the x is not a number value.
 			pass
 
-		elif("Invalid statement" in line):  
+		elif("Invalid statement" in line):
 			#The issued Grbl $ system command is not recognized or is invalid.
 			pass
 
-		elif("Value < 0" in line):  
+		elif("Value < 0" in line):
 			#The value of a $x=val Grbl setting, F feed rate, N line number, P word, T tool number, or S spindle speed is negative.
 			pass
 
-		elif("Setting disabled" in line):  
+		elif("Setting disabled" in line):
 			#Homing is disabled when issuing a $H command.
 			pass
 
-		elif("Value < 3 usec" in line):  
+		elif("Value < 3 usec" in line):
 			#Step pulse time length cannot be less than 3 microseconds (for technical reasons).
 			pass
-		
-		elif("EEPROM read fail. Using defaults" in line):  
+
+		elif("EEPROM read fail. Using defaults" in line):
 			#If Grbl can't read data contained in the EEPROM, this error is returned. Grbl will also clear and restore the effected data back to defaults.
 			pass
 
-		elif("Not idle" in line):  
+		elif("Not idle" in line):
 			#Certain Grbl $ commands are blocked depending Grbl's current state, or what its doing. In general, Grbl blocks any command that fetches from or writes to the EEPROM since the AVR microcontroller will shutdown all of the interrupts for a few clock cycles when this happens. There is no work around, other than blocking it. This ensures both the serial and step generator interrupts are working smoothly throughout operation.
 			pass
 
-		elif("Alarm lock" in line):  
+		elif("Alarm lock" in line):
 			#Grbl enters an ALARM state when Grbl doesn't know where it is and will then block all G-code commands from being executed. This error occurs if G-code commands are sent while in the alarm state. Grbl has two alarm scenarios: When homing is enabled, Grbl automatically goes into an alarm state to remind the user to home before doing anything; When something has went critically wrong, usually when Grbl can't guarantee positioning. This typically happens when something causes Grbl to force an immediate stop while its moving from a hard limit being triggered or a user commands an ill-timed reset.
 			pass
 
-		elif("Homing not enabled" in line):  
+		elif("Homing not enabled" in line):
 			#Soft limits cannot be enabled if homing is not enabled, because Grbl has no idea where it is when you startup your machine unless you perform a homing cycle.
 			pass
 
-		elif("Line overflow" in line):  
+		elif("Line overflow" in line):
 			#Grbl has to do everything it does within 2KB of RAM. Not much at all. So, we had to make some decisions on what's important. Grbl limits the number of characters in each line to less than 80 characters (70 in v0.8, 50 in v0.7 or earlier), excluding spaces or comments. The G-code standard mandates 256 characters, but Grbl simply doesn't have the RAM to spare. However, we don't think there will be any problems with this with all of the expected G-code commands sent to Grbl. This error almost always occurs when a user or CAM-generated G-code program sends position values that are in double precision (i.e. -2.003928578394852), which is not realistic or physically possible. Users and GUIs need to send Grbl floating point values in single precision (i.e. -2.003929) to avoid this error.
 			pass
 
-		elif("Modal group violation" in line):  
+		elif("Modal group violation" in line):
 			#The G-code parser has detected two G-code commands that belong to the same modal group in the block/line. Modal groups are sets of G-code commands that mutually exclusive. For example, you can't issue both a G0 rapids and G2 arc in the same line, since they both need to use the XYZ target position values in the line. LinuxCNC.org has some great documentation on modal groups.
 			pass
 
-		elif("Unsupported command" in line):  
+		elif("Unsupported command" in line):
 			#The G-code parser doesn't recognize or support one of the G-code commands in the line. Check your G-code program for any unsupported commands and either remove them or update them to be compatible with Grbl.
 			pass
 
-		elif("Undefined feed rate" in line):  
+		elif("Undefined feed rate" in line):
 			#There is no feed rate programmed, and a G-code command that requires one is in the block/line. The G-code standard mandates F feed rates to be undefined upon a reset or when switching from inverse time mode to units mode. Older Grbl versions had a default feed rate setting, which was illegal and was removed in Grbl v0.9.
 			pass
 
-		elif("Invalid gcode ID" in line): 
+		elif("Invalid gcode ID" in line):
 			#XX
 			pass
-		
+
 
 ### MachineCom callback ################################################################################################
 
