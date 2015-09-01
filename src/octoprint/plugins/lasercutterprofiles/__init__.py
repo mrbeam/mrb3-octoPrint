@@ -10,6 +10,7 @@ import logging.handlers
 import os
 import flask
 import socket
+import time
 
 import octoprint.plugin
 import octoprint.util
@@ -54,11 +55,11 @@ class LaserCutterProfilesPlugin(octoprint.plugin.SettingsPlugin,
 				octoprint.plugin.StartupPlugin,
 				octoprint.plugin.BlueprintPlugin,
 				octoprint.plugin.AssetPlugin,
-                 octoprint.plugin.TemplatePlugin):
+				octoprint.plugin.TemplatePlugin):
 
 	# TODO global shouldn't be necessary anymore.
 	global laserCutterProfileManager
-	
+
 	def __init__(self):
 		pass
 
@@ -67,7 +68,7 @@ class LaserCutterProfilesPlugin(octoprint.plugin.SettingsPlugin,
 		pass
 
 	##~~ AssetPlugin API
-	
+
 	def get_assets(self):
 		return dict(
 			js=["js/lasercutterprofiles.js"],
@@ -104,7 +105,7 @@ class LaserCutterProfilesPlugin(octoprint.plugin.SettingsPlugin,
 
 	def get_template_configs(self):
 		return [dict(type = 'settings', name = "Machine Profiles")]
-	
+
 	##~~ BlueprintPlugin API
 
 	@octoprint.plugin.BlueprintPlugin.route("/profiles", methods=["GET"])
@@ -174,7 +175,6 @@ class LaserCutterProfilesPlugin(octoprint.plugin.SettingsPlugin,
 	@octoprint.plugin.BlueprintPlugin.route("/profiles/<string:identifier>", methods=["PATCH"])
 	@restricted_access
 	def laserCutterProfilesUpdate(self, identifier):
-		### TODO use self._printer to set new working area size
 		if not "application/json" in request.headers["Content-Type"]:
 			return make_response("Expected content-type JSON", 400)
 
@@ -197,6 +197,17 @@ class LaserCutterProfilesPlugin(octoprint.plugin.SettingsPlugin,
 		if "default" in new_profile:
 			make_default = True
 			del new_profile["default"]
+
+		# edit width and depth in grbl firmware
+		### TODO queu the commands if not in locked or operational mode
+		if make_default or (laserCutterProfileManager.get_current_or_default()['id'] == identifier):
+			if self._printer.is_locked() or self._printer.is_operational():
+				if "volume" in new_profile:
+					if "width" in new_profile["volume"]:
+						self._printer.commands('$130=' + str(int(new_profile['volume']['width'])))
+						time.sleep(0.1) ### TODO find better solution then sleep
+					if "depth" in new_profile["volume"]:
+						self._printer.commands('$131=' + str(int(new_profile['volume']['depth'])))
 
 		new_profile["id"] = identifier
 
