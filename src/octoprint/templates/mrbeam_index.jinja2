@@ -73,7 +73,7 @@
                                         	Mr Beam is flashing the Arduino with a new firmware.
                                         	Please do NOT power off the System during flashing!
                                         </div>
-										<div data-bind="visible: !isLocked() ">
+										<div data-bind="visible: !isLocked() && !isFlashing ">
 											{{ _('Position') }}: <strong data-bind="text: laserPos"></strong>
 											<a href="#control_btns" style="margin-top: -5px;"
 											   class="btn btn-xs pull-right"
@@ -139,7 +139,7 @@
 										</div>
 									</div>
 
-									<div class="accordion-body collapse in" id="state_wrapper" data-bind="visible: !isErrorOrClosed() && loginState.isUser()">
+									<div class="accordion-body collapse in" id="state_wrapper" data-bind="visible: !isErrorOrClosed() && loginState.isUser() && !isFlashing() ">
 										<div class="accordion-inner">
 											{{ _('Machine State') }}: <strong data-bind="text: stateString"></strong><br>
 

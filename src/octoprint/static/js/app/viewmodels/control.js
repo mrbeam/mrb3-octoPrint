@@ -23,6 +23,7 @@ $(function() {
         self.isReady = ko.observable(undefined);
         self.isLoading = ko.observable(undefined);
         self.isLocked = ko.observable(undefined);
+        self.isFlashing = ko.observable(undefined);
 
         self.extrusionAmount = ko.observable(undefined);
         self.controls = ko.observableArray([]);
@@ -90,6 +91,7 @@ $(function() {
             self.isReady(data.flags.ready);
             self.isLoading(data.flags.loading);
 			self.isLocked(data.flags.locked);
+			self.isFlashing(data.flags.flashing);
         };
 
         self.onEventSettingsUpdated = function (payload) {
@@ -463,7 +465,7 @@ $(function() {
                 self.rerenderControls();
             }
         };
-	
+
 		self._jogDistanceMapping = [0.1, 1, 5, 10, 50, 100];
 		self._configureJogDistanceSlider = function () {
 			self.layerSlider = $("#jogDistance").slider({
@@ -600,7 +602,7 @@ $(function() {
 				return "(" + pos.x + ", " + pos.y + ")";
 			}
 		}, this);
-		
+
 		self.setCoordinateOrigin = function () {
 			self.sendCustomCommand({type: 'command', command: "G92 X0 Y0"});
 		};
