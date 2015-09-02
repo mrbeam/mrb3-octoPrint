@@ -70,8 +70,12 @@
 											</div>
 										</div>
 										<div data-bind="visible: isFlashing ">
-                                        	Mr Beam is flashing the Arduino with a new firmware.
-                                        	Please do NOT power off the System during flashing!
+											Firmware update in progress
+											<div id="flashing_progress" class="progress progress-striped active" style="width: 100%;">
+												<div class="bar" style="width: 100%;"></div>
+											</div>
+											<span class="icon-exclamation-sign"></span>
+											Do not power off the Machine during the flashing process.
                                         </div>
 										<div data-bind="visible: !isLocked() && !isFlashing ">
 											{{ _('Position') }}: <strong data-bind="text: laserPos"></strong>
@@ -123,7 +127,8 @@
 										</div>
 									</div>
 
-									<div class="accordion-body in" id="connection_wrapper" data-bind="visible: (isErrorOrClosed()) && loginState.isUser()">
+									<div class="accordion-body in" id="connection_wrapper" 
+										 data-bind="visible: !isFlashing && isErrorOrClosed() && loginState.isUser()">
 										<div class="accordion-inner">
 											<label for="connection_ports" data-bind="css: {disabled: !isErrorOrClosed()}, enable: isErrorOrClosed() && loginState.isUser()">{{ _('Serial Port') }}</label>
 											<select id="connection_ports" data-bind="options: portOptions, optionsCaption: 'AUTO', value: selectedPort, css: {disabled: !isErrorOrClosed()}, enable: isErrorOrClosed() && loginState.isUser()"></select>
