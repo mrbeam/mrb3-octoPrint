@@ -15,6 +15,7 @@ $(function() {
         self.isSdReady = ko.observable(undefined);
 	    self.isLocked = ko.observable(undefined);
 	    self.isConnecting = ko.observable(undefined);
+	    self.isFlashing = ko.observable(undefined);
 
         self.filename = ko.observable(undefined);
         self.progress = ko.observable(undefined);
@@ -134,6 +135,7 @@ $(function() {
             self.isReady(data.flags.ready);
             self.isSdReady(data.flags.sdReady);
 			self.isLocked(data.flags.locked);
+			self.isFlashing(data.flags.flashing);
 			self.isConnecting(data.text === "Connecting" || data.text === "Opening serial port");
 
             if (self.isPaused() != prevPaused) {
@@ -267,7 +269,7 @@ $(function() {
                 }
             });
         };
-		
+
 		self.onEventRealTimeState = function(payload){
 			self.currentPos({x: payload.wx, y: payload.wy});
 		};

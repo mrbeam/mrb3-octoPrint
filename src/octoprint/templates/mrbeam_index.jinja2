@@ -25,7 +25,7 @@
 					<li><a href="#designlib" data-toggle="tab">design library</a></li>
 					<li><a href="#focus" data-toggle="tab">focus</a></li>
 					<li><a href="#term" data-toggle="tab">terminal</a></li>
-					
+
 					{% for key in templates.navbar.order %}
 						{% set data = templates.navbar.entries[key] %}
 						{% if "custom_bindings" not in data or data["custom_bindings"] %}<!-- ko allowBindings: false -->{% endif %}
@@ -55,24 +55,28 @@
 										<a class="accordion-toggle" data-toggle="collapse" href="#statusbox"><i class="icon-info-sign"></i> {{ _('State') }}</a>
 									</div>
 									<div id="statusbox">
-										
-									<div id="control" class="accordion-inner" data-bind="visible: isReady() || isLocked() ">
+
+									<div id="control" class="accordion-inner" data-bind="visible: isReady() || isLocked() || isFlashing()">
 										<div data-bind="visible: isLocked ">
 											Mr Beam is in a locked state as it does not know its position.
 											First remove any objects blocking the gantry's travel range.
 											Then do a homing cycle.
 											<div style='text-align: center; padding:.5em;'>
-												
+
 												<div class='btn-group'>
 													<button class="btn btn-default" data-bind="enable: isLocked() && loginState.isUser(), click: function() { $root.sendHomeCommand(['x', 'y']) }"><i class="icon-home"> Homing Cycle</i></button>
 													<!--<button class="btn btn-default" data-bind="enable: isLocked() && loginState.isUser(), click: function() { $root.sendHomeCommand(['x', 'y']) }"><i class="icon-unlock">Unlock</i></button>-->
 												</div>
 											</div>
 										</div>
+										<div data-bind="visible: isFlashing ">
+                                        	Mr Beam is flashing the Arduino with a new firmware.
+                                        	Please do NOT power off the System during flashing!
+                                        </div>
 										<div data-bind="visible: !isLocked() ">
 											{{ _('Position') }}: <strong data-bind="text: laserPos"></strong>
 											<a href="#control_btns" style="margin-top: -5px;"
-											   class="btn btn-xs pull-right"  
+											   class="btn btn-xs pull-right"
 											   data-toggle="collapse" aria-expanded="false">
 												<i class="icon-move sr-only"></i>
 												<span class="caret"></span>
@@ -80,7 +84,7 @@
 
 											<div class="clearfix"></div>
 											<div class="collapse" id="control_btns">
-												
+
 												<div class="jog-panel" id="control_xyaxis">
 													XY-Axes
 													<div>
@@ -106,11 +110,11 @@
 												   </div>
 													<div>
 														<button id="set_coordinate_origin_btn" class="btn" data-bind="enable: isOperational() && !isPrinting() && loginState.isUser(), click: setCoordinateOrigin" title="set coordinate origin"><i class="icon-screenshot"></i></button>
-													</div>	
+													</div>
 											   </div>
 
 												<div class="clearfix"></div>
-											
+
 												Jog distance: <span data-bind="text: jogDistanceInMM">10</span>mm
 												<div class="distance">
 													<input type="text" id="jogDistance" />
@@ -118,7 +122,7 @@
 											</div>
 										</div>
 									</div>
-									
+
 									<div class="accordion-body in" id="connection_wrapper" data-bind="visible: (isErrorOrClosed()) && loginState.isUser()">
 										<div class="accordion-inner">
 											<label for="connection_ports" data-bind="css: {disabled: !isErrorOrClosed()}, enable: isErrorOrClosed() && loginState.isUser()">{{ _('Serial Port') }}</label>
@@ -134,14 +138,14 @@
 											<button class="btn btn-block" id="printer_connect" data-bind="click: connect, text: buttonText(), enable: loginState.isUser()">{{ _('Connect') }}</button>
 										</div>
 									</div>
-										
+
 									<div class="accordion-body collapse in" id="state_wrapper" data-bind="visible: !isErrorOrClosed() && loginState.isUser()">
 										<div class="accordion-inner">
 											{{ _('Machine State') }}: <strong data-bind="text: stateString"></strong><br>
 
 											<div data-bind="visible: !isLocked() && !isConnecting()">
-												
-												<!--   
+
+												<!--
 												{{ _('File') }}: <strong data-bind="text: filename"></strong>&nbsp;<strong data-bind="visible: sd">(SD)</strong><br>
 												{{ _('Timelapse') }}: <strong data-bind="text: timelapseString"></strong><br>
 												-->
@@ -151,7 +155,7 @@
 												</div>
 												<!--                                {{ _('Print Time') }}: <strong data-bind="text: printTimeString"></strong><br>
 																				{{ _('Print Time Left') }}: <strong data-bind="text: printTimeLeftString"></strong><br>-->
-												
+
 
 												<div class="row-fluid print-control" style="display: none;" data-bind="visible: loginState.isUser">
 													<button class="btn btn-danger span4" data-bind="click: conversion.show_conversion_dialog, enable: isOperational() && isReady() && !isPrinting() && !isPaused() && loginState.isUser() && !workingArea.working_area_empty(), attr: {title: titlePrintButton}" id="job_print">
@@ -165,13 +169,13 @@
 										</div>
 									</div>
 								</div>
-			
+
 								</div>
-																
+
 								<div data-bind="visible: loginState.isUser" id="connection_accordion"></div>
 
-								
-								
+
+
 								<div class="accordion-group" id="working_area_files">
 									<div class="" data-bind="visible: !working_area_empty()">
 										<div class="accordion-heading">
@@ -211,7 +215,7 @@
 															<span class="scale" >100%</span>
 															<i class="icon-repeat" title="{{ _('rotation') }}"></i>
 															<span class="rotation" >0°</span>
-															
+
 														</div>
 														<div class="misfit_warning" >
 															<i class="icon-exclamation-sign" style="color:red;" title="{{ _('exceeds working area') }}"> Design exceeds the working area.</i>
@@ -220,7 +224,7 @@
 													</div>
 												</div>
 											</script>
-											
+
 											<script type="text/html" id="wa_template_model_img">
 												<div class="file_list_entry">
 													<div class="title muted pull-left" data-bind="text: name"></div>
@@ -236,7 +240,7 @@
 															<span class="scale" >100%</span>
 															<i class="icon-repeat" title="{{ _('rotation') }}"></i>
 															<span class="rotation" >0°</span>
-															
+
 														</div>
 														<div class="misfit_warning" >
 															<i class="icon-exclamation-sign" style="color:red;" title="{{ _('exceeds working area') }}"> Design exceeds the working area.</i>
@@ -247,19 +251,19 @@
 											</script>
 
 
-											
+
 										</div>
 									</div>
 								</div>
-								
-								
-								
+
+
+
 							</div>
 
 							<!--  end sidebar  -->
-							
+
 							<div class="span8">
-								<svg id="area_preview" class="workingarea" 
+								<svg id="area_preview" class="workingarea"
 									 data-bind="style: {
 											backgroundPosition: crosshairX()+'px'+' '+crosshairY()+'px',
 											width: workingAreaWidthPx()+'px',
@@ -277,8 +281,8 @@
 										</feComponentTransfer>
 									</filter>
 									<g id="scaleGroup" data-bind="attr: { transform: scaleMatrix() }">
-										<rect data-bind="click: move_laser" 
-											  id="coordGrid" x="0" y="0" width="0" height="0" 
+										<rect data-bind="click: move_laser"
+											  id="coordGrid" x="0" y="0" width="0" height="0"
 											  stroke="none" fill="none"></rect>
 										<text
 											xml:space="preserve"
@@ -311,7 +315,7 @@
 					</div>
 				</div>
 				<div class="tab-pane" id="term">
-					
+
 					<div class="container-fluid">
 						<div class="row-fluid">
 							<div class="span4 accordion">
@@ -436,7 +440,7 @@
 								</div>
 							</div>
 							<div class="span8 ">
-								<pre id="terminal-output" class="pre-scrollable" data-bind="foreach: displayedLines"><span data-bind="text: line, css: {muted: type == 'filtered'}"></span><br></pre>								
+								<pre id="terminal-output" class="pre-scrollable" data-bind="foreach: displayedLines"><span data-bind="text: line, css: {muted: type == 'filtered'}"></span><br></pre>
 								<div class="input-append" style="display: none;" data-bind="visible: loginState.isUser">
 									<input type="text" id="terminal-command" style="width:88%;" data-bind="value: command, event: { keyup: function(d,e) { return handleKeyUp(e); }, keydown: function(d,e) { return handleKeyDown(e); } }, enable: (isOperational() || isLocked()) && loginState.isUser()">
 									<button class="btn" type="button" id="terminal-send" data-bind="click: sendCommandWithSafetyPopup, enable: (isOperational() || isLocked()) && loginState.isUser()">{{ _('Send') }}</button>
@@ -446,7 +450,7 @@
 						</div>
 					</div>
 				</div>
-				
+
 				<div class="tab-pane" id="designlib">
 					<div class="container-fluid">
 						<div class="row-fluid" id="files_accordion">
@@ -454,13 +458,13 @@
 								<ol>
 									<li>Add designs to your working area with the <i class="icon-ok"></i>-button</li>
 									<li>Afterwards switch back to the working area</li>
-									
+
 								</ol>
 								<div class="">
 									<div class="accordion-heading">
 										<span class="accordion-toggle" ><i class="icon-list"></i> {{ _('Files') }}</span>
 										<!--<a class="accordion-toggle" data-toggle="collapse" href="#files_search" style="text-decoration: none;"><i class="icon-search dropdown-toggle"></i><span class="caret" style="margin: .5em;"></span></a>-->
-										
+
 									</div>
 
 									<div id="files_search" class="">
@@ -501,10 +505,10 @@
 							<div class="span8">
 								<div class="designlib" >
 									<div id="files" >
-				
+
 										<div  id="files_wrapper">
 											<div class="accordion-inner">
-								
+
 												<div class="gcode_files" data-bind="slimScrolledForeach: listHelper.paginatedItems" >
 													<div class="entry" data-bind="attr: { id: $root.getEntryId($data) }, template: { name: $root.templateFor($data), data: $data }"></div>
 												</div>
@@ -559,7 +563,7 @@
 															</div>
 														</div>
 													</script>
-													
+
 													<script type="text/html" id="files_template_model_img">
 														<div class="file_list_entry">
 															<i class="icon-camera file_list_icon"></i>
@@ -586,7 +590,7 @@
 															</div>
 														</div>
 													</script>
-													
+
 													<script type="text/html" id="files_template_model_dummy">
 														<div class="file_list_entry">
 														</div>
@@ -595,16 +599,16 @@
 													<script type="text/html" id="files_template_folder">
 														<div class="title" data-bind="text: name"></div>
 													</script>
-												
+
 											</div>
 										</div>
-									</div> 
+									</div>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-				
+
 				<div class="tab-pane" id="focus">
 					<div class="container-fluid">
 						<div class="row-fluid">
@@ -638,13 +642,13 @@
 
 							</div>
 							<div class="span8">
-								<div class="focus" id="focus_description"> 
+								<div class="focus" id="focus_description">
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-				
+
 				<div class="tab-pane" id="gcode">
 					<div class="container-fluid">
 						<div class="row-fluid">
@@ -653,7 +657,7 @@
 						</div>
 					</div>
 				</div>
-				
+
 				<div class="tab-pane" id="settings">
 					<div class="container-fluid">
 						<div class="row-fluid">
@@ -665,7 +669,7 @@
 						</div>
 					</div>
 				</div>
-				
+
 			</div>
 
 
@@ -673,7 +677,7 @@
 					<!------->
 
 					<!------>
-					
+
 						<footer class="footer">
 							<ul class="pull-left muted">
 								<li><small>{{ _('Version') }}: <span class="version">{{ display_version }}</span></small></li>
@@ -717,7 +721,7 @@
 			{% include data.template ignore missing %}
 		{% endfor %}
 		<!-- End of generic plugin template files -->
-        
+
 
         {% include 'javascripts.jinja2' %}
 	</body>

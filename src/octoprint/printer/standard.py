@@ -510,6 +510,9 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 	def is_locked(self):
 		return self._comm is not None and self._comm.isLocked()
 
+	def is_flashing(self):
+		return self._comm is not None and self._comm.isFlashing()
+
 	#~~ sd file handling
 
 	def get_sd_files(self):
@@ -751,7 +754,8 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 			"paused": self.is_paused(),
 			"ready": self.is_ready(),
 			"sdReady": self.is_sd_ready(),
-			"locked": self.is_locked()
+			"locked": self.is_locked(),
+			"flashing": self.is_flashing(),
 		}
 
 	#~~ comm.MachineComPrintCallback implementation
@@ -860,17 +864,17 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 
 	def on_comm_pos_update(self, MPos, WPos):
 		self._add_position_data(MPos, WPos)
-		
+
 	def _add_position_data(self, MPos, WPos):
 		if MPos is None or WPos is None:
 			MPosString = WPosString = "-"
 		else:
 			MPosString = "X: %.4f Y: %.4f Z: %.4f" % ( MPos[0], MPos[1], MPos[2] )
 			WPosString = "X: %.4f Y: %.4f Z: %.4f" % ( WPos[0], WPos[1], WPos[2] )
-		
+
 		self._stateMonitor.setWorkPosition(WPosString)
 		self._stateMonitor.setMachinePosition(MPosString)
-		
+
 
 class StateMonitor(object):
 	def __init__(self, interval=0.5, on_update=None, on_add_temperature=None, on_add_log=None, on_add_message=None):
@@ -888,7 +892,7 @@ class StateMonitor(object):
 		self._progress = None
 		self._machinePosition = None
 		self._workPosition = None
-		
+
 		self._offsets = {}
 
 		self._change_event = threading.Event()
@@ -966,7 +970,7 @@ class StateMonitor(object):
 			"workPosition": self._workPosition,
 			"machinePosition": self._machinePosition
 		}
-		
+
 	def setWorkPosition(self, workPosition):
 		self._workPosition = workPosition
 		self._change_event.set()
