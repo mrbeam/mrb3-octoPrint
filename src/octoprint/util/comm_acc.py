@@ -1006,7 +1006,7 @@ class MachineCom(object):
 						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
 					if("Grbl" in line):
-						versionMatch = re.search("Grbl (?P<grbl>.+)(_(?P<git>[0-9a-f]{7})(?P<dirty>-dirty)?)? \[.+\]", line)
+						versionMatch = re.search("Grbl (?P<grbl>.+?)(_(?P<git>[0-9a-f]{7})(?P<dirty>-dirty)?)? \[.+\]", line)
 						if(versionMatch):
 							versionDict = versionMatch.groupdict()
 							self._writeGrblVersionToFile(versionDict)

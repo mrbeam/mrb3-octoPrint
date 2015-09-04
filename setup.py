@@ -120,7 +120,7 @@ def params():
 		"": "src"
 	}
 	package_data = {
-		"octoprint": octoprint_setuptools.package_data_dirs('src/octoprint', ['static', 'templates', 'plugins', 'translations'])
+		"octoprint": octoprint_setuptools.package_data_dirs('src/octoprint', ['static', 'templates', 'plugins', 'translations', 'grbl'])
 	}
 
 	include_package_data = True
