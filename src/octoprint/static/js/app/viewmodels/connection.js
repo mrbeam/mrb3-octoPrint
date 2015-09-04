@@ -36,7 +36,7 @@ $(function() {
         self.isError = ko.observable(undefined);
         self.isReady = ko.observable(undefined);
         self.isLoading = ko.observable(undefined);
-        self.isFlashing = ko.observable(undefined);
+        self.isFlashing = ko.observable(false);
 
         self.buttonText = ko.computed(function() {
             if (self.isErrorOrClosed())
