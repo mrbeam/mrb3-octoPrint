@@ -844,13 +844,9 @@ class MachineCom(object):
 		requiredGrblVer = str(grblReqDict['grbl']) + '_' + str(grblReqDict['git'])
 		if grblReqDict['dirty'] is not(None):
 			requiredGrblVer += '-dirty'
-		if grblReqDict['minor'] != '':
-			requiredGrblVer += ':' + grblReqDict['minor']
 		actualGrblVer = str(versionDict['grbl']) + '_' + str(versionDict['git'])
 		if versionDict['dirty'] is not(None):
 			actualGrblVer += '-dirty'
-		if versionDict['minor'] != '':
-			actualGrblVer += ':' + versionDict['minor']
 		# compare actual and required grbl version
 		self._requiredGrblVer = requiredGrblVer
 		self._actualGrblVer = actualGrblVer
@@ -1007,7 +1003,7 @@ class MachineCom(object):
 						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
 					if("Grbl" in line):
-						versionMatch = re.search("Grbl (?P<grbl>.+)_(?P<git>[0-9a-f]{7})(?P<dirty>-dirty)?(?P<minor>.*) \[.+\]", line)
+						versionMatch = re.search("Grbl (?P<grbl>.+)(_(?P<git>[0-9a-f]{7})(?P<dirty>-dirty)?)? \[.+\]", line)
 						if(versionMatch):
 							versionDict = versionMatch.groupdict()
 							self._writeGrblVersionToFile(versionDict)
