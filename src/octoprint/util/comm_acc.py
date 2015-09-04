@@ -841,7 +841,7 @@ class MachineCom(object):
 			outfile.write(yaml.dump(versionDict, default_flow_style=True))
 
 	def _compareGrblVersion(self, versionDict):
-		with open("src/octoprint/util/grblVersionRequirement.yml", 'r') as infile:
+		with open("src/octoprint/grbl/grblVersionRequirement.yml", 'r') as infile:
 			import yaml
 			grblReqDict = yaml.load(infile)
 		requiredGrblVer = str(grblReqDict['grbl']) + '_' + str(grblReqDict['git'])
