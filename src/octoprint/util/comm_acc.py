@@ -870,9 +870,11 @@ class MachineCom(object):
 		returnCode = subprocess.call(params)
 		if returnCode == False:
 			self._log("successfully flashed new grbl version")
+			self._openSerial()
 		else:
 			self._log("error during flashing of new grbl version")
-		self._openSerial()
+			self._changeState(self.STATE_CLOSED_WITH_ERROR)
+
 
 	def _monitor(self):
 		feedback_controls, feedback_matcher = convert_feedback_controls(settings().get(["controls"]))
