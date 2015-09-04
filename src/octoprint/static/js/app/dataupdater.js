@@ -236,7 +236,7 @@ function DataUpdater(allViewModels) {
 							text: msg
 						});
                     } else if (type === "RealTimeState") {
-						
+//						console.log(payload);
                     }
 
                     var legacyEventHandlers = {

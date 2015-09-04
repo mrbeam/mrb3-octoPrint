@@ -460,6 +460,9 @@ class MachineCom(object):
 			cmd = process_gcode_line(cmd)
 			if not cmd:
 				return
+		eepromCmd = re.search("^\$[0-9]+=.+$", cmd)
+		if(eepromCmd and self.isPrinting()):
+			self._log("Warning: Configuration changes during print are not allowed!")
 
 		if self.isPrinting() and not self.isSdFileSelected():
 			self._commandQueue.put((cmd, cmd_type))
