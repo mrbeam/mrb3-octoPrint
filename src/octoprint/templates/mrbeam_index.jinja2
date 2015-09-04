@@ -77,7 +77,7 @@
 											<span class="icon-exclamation-sign"></span>
 											Do not power off the Machine during the flashing process.
                                         </div>
-										<div data-bind="visible: !isLocked() && !isFlashing ">
+										<div data-bind="visible: !isLocked() && !isFlashing() ">
 											{{ _('Position') }}: <strong data-bind="text: laserPos"></strong>
 											<a href="#control_btns" style="margin-top: -5px;"
 											   class="btn btn-xs pull-right"
