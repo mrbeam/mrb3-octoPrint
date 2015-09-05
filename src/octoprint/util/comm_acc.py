@@ -159,6 +159,8 @@ class MachineCom(object):
 
 		self._timeout = None
 
+		self._errorValue = "Unknown Error"
+
 		self._alwaysSendChecksum = settings().getBoolean(["feature", "alwaysSendChecksum"])
 		self._sendChecksumWithUnknownCommands = settings().getBoolean(["feature", "sendChecksumWithUnknownCommands"])
 		self._unknownCommandsNeedAck = settings().getBoolean(["feature", "unknownCommandsNeedAck"])
@@ -845,7 +847,7 @@ class MachineCom(object):
 			import yaml
 			grblReqDict = yaml.load(infile)
 		requiredGrblVer = str(grblReqDict['grbl']) + '_' + str(grblReqDict['git'])
-		if grblReqDict['dirty'] is not(None):
+		if grblReqDict['dirty'] is True:
 			requiredGrblVer += '-dirty'
 		actualGrblVer = str(versionDict['grbl']) + '_' + str(versionDict['git'])
 		if versionDict['dirty'] is not(None):
@@ -864,14 +866,17 @@ class MachineCom(object):
 	def _flashGrbl(self):
 		self._changeState(self.STATE_FLASHING)
 		self._serial.close()
+		cwd = os.getcwd()
+		pathToGrblHex = cwd + "/src/octoprint/grbl/grbl.hex"
 		import subprocess
-		params = ["avrdude", "-patmega328p", "-carduino", "-b" + str(self._baudrate), "-P" + str(self._port), "-D", "-Uflash:w:grbl.hex"]
+		params = ["avrdude", "-patmega328p", "-carduino", "-b" + str(self._baudrate), "-P" + str(self._port), "-D", "-Uflash:w:" + pathToGrblHex]
 		returnCode = subprocess.call(params)
 		if returnCode == False:
 			self._log("successfully flashed new grbl version")
 			self._openSerial()
 		else:
 			self._log("error during flashing of new grbl version")
+			self._errorValue = "avrdude returncode: %s" % returnCode
 			self._changeState(self.STATE_CLOSED_WITH_ERROR)
 
 
