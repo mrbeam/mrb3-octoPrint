@@ -843,7 +843,8 @@ class MachineCom(object):
 			outfile.write(yaml.dump(versionDict, default_flow_style=True))
 
 	def _compareGrblVersion(self, versionDict):
-		with open("src/octoprint/grbl/grblVersionRequirement.yml", 'r') as infile:
+		cwd = os.path.dirname(__file__)
+		with open(cwd + "/../grbl/grblVersionRequirement.yml", 'r') as infile:
 			import yaml
 			grblReqDict = yaml.load(infile)
 		requiredGrblVer = str(grblReqDict['grbl']) + '_' + str(grblReqDict['git'])
@@ -855,6 +856,8 @@ class MachineCom(object):
 		# compare actual and required grbl version
 		self._requiredGrblVer = requiredGrblVer
 		self._actualGrblVer = actualGrblVer
+		print repr(requiredGrblVer)
+		print repr(actualGrblVer)
 		if requiredGrblVer != actualGrblVer:
 			self._log("unsupported grbl version detected...")
 			self._log("required: " + requiredGrblVer)
@@ -866,11 +869,14 @@ class MachineCom(object):
 	def _flashGrbl(self):
 		self._changeState(self.STATE_FLASHING)
 		self._serial.close()
-		cwd = os.getcwd()
-		pathToGrblHex = cwd + "/src/octoprint/grbl/grbl.hex"
+		cwd = os.path.dirname(__file__)
+		pathToGrblHex = cwd + "/../grbl/grbl.hex"
 		import subprocess
-		params = ["avrdude", "-patmega328p", "-carduino", "-b" + str(self._baudrate), "-P" + str(self._port), "-D", "-Uflash:w:" + pathToGrblHex]
-		returnCode = subprocess.call(params)
+		try:
+			params = ["avrdude", "-patmega328p", "-carduino", "-b" + str(self._baudrate), "-P" + str(self._port), "-D", "-Uflash:w:" + pathToGrblHex]
+			returnCode = subprocess.call(params)
+		except:
+			self._log("Error in subprocess.call()")
 		if returnCode == False:
 			self._log("successfully flashed new grbl version")
 			self._openSerial()
