@@ -872,11 +872,10 @@ class MachineCom(object):
 		cwd = os.path.dirname(__file__)
 		pathToGrblHex = cwd + "/../grbl/grbl.hex"
 		import subprocess
-		try:
-			params = ["avrdude", "-patmega328p", "-carduino", "-b" + str(self._baudrate), "-P" + str(self._port), "-D", "-Uflash:w:" + pathToGrblHex]
-			returnCode = subprocess.call(params)
-		except:
-			self._log("Error in subprocess.call()")
+
+		params = ["avrdude", "-patmega328p", "-carduino", "-b" + str(self._baudrate), "-P" + str(self._port), "-D", "-Uflash:w:" + pathToGrblHex]
+		returnCode = subprocess.call(params)
+
 		if returnCode == False:
 			self._log("successfully flashed new grbl version")
 			self._openSerial()
@@ -884,7 +883,6 @@ class MachineCom(object):
 			self._log("error during flashing of new grbl version")
 			self._errorValue = "avrdude returncode: %s" % returnCode
 			self._changeState(self.STATE_CLOSED_WITH_ERROR)
-
 
 	def _monitor(self):
 		feedback_controls, feedback_matcher = convert_feedback_controls(settings().get(["controls"]))
