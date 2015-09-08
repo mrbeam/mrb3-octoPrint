@@ -71,7 +71,7 @@ def settings(init=False, basedir=None, configfile=None):
 
 default_settings = {
 	"serial": {
-		"port": "/dev/ttyACM0",
+		"port": "/dev/MrBeam",
 		"baudrate": 115200,
 		"autoconnect": True,
 		"log": False,
@@ -83,7 +83,7 @@ default_settings = {
 			"sdStatus": 1,
 			"position": 0.5
 		},
-		"additionalPorts": [],
+		"additionalPorts": ["/dev/MrBeam"],
 		"longRunningCommands": ["G4", "G28", "G29", "G30", "G32"]
 	},
 	"server": {
