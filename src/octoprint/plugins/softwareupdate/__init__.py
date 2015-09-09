@@ -127,22 +127,41 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 		return {
 			"checks": {
 				"octoprint": {
-					#"type": "github_release",
-					"type": "github_commit",
-					"user": "mrbeam",
-					"branch": "mrbeam-stable",
 					"update_folder": "/home/pi/OctoPrint",
+					"type": "github_commit",
 					"repo": "OctoPrint",
+					"user": "mrbeam",
+					"branch": "stable-1.2.2",
 					"update_script": "{{python}} \"{update_script}\" --python=\"{{python}}\" \"{{folder}}\" {{target}}".format(update_script=os.path.join(self._basefolder, "scripts", "update-octoprint.py")),
 					"restart": "octoprint"
 				},
+				"svgtogcode": {
+					"update_folder": "/home/pi/mrbeam-inkscape-ext",
+					"type": "github_commit",
+					"repo": "mrbeam-inkscape-ext",
+					"user": "mrbeam",
+					"branch": "mrbeam-stable"
+				},
+				"lcd": {
+					"update_folder": "/home/pi/lcd",
+					"type": "github_commit",
+					"repo": "lcd",
+					"user": "mrbeam",
+					"branch": "mrbeam-stable"
+				},
+				"netconnectd": {
+					"update_folder": "/home/pi/netconnectd",
+					"type": "github_commit",
+					"repo": "lcd",
+					"user": "mrbeam",
+					"branch": "mrbeam-stable"
+				},
 			},
 
-			"octoprint_restart_command": None,
-			"environment_restart_command": None,
+			"octoprint_restart_command": "sudo service octoprint restart",
+			"environment_restart_command": "sudo shutdown -r now",
 			"pip_command": None,
-
-			"cache_ttl": 24 * 60,
+			"cache_ttl": 60,
 		}
 
 	def on_settings_load(self):
