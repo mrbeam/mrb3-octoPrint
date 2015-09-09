@@ -204,10 +204,16 @@ class LaserCutterProfilesPlugin(octoprint.plugin.SettingsPlugin,
 			if self._printer.is_locked() or self._printer.is_operational():
 				if "volume" in new_profile:
 					if "width" in new_profile["volume"]:
-						self._printer.commands('$130=' + str(int(new_profile['volume']['width'])))
+						width = int(new_profile['volume']['width'])
+						if identifier == "_mrbeam_senior":
+							width *= 2
+						self._printer.commands('$130=' + str(width))
 						time.sleep(0.1) ### TODO find better solution then sleep
 					if "depth" in new_profile["volume"]:
-						self._printer.commands('$131=' + str(int(new_profile['volume']['depth'])))
+						depth = int(new_profile['volume']['depth'])
+						if identifier == "_mrbeam_senior":
+							depth *= 2
+						self._printer.commands('$131=' + str(depth))
 
 		new_profile["id"] = identifier
 
