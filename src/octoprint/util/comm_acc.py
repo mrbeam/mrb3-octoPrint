@@ -879,6 +879,7 @@ class MachineCom(object):
 		if returnCode == False:
 			self._log("successfully flashed new grbl version")
 			self._openSerial()
+			self._changeState(self.STATE_CONNECTING)
 		else:
 			self._log("error during flashing of new grbl version")
 			self._errorValue = "avrdude returncode: %s" % returnCode
