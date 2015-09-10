@@ -136,25 +136,16 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 					"restart": "octoprint"
 				},
 				"svgtogcode": {
-					"update_folder": "/home/pi/mrbeam-inkscape-ext",
-					"type": "github_commit",
-					"repo": "mrbeam-inkscape-ext",
-					"user": "mrbeam",
-					"branch": "mrbeam-stable"
+					"checkout_folder": "/home/pi/mrbeam-inkscape-ext",
+					"type": "git_commit"
 				},
 				"lcd": {
-					"update_folder": "/home/pi/lcd",
-					"type": "github_commit",
-					"repo": "lcd",
-					"user": "mrbeam",
-					"branch": "mrbeam-stable"
+					"checkout_folder": "/home/pi/lcd",
+					"type": "git_commit"
 				},
 				"netconnectd": {
-					"update_folder": "/home/pi/netconnectd",
-					"type": "github_commit",
-					"repo": "lcd",
-					"user": "mrbeam",
-					"branch": "mrbeam-stable"
+					"checkout_folder": "/home/pi/netconnectd",
+					"type": "git_commit"
 				},
 			},
 
