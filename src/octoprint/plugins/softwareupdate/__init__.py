@@ -141,7 +141,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 					"repo": "mrbeam-inkscape-ext",
 					"user": "mrbeam",
 					"branch": "stable-1.2.2",
-					"update_script": ""
+					"update_script": "pwd"
 				},
 				"lcd": {
 					"update_folder": "/home/pi/lcd",
@@ -149,7 +149,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 					"repo": "lcd",
 					"user": "mrbeam",
 					"branch": "stable-1.2.2",
-					"update_script": "",
+					"update_script": "pwd",
 					"restart": "environment"
 				},
 				"netconnectd": {
@@ -158,7 +158,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 					"repo": "netconnectd",
 					"user": "mrbeam",
 					"branch": "stable-1.2.2",
-					"update_script": "",
+					"update_script": "pwd",
 					"restart": "environment"
 				},
 			},
