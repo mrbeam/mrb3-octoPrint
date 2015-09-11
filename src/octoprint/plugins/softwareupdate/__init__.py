@@ -141,7 +141,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 					"repo": "mrbeam-inkscape-ext",
 					"user": "mrbeam",
 					"branch": "stable-1.2.2",
-					"update_script": "git pull"
+					"update_script": "{{python}} \"{update_script}\" \"{{folder}}\" {{target}}".format(update_script=os.path.join(self._basefolder, "scripts", "git-pull.py"))
 				},
 				"lcd": {
 					"update_folder": "/home/pi/lcd",
@@ -149,7 +149,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 					"repo": "lcd",
 					"user": "mrbeam",
 					"branch": "stable-1.2.2",
-					"update_script": "git pull",
+					"update_script": "{{python}} \"{update_script}\" \"{{folder}}\" {{target}}".format(update_script=os.path.join(self._basefolder, "scripts", "git-pull.py")),
 					"restart": "environment"
 				},
 				"netconnectd": {
@@ -158,7 +158,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 					"repo": "netconnectd",
 					"user": "mrbeam",
 					"branch": "stable-1.2.2",
-					"update_script": "git pull",
+					"update_script": "{{python}} \"{update_script}\" \"{{folder}}\" {{target}}".format(update_script=os.path.join(self._basefolder, "scripts", "git-pull.py")),
 					"restart": "environment"
 				},
 			},
