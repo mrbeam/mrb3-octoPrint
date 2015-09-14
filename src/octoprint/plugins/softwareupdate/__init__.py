@@ -126,7 +126,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 		return {
 			"checks": {
 				"octoprint": {
-					"update_folder": "/home/pi/OctoPrint",
+					"checkout_folder": "/home/pi/OctoPrint",
 					"type": "github_commit",
 					"repo": "OctoPrint",
 					"user": "mrbeam",
@@ -135,7 +135,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 					"restart": "octoprint"
 				},
 				"svgtogcode": {
-					"update_folder": "/home/pi/mrbeam-inkscape-ext",
+					"checkout_folder": "/home/pi/mrbeam-inkscape-ext",
 					"type": "github_commit",
 					"repo": "mrbeam-inkscape-ext",
 					"user": "mrbeam",
@@ -143,7 +143,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 					"update_script": "{{python}} \"{update_script}\" \"{{folder}}\" {{target}}".format(update_script=os.path.join(self._basefolder, "scripts", "git-pull.py"))
 				},
 				"lcd": {
-					"update_folder": "/home/pi/lcd",
+					"checkout_folder": "/home/pi/lcd",
 					"type": "github_commit",
 					"repo": "lcd",
 					"user": "mrbeam",
@@ -152,7 +152,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 					"restart": "environment"
 				},
 				"netconnectd": {
-					"update_folder": "/home/pi/netconnectd",
+					"checkout_folder": "/home/pi/netconnectd",
 					"type": "github_commit",
 					"repo": "netconnectd",
 					"user": "mrbeam",
