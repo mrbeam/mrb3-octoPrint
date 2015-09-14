@@ -130,7 +130,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 					"type": "github_commit",
 					"repo": "OctoPrint",
 					"user": "mrbeam",
-					"branch": "stable-1.2.2",
+					"branch": "grblautoupdate",
 					"update_script": "{{python}} \"{update_script}\" --python=\"{{python}}\" \"{{folder}}\" {{target}}".format(update_script=os.path.join(self._basefolder, "scripts", "update-octoprint.py")),
 					"restart": "octoprint"
 				},
