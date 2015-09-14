@@ -13,6 +13,9 @@ $(function() {
 
         self.currentlyBeingUpdated = [];
 
+        self.octoprintUnconfigured = ko.observable();
+        self.octoprintUnreleased = ko.observable();
+
         self.config_cacheTtl = ko.observable();
         self.config_checkoutFolder = ko.observable();
         self.config_checkType = ko.observable();
