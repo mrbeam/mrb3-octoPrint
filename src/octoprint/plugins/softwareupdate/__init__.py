@@ -142,7 +142,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 					"user": "mrbeam",
 					"branch": "stable-1.2.2",
 					"update_script": "{{python}} \"{update_script}\" \"{{folder}}\" {{target}}".format(update_script=os.path.join(self._basefolder, "scripts", "git-pull.py")),
-					"restart": None
+					"restart": "octoprint"
 					"current": "Unknown"
 				},
 				"lcd": {
