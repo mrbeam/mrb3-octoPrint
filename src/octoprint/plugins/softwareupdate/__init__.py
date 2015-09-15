@@ -130,7 +130,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 					"type": "github_commit",
 					"repo": "OctoPrint",
 					"user": "mrbeam",
-					"branch": "grblautoupdate",
+					"branch": "stable-1.2.2",
 					"update_script": "{{python}} \"{update_script}\" --python=\"{{python}}\" \"{{folder}}\" {{target}}".format(update_script=os.path.join(self._basefolder, "scripts", "update-octoprint.py")),
 					"restart": "octoprint",
 					"current": "Unknown"
@@ -170,7 +170,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 			"octoprint_restart_command": "sudo service octoprint restart",
 			"environment_restart_command": "sudo shutdown -r now",
 			"pip_command": None,
-			"cache_ttl": 60,
+			"cache_ttl": 12 * 60,
 		}
 
 	def on_settings_load(self):
