@@ -133,7 +133,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 					"branch": "grblautoupdate",
 					"update_script": "{{python}} \"{update_script}\" --python=\"{{python}}\" \"{{folder}}\" {{target}}".format(update_script=os.path.join(self._basefolder, "scripts", "update-octoprint.py")),
 					"restart": "octoprint",
-					"current": None
+					"current": "Unknown"
 				},
 				"svgtogcode": {
 					"checkout_folder": "/home/pi/mrbeam-inkscape-ext",
@@ -142,7 +142,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 					"user": "mrbeam",
 					"branch": "stable-1.2.2",
 					"update_script": "{{python}} \"{update_script}\" \"{{folder}}\" {{target}}".format(update_script=os.path.join(self._basefolder, "scripts", "git-pull.py")),
-					"current": None
+					"current": "Unknown"
 				},
 				"lcd": {
 					"checkout_folder": "/home/pi/lcd",
@@ -152,7 +152,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 					"branch": "stable-1.2.2",
 					"update_script": "{{python}} \"{update_script}\" \"{{folder}}\" {{target}}".format(update_script=os.path.join(self._basefolder, "scripts", "git-pull.py")),
 					"restart": "environment",
-					"current": None
+					"current": "Unknown"
 				},
 				"netconnectd": {
 					"checkout_folder": "/home/pi/netconnectd",
@@ -162,7 +162,7 @@ class SoftwareUpdatePlugin(octoprint.plugin.BlueprintPlugin,
 					"branch": "stable-1.2.2",
 					"update_script": "{{python}} \"{update_script}\" \"{{folder}}\" {{target}}".format(update_script=os.path.join(self._basefolder, "scripts", "git-pull.py")),
 					"restart": "environment",
-					"current": None
+					"current": "Unknown"
 				},
 			},
 
