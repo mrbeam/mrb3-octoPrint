@@ -317,7 +317,7 @@ $(function(){
 			var endIdx = transform.local.indexOf(',', startIdx);
 			var rot = parseFloat(transform.local.substring(startIdx, endIdx)) || 0;
 //			if(!rot) rot = 0; // avoid NaN
-			var scale = Math.pow(transform.localMatrix.a,2) + Math.pow(transform.localMatrix.b,2) * 100
+			var scale = Math.pow(transform.localMatrix.a,2) + Math.pow(transform.localMatrix.b,2) * 100;
 			var id = svg.attr('id');
 			var label_id = id.substr(0, id.indexOf('-'));
 			$('#'+label_id+' .translation').text(tx.toFixed(1) + ',' + ty.toFixed(1));
