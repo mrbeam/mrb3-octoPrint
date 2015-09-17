@@ -2,7 +2,7 @@ $(function(){
 
 	function WorkingAreaViewModel(params) {
 		var self = this;
-		
+
 		self.parser = new gcParser();
 
 		self.loginState = params[0];
@@ -31,11 +31,11 @@ $(function(){
 		self.workingAreaDim = ko.computed(function(){
 			var maxH = self.availableHeight();
 			var maxW = self.availableWidth();
-			var hwRatio = self.hwRatio(); 
+			var hwRatio = self.hwRatio();
 			if( hwRatio > 0, maxH > 0, maxW > 0){
 				var w = 0;
 				var h = 0;
-				if( maxH/maxW > hwRatio) { 
+				if( maxH/maxW > hwRatio) {
 					w = maxW;
 					h = maxW * hwRatio;
 				} else {
@@ -71,11 +71,11 @@ $(function(){
 			}
 			return m;
 		});
-		
+
 		// matrix scales svg units to display_pixels
 		self.scaleMatrixMMtoDisplay = ko.computed(function(){
 			var m = new Snap.Matrix();
-			var factor = self.svgDPI()/25.4; // scale mm to 90dpi pixels 
+			var factor = self.svgDPI()/25.4; // scale mm to 90dpi pixels
 			var yShift = self.workingAreaHeightMM(); // 0,0 origin of the gcode is bottom left. (top left in the svg)
 			if(!isNaN(factor)){
 				m.scale(factor, -factor).translate(0,-yShift);
@@ -94,7 +94,7 @@ $(function(){
 			snap.selectAll('#placedGcodes>*').remove();
 			self.placedDesigns([]);
 		};
-		
+
 
 		self.trigger_resize = function(){
 			if(typeof(snap) !== 'undefined') self.abortFreeTransforms();
@@ -120,7 +120,7 @@ $(function(){
 
 
 		self.crosshairX = function(){
-			var pos = self.state.currentPos(); 
+			var pos = self.state.currentPos();
 			return pos !== undefined ? (self.mm2px(pos.x)  - 15) : -100; // subtract width/2;
 
 		};
@@ -141,19 +141,19 @@ $(function(){
 		self.mm2svgUnits = function(val){
 			return val * self.svgDPI()/25.4;
 		};
-		
+
 		self.isPlaced = function(file){
 			if(file === undefined) return false;
 
 			var filePlaced = ko.utils.arrayFirst(this.placedDesigns(), function(d) {
-				return d.name === file.name; 
+				return d.name === file.name;
 			});
 			return filePlaced;
 		};
 
 		self.placeGcode = function(file){
 			var previewId = self.getEntryId(file);
-			
+
 			if(snap.select('#'+previewId)){
 				console.error("working_area placeGcode: file already placed.");
 				return;
@@ -163,7 +163,7 @@ $(function(){
 				snap.select('#placedGcodes').append(g);
 				self.placedDesigns.push(file);
 			}
-			
+
 			self.loadGcode(file, function(gcode){
 				var pathCallback = function(path){
 					var points = [];
@@ -175,7 +175,7 @@ $(function(){
 					}
 					if(points.length > 0)
 					self.draw_gcode(points, intensity, '#'+previewId);
-					
+
 				};
 				var imgCallback = function(x,y,w,h, url){
 					self.draw_gcode_img_placeholder(x,y,w,h,url, '#'+previewId)
@@ -183,7 +183,7 @@ $(function(){
 				self.parser.parse(gcode, /(m0?3)|(m0?5)/i, pathCallback, imgCallback);
 			});
 		};
-		
+
 		self.loadGcode = function(file, callback){
 			var url = file.refs.download;
 			var date = file.date;
@@ -202,7 +202,7 @@ $(function(){
 					console.error("working_area.js placeGcode: unable to load ", url);
                 }
             });
-			
+
 		};
 
 		self.removeGcode = function(file){
@@ -219,11 +219,11 @@ $(function(){
 				var doc_width = null;
 				var doc_height = null;
 				var doc_viewbox = null;
-				
+
 				// iterate svg tag attributes
-				for(var i = 0; i < root_attrs.length; i++){ 
+				for(var i = 0; i < root_attrs.length; i++){
 					var attr = root_attrs[i];
-					
+
 					// get dimensions
 					if(attr.name === "width") doc_width = attr.value;
 					if(attr.name === "height") doc_height = attr.value;
@@ -234,33 +234,33 @@ $(function(){
 						newSvgAttrs[attr.name] = attr.value;
 					}
 				}
-				
+
 				// scale matrix
 				var mat = self.getDocumentViewBoxMatrix(doc_width, doc_height, doc_viewbox);
 				var scaleMatrixStr = new Snap.Matrix(mat[0][0],mat[0][1],mat[1][0],mat[1][1],mat[0][2],mat[1][2]).toTransformString();
 				newSvgAttrs['transform'] = scaleMatrixStr;
-				
+
 				var newSvg = snap.group(f.selectAll("svg>*"));
 				var hasText = newSvg.selectAll('text,tspan');
 				if(hasText !== null && hasText.length > 0){
 					self.svg_contains_text_warning(newSvg);
 				}
-				
+
 				newSvg.bake(); // remove transforms
 				newSvg.selectAll('path').attr({strokeWidth: '0.5'});
 				newSvg.attr(newSvgAttrs);
-				var id = self.getEntryId(file); 
+				var id = self.getEntryId(file);
 				var previewId = self.generateUniqueId(id); // appends -# if multiple times the same design is placed.
 				newSvg.attr({id: previewId});
 				snap.select("#userContent").append(newSvg);
 				newSvg.transformable();
 				newSvg.ftRegisterCallback(self.svgTransformUpdate);
-				
+
 				file.id = id; // list entry id
 				file.previewId = previewId;
 				file.url = url;
 				file.misfit = "";
-				
+
 				self.placedDesigns.push(file);
 			};
 			self.loadSVG(url, callback);
@@ -269,16 +269,16 @@ $(function(){
 		self.loadSVG = function(url, callback){
 			Snap.load(url, callback);
 		};
-		
+
 		self.removeSVG = function(file){
 			self.abortFreeTransforms();
 			snap.selectAll('#'+file.previewId).remove();
-			self.placedDesigns.remove(file); 
+			self.placedDesigns.remove(file);
 			// TODO debug why remove always clears all items of this type.
-//			self.placedDesigns.remove(function(item){ 
+//			self.placedDesigns.remove(function(item){
 //				console.log("item", item.previewId );
 //				//return false;
-//				if(item.previewId === file.previewId){ 
+//				if(item.previewId === file.previewId){
 //					console.log("match", item.previewId );
 //					return true;
 //				} else return false;
@@ -292,18 +292,18 @@ $(function(){
 			fitMatrix.translate(svg.data('fitMatrix').dx, svg.data('fitMatrix').dy);
 			fitMatrix.add(svg.transform().localMatrix);
 			svg.transform(fitMatrix);
-			svg.data('fitMatrix', null); 
+			svg.data('fitMatrix', null);
 			$('#'+file.id).removeClass('misfit');
 			self.svgTransformUpdate(svg);
 		};
-		
+
 		self.toggleTransformHandles = function(file){
 			var el = snap.select('#'+file.previewId);
 			if(el){
 				el.ftToggleHandles();
 			}
 		};
-		
+
 		self.svgTransformUpdate = function(svg){
 			var globalScale = self.scaleMatrix().a;
 			var transform = svg.transform();
@@ -317,20 +317,20 @@ $(function(){
 			var endIdx = transform.local.indexOf(',', startIdx);
 			var rot = parseFloat(transform.local.substring(startIdx, endIdx)) || 0;
 //			if(!rot) rot = 0; // avoid NaN
-			var scale = transform.localMatrix.a * 100;
+			var scale = Math.pow(transform.localMatrix.a,2) + Math.pow(transform.localMatrix.b,2) * 100
 			var id = svg.attr('id');
 			var label_id = id.substr(0, id.indexOf('-'));
 			$('#'+label_id+' .translation').text(tx.toFixed(1) + ',' + ty.toFixed(1));
 			$('#'+label_id+' .scale').text(scale.toFixed(1) + '%');
 			$('#'+label_id+' .rotation').text(rot.toFixed(1) + '°');
 		};
-		
 
-		
+
+
 		self.outsideWorkingArea = function(svg){
 			var waBB = snap.select('#coordGrid').getBBox();
 			var svgBB = svg.getBBox();
-			
+
 			var tooWide = svgBB.w > waBB.w;
 			var tooHigh = svgBB.h > waBB.h;
 			var scale = 1;
@@ -343,28 +343,28 @@ $(function(){
 			var outside = false;
 			if(svgBB.x < waBB.x){
 				dx = -svgBB.x + 0.01;
-				outside = true; 
+				outside = true;
 			} else if(svgBB.x2 > waBB.x2){
 				dx = -svgBB.x2 + waBB.x2 - 0.01;
-				outside = true; 
+				outside = true;
 			}
 			if(svgBB.y < waBB.y){
 				dy = -svgBB.y + 0.01;
-				outside = true; 
+				outside = true;
 			} else 	if(svgBB.y2 > waBB.y2){
 				dy = -svgBB.y2 + waBB.y2 - 0.01;
-				outside = true; 
+				outside = true;
 			}
-			
-			return { 
-				oversized: tooWide || tooHigh, 
-				outside: outside, 
-				scale: scale, 
-				dx: dx, 
+
+			return {
+				oversized: tooWide || tooHigh,
+				outside: outside,
+				scale: scale,
+				dx: dx,
 				dy: dy
 			};
 		};
-		
+
 		self.svg_contains_text_warning = function(svg){
             var error = "<p>" + gettext("The svg file contains text elements.<br/>Please convert them to paths.<br/>Otherwise they will be ignored.") + "</p>";
             //error += pnotifyAdditionalInfo("<pre>" + data.jqXHR.responseText + "</pre>");
@@ -380,7 +380,7 @@ $(function(){
 		self.svg_misfitting_warning = function(svg, misfitting){
 			var outside = gettext("<br/>It has been moved to (0,0). ");
 			var oversized = gettext("<br/>It has resized to %d %. ", misfitting.scale);
-            var error = "<p>" + gettext("The design was originally not fitting into the working area.") 
+            var error = "<p>" + gettext("The design was originally not fitting into the working area.")
 					+ outside + oversized + gettext("<br/>Please check the result.") + "</p>";
             new PNotify({
                 title: "Design moved",
@@ -388,9 +388,9 @@ $(function(){
                 type: "warn",
                 hide: false
             });
-			
+
 		};
-		
+
 		self.placeIMG = function (file) {
 			var url = self._getIMGserveUrl(file);
 			var img = new Image();
@@ -420,7 +420,7 @@ $(function(){
 			};
 			img.src = url;
 		};
-		
+
 		self.removeIMG = function(file){
 			self.removeSVG(file);
 		};
@@ -434,7 +434,7 @@ $(function(){
 			var destHeightPT = self.mm2svgUnits(destHeightMM);
 			return [destWidthPT, destHeightPT];
 		};
-		
+
 		self.getDocumentDimensionsInPt = function(doc_width, doc_height, doc_viewbox){
 			if(doc_width === null){
 				// assume defaults if not set
@@ -466,13 +466,13 @@ $(function(){
 					doc_height = 1052.3622047; // 297mm @ 90dpi
 				}
 			}
-			
+
 			var widthPt = self.unittouu(doc_width);
 			var heightPt = self.unittouu(doc_height);
-			
+
 			return [widthPt, heightPt];
 		};
-		
+
 		self.getDocumentViewBoxMatrix = function(widthStr, heightStr, vbox){
 			var dim = self.getDocumentDimensionsInPt(widthStr, heightStr, vbox);
 			if(vbox !== null ){
@@ -495,25 +495,25 @@ $(function(){
 			}
 			return [[1,0,0],[0,1,0], [0,0,1]];
 		};
-		
+
 		//a dictionary of unit to user unit conversion factors
 		self.uuconv = {
 			'in':90.0,
-			'pt':1.25, 
-			'px':1, 
-			'mm':3.5433070866, 
-			'cm':35.433070866, 
+			'pt':1.25,
+			'px':1,
+			'mm':3.5433070866,
+			'cm':35.433070866,
 			'm':3543.3070866,
-			'km':3543307.0866, 
-			'pc':15.0, 
-			'yd':3240 , 
+			'km':3543307.0866,
+			'pc':15.0,
+			'yd':3240 ,
 			'ft':1080
 		};
-					
+
 		// Returns userunits given a string representation of units in another system'''
 		self.unittouu = function(string){
 			var unit_re = new RegExp('(' + Object.keys(self.uuconv).join('|') +')$');
-			
+
 			var unit_factor = 1;
 			var u_match = string.match(unit_re);
 			if(u_match !== null){
@@ -528,19 +528,19 @@ $(function(){
 				return p * unit_factor;
 			return 0;
 		};
-				
+
 		self._getSVGserveUrl = function(file){
 			if (file && file["refs"] && file["refs"]["download"]) {
 				var url = file.refs.download.replace("downloads", "serve") +'?'+ Date.now(); // be sure to avoid caching.
 				return url;
 			}
-			
+
 		};
 
 		self._getIMGserveUrl = function(file){
 			return self._getSVGserveUrl(file);
 		};
-		
+
 		self.templateFor = function(data) {
 			if(data.type === "model" || data.type === "machinecode"){
 				var extension = data.name.split('.').pop().toLowerCase();
@@ -555,7 +555,7 @@ $(function(){
 				return "wa_template_dummy";
 			}
 		};
-		
+
 		self.getEntryId = function(data) {
 			return "wa_" + md5(data["origin"] + ":" + data["name"]);
 		};
@@ -623,11 +623,11 @@ $(function(){
 
 		self.getCompositionSVG = function(){
 			self.abortFreeTransforms();
-			var tmpsvg = snap.select("#userContent").innerSVG(); // get working area 
+			var tmpsvg = snap.select("#userContent").innerSVG(); // get working area
 			if(tmpsvg !== ''){
-				var dpiFactor = self.svgDPI()/25.4; // convert mm to pix 90dpi for inkscape, 72 for illustrator 
-				var w = dpiFactor * self.workingAreaWidthMM(); 
-				var h = dpiFactor * self.workingAreaHeightMM(); 
+				var dpiFactor = self.svgDPI()/25.4; // convert mm to pix 90dpi for inkscape, 72 for illustrator
+				var w = dpiFactor * self.workingAreaWidthMM();
+				var h = dpiFactor * self.workingAreaHeightMM();
 
 				var svg = '<svg height="'+ h +'" version="1.1" width="'+ w +'" xmlns="http://www.w3.org/2000/svg"><defs/>'+ tmpsvg +'</svg>';
 				return svg;
@@ -635,7 +635,7 @@ $(function(){
 				return;
 			}
 		};
-		
+
 		self.getPlacedSvgs = function() {
 			var svgFiles = [];
 			ko.utils.arrayForEach(self.placedDesigns(), function(design) {
@@ -648,11 +648,11 @@ $(function(){
 			});
 			return svgFiles;
 		};
-		
+
 		self.getPlacedImages = function(){
 			return snap.selectAll("#userContent image");
 		};
-		
+
 		self.getPlacedGcodes = ko.computed(function() {
 			var gcodeFiles = [];
 			ko.utils.arrayForEach(self.placedDesigns(), function(design) {
@@ -660,8 +660,8 @@ $(function(){
 			});
 			return gcodeFiles;
 		}, self);
-	
-		
+
+
 		self.draw_gcode = function(points, intensity, target){
 			var stroke_color = intensity === 0 ? '#BBBBBB' : '#FF0000';
 			var d = 'M'+points.join(' ');
@@ -672,7 +672,7 @@ $(function(){
 			});
 			snap.select(target).append(p);
 		};
-		
+
 		self.draw_gcode_img_placeholder = function(x,y,w,h,url, target){
 			var i = snap.rect(x,y,w,h).attr({
 				stroke: '#AA0000',
@@ -684,11 +684,11 @@ $(function(){
 					transform: 'matrix(1,0,0,-1,0,'+ String(h) +')',
 					filter: 'url(#gcimage_preview)'
 				});
-				
-			} 
+
+			}
 			snap.select(target).append(p);
 		};
-		
+
 		self.clear_gcode = function(){
 			snap.select('#gCodePreview').clear();
 		};
@@ -696,7 +696,7 @@ $(function(){
 		self.onStartup = function(){
 			self.state.workingArea = self;
 			self.files.workingArea = self;
-			
+
 			// check this on tab change as before the bounding boxes are sized 0.
 			$('#wa_tab_btn').on('shown.bs.tab', function (e) {
 				self.trigger_resize();
@@ -708,7 +708,7 @@ $(function(){
 			self.trigger_resize(); // initialize
 			self.init();
 		};
-		
+
 		self.check_sizes_and_placements = function(){
 			ko.utils.arrayForEach(self.placedDesigns(), function(design) {
 				if(design.type === 'model'){
@@ -725,7 +725,7 @@ $(function(){
 				}
 			});
 		};
-		
+
 		self.onBeforeBinding = function(){
 			self.files.workingArea = self;
 		};
@@ -733,8 +733,8 @@ $(function(){
 
 
     // view model class, parameters for constructor, container to bind to
-    ADDITIONAL_VIEWMODELS.push([WorkingAreaViewModel, 
-		["loginStateViewModel", "settingsViewModel", "printerStateViewModel",  "gcodeFilesViewModel"], 
+    ADDITIONAL_VIEWMODELS.push([WorkingAreaViewModel,
+		["loginStateViewModel", "settingsViewModel", "printerStateViewModel",  "gcodeFilesViewModel"],
 		[document.getElementById("area_preview"), document.getElementById("working_area_files")]]);
 
 });
