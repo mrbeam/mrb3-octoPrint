@@ -629,6 +629,10 @@ $(function(){
 				var w = dpiFactor * self.workingAreaWidthMM();
 				var h = dpiFactor * self.workingAreaHeightMM();
 
+				// TODO: look for better solution to solve this Firefox bug problem
+				tmpsvg = tmpsvg.replace("(\\\"","(");
+				tmpsvg = tmpsvg.replace("\\\")",")");
+
 				var svg = '<svg height="'+ h +'" version="1.1" width="'+ w +'" xmlns="http://www.w3.org/2000/svg"><defs/>'+ tmpsvg +'</svg>';
 				return svg;
 			} else {
