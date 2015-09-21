@@ -257,6 +257,15 @@ class MachineCom(object):
 		if self._state == newState:
 			return
 
+		if newState == self.STATE_PRINTING:
+			self._temperature_timer.cancel()
+			self._temperature_timer = RepeatedTimer(1, self._poll_temperature, run_first=True)
+			self._temperature_timer.start()
+		else:
+			self._temperature_timer.cancel()
+			self._temperature_timer = RepeatedTimer(0.2, self._poll_temperature, run_first=True)
+			self._temperature_timer.start()
+
 		if newState == self.STATE_CLOSED or newState == self.STATE_CLOSED_WITH_ERROR:
 			if settings().get(["feature", "sdSupport"]):
 				self._sdFileList = False
@@ -1367,7 +1376,7 @@ class MachineCom(object):
 	def _onConnected(self, nextState):
 		self._serial.timeout = settings().getFloat(["serial", "timeout", "communication"])
 		#self._temperature_timer = RepeatedTimer(lambda: get_interval("temperature"), self._poll_temperature, run_first=True)
-		self._temperature_timer = RepeatedTimer(0.2, self._poll_temperature, run_first=True)
+		self._temperature_timer = RepeatedTimer(0.5, self._poll_temperature, run_first=True)
 		self._temperature_timer.start()
 
 		if(nextState == None):
@@ -1978,35 +1987,35 @@ class MachineCom(object):
 		# line example:
 		# <Idle,MPos:-434.000,-596.000,0.000,WPos:0.000,0.000,0.000,S:0,laser off:0>
 		try:
-			idx_mx_begin = line.index('MPos:') + 5
-			idx_mx_end = line.index('.', idx_mx_begin) + 2
-			idx_my_begin = line.index(',', idx_mx_end) + 1
-			idx_my_end = line.index('.', idx_my_begin) + 2
-			idx_mz_begin = line.index(',', idx_my_end) + 1
-			idx_mz_end = line.index('.', idx_mz_begin) + 2
+			#idx_mx_begin = line.index('MPos:') + 5
+			#idx_mx_end = line.index('.', idx_mx_begin) + 2
+			#idx_my_begin = line.index(',', idx_mx_end) + 1
+			#idx_my_end = line.index('.', idx_my_begin) + 2
+			#idx_mz_begin = line.index(',', idx_my_end) + 1
+			#idx_mz_end = line.index('.', idx_mz_begin) + 2
 
 			idx_wx_begin = line.index('WPos:') + 5
 			idx_wx_end = line.index('.', idx_wx_begin) + 2
 			idx_wy_begin = line.index(',', idx_wx_end) + 1
 			idx_wy_end = line.index('.', idx_wy_begin) + 2
-			idx_wz_begin = line.index(',', idx_wy_end) + 1
-			idx_wz_end = line.index('.', idx_wz_begin) + 2
+			#idx_wz_begin = line.index(',', idx_wy_end) + 1
+			#idx_wz_end = line.index('.', idx_wz_begin) + 2
 
-			idx_intensity_begin = line.index('S:', idx_wz_end) + 2
-			idx_intensity_end = line.index(',', idx_intensity_begin)
+			#idx_intensity_begin = line.index('S:', idx_wz_end) + 2
+			#idx_intensity_end = line.index(',', idx_intensity_begin)
 
-			idx_laserstate_begin = line.index('laser ', idx_intensity_end) + 6
-			idx_laserstate_end = line.index(':', idx_laserstate_begin)
+			#idx_laserstate_begin = line.index('laser ', idx_intensity_end) + 6
+			#idx_laserstate_end = line.index(':', idx_laserstate_begin)
 
 			payload = {
-				"mx": line[idx_mx_begin:idx_mx_end],
-				 "my": line[idx_my_begin:idx_my_end],
-				"mz": line[idx_mz_begin:idx_mz_end],
+				#"mx": line[idx_mx_begin:idx_mx_end],
+				#"my": line[idx_my_begin:idx_my_end],
+				#"mz": line[idx_mz_begin:idx_mz_end],
 				"wx": line[idx_wx_begin:idx_wx_end],
-				 "wy": line[idx_wy_begin:idx_wy_end],
-				 "wz": line[idx_wz_begin:idx_wz_end],
-				"laser": line[idx_laserstate_begin:idx_laserstate_end],
-				"intensity": line[idx_intensity_begin:idx_intensity_end]
+				"wy": line[idx_wy_begin:idx_wy_end],
+				#"wz": line[idx_wz_begin:idx_wz_end],
+				#"laser": line[idx_laserstate_begin:idx_laserstate_end],
+				#"intensity": line[idx_intensity_begin:idx_intensity_end]
 			}
 			eventManager().fire(Events.RT_STATE, payload)
 		except ValueError:
