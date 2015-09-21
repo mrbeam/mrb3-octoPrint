@@ -261,10 +261,13 @@ class MachineCom(object):
 			self._temperature_timer.cancel()
 			self._temperature_timer = RepeatedTimer(1, self._poll_temperature, run_first=True)
 			self._temperature_timer.start()
-		else:
+		elif newState == self.STATE_OPERATIONAL:
 			self._temperature_timer.cancel()
 			self._temperature_timer = RepeatedTimer(0.2, self._poll_temperature, run_first=True)
 			self._temperature_timer.start()
+		else:
+			if self._temperature_timer != None:
+				self._temperature_timer.cancel()
 
 		if newState == self.STATE_CLOSED or newState == self.STATE_CLOSED_WITH_ERROR:
 			if settings().get(["feature", "sdSupport"]):
