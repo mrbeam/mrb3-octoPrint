@@ -2022,7 +2022,7 @@ class MachineCom(object):
 				#"laser": line[idx_laserstate_begin:idx_laserstate_end],
 				#"intensity": line[idx_intensity_begin:idx_intensity_end]
 			}
-			self._callback.on_comm_pos_update(int([line[idx_mx_begin:idx_mx_end]), int(line[idx_my_begin:idx_my_end]), 0], [int(line[idx_wx_begin:idx_wx_end]), int(line[idx_wy_begin:idx_wy_end]), 0])
+			self._callback.on_comm_pos_update([int(line[idx_mx_begin:idx_mx_end]), int(line[idx_my_begin:idx_my_end]), 0], [int(line[idx_wx_begin:idx_wx_end]), int(line[idx_wy_begin:idx_wy_end]), 0])
 			#eventManager().fire(Events.RT_STATE, payload)
 		except ValueError:
 			pass
