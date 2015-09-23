@@ -885,6 +885,8 @@ class MachineCom(object):
 		pathToGrblHex = cwd + "/../grbl/grbl.hex"
 		import subprocess
 
+		# TODO check if avrdude is installed. 
+		# TODO log in logfile as well, not only to the serial monitor (use self._logger.info()... )
 		params = ["avrdude", "-patmega328p", "-carduino", "-b" + str(self._baudrate), "-P" + str(self._port), "-D", "-Uflash:w:" + pathToGrblHex]
 		returnCode = subprocess.call(params)
 

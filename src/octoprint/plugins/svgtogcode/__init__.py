@@ -344,7 +344,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 		if not machinecode_path:
 			path, _ = os.path.splitext(model_path)
 			machinecode_path = path + ".gco"
-
+		
 		self._svgtogcode_logger.info("### Slicing %s to %s using profile stored at %s" % (model_path, machinecode_path, profile_path))
 
 		## direct call
