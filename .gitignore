@@ -25,3 +25,4 @@ OctoPrint.egg-info
 /nbproject/
 .directory
 .project
+out/

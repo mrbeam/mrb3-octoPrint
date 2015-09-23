@@ -129,7 +129,7 @@ $(function() {
             if (data == null) {
                 self.currentPos({x: 0, y: 0});
             } else {
-                self.currentPos({x: data.workPosition[0], y: data.workPosition[1]});
+                self.currentPos({x: data[0], y: data[1]});
             }
         };
         self._processStateData = function(data) {

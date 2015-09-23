@@ -317,8 +317,8 @@ $(function(){
 			var endIdx = transform.local.indexOf(',', startIdx);
 			var rot = parseFloat(transform.local.substring(startIdx, endIdx)) || 0;
 //			if(!rot) rot = 0; // avoid NaN
-			var horizontal = self.px2mm(bbox.x2 - bbox.x);
-			var vertical = self.px2mm(bbox.y2 - bbox.y);
+			var horizontal = self.px2mm((bbox.x2 - bbox.x) * globalScale);
+			var vertical = self.px2mm((bbox.y2 - bbox.y) * globalScale);
 			var id = svg.attr('id');
 			var label_id = id.substr(0, id.indexOf('-'));
 			$('#'+label_id+' .translation').text(tx.toFixed(1) + ',' + ty.toFixed(1));
