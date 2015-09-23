@@ -885,7 +885,7 @@ class MachineCom(object):
 		pathToGrblHex = cwd + "/../grbl/grbl.hex"
 		import subprocess
 
-		# TODO check if avrdude is installed. 
+		# TODO check if avrdude is installed.
 		# TODO log in logfile as well, not only to the serial monitor (use self._logger.info()... )
 		params = ["avrdude", "-patmega328p", "-carduino", "-b" + str(self._baudrate), "-P" + str(self._port), "-D", "-Uflash:w:" + pathToGrblHex]
 		returnCode = subprocess.call(params)
@@ -2022,7 +2022,7 @@ class MachineCom(object):
 				#"laser": line[idx_laserstate_begin:idx_laserstate_end],
 				#"intensity": line[idx_intensity_begin:idx_intensity_end]
 			}
-			self._callback.on_comm_pos_update([mx, my, 0], [wx, wy, 0])
+			self._callback.on_comm_pos_update(int([line[idx_mx_begin:idx_mx_end]), int(line[idx_my_begin:idx_my_end]), 0], [int(line[idx_wx_begin:idx_wx_end]), int(line[idx_wy_begin:idx_wy_end]), 0])
 			#eventManager().fire(Events.RT_STATE, payload)
 		except ValueError:
 			pass
