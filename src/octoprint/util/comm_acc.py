@@ -2022,10 +2022,10 @@ class MachineCom(object):
 				#"laser": line[idx_laserstate_begin:idx_laserstate_end],
 				#"intensity": line[idx_intensity_begin:idx_intensity_end]
 			#}
-			mx = int(float(line[idx_mx_begin:idx_mx_end]))
-			my = int(float(line[idx_my_begin:idx_my_end]))
-			wx = int(float(line[idx_wx_begin:idx_wx_end]))
-			wy = int(float(line[idx_wy_begin:idx_wy_end]))
+			mx = float(line[idx_mx_begin:idx_mx_end])
+			my = float(line[idx_my_begin:idx_my_end])
+			wx = float(line[idx_wx_begin:idx_wx_end])
+			wy = float(line[idx_wy_begin:idx_wy_end])
 			self._callback.on_comm_pos_update([mx, my, 0], [wx, wy, 0])
 			#eventManager().fire(Events.RT_STATE, payload)
 		except ValueError:
