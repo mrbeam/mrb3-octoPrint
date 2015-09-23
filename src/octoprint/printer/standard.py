@@ -867,13 +867,13 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 
 	def _add_position_data(self, MPos, WPos):
 		if MPos is None or WPos is None:
-			MPosString = WPosString = "-"
-		else:
-			MPosString = "X: %.4f Y: %.4f Z: %.4f" % ( MPos[0], MPos[1], MPos[2] )
-			WPosString = "X: %.4f Y: %.4f Z: %.4f" % ( WPos[0], WPos[1], WPos[2] )
+			MPos = WPos = [0, 0, 0]
+		#else:
+			#MPosString = "X: %.4f Y: %.4f Z: %.4f" % ( MPos[0], MPos[1], MPos[2] )
+			#WPosString = "X: %.4f Y: %.4f Z: %.4f" % ( WPos[0], WPos[1], WPos[2] )
 
-		self._stateMonitor.setWorkPosition(WPosString)
-		self._stateMonitor.setMachinePosition(MPosString)
+		self._stateMonitor.setWorkPosition(WPos)
+		self._stateMonitor.setMachinePosition(MPos)
 
 
 class StateMonitor(object):
