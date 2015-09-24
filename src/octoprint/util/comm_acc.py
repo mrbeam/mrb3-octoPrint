@@ -258,12 +258,13 @@ class MachineCom(object):
 			return
 
 		if newState == self.STATE_PRINTING:
-			self._temperature_timer.cancel()
-			self._temperature_timer = RepeatedTimer(1, self._poll_temperature, run_first=True)
-			self._temperature_timer.start()
+			if self._temperature_timer is not None:
+				self._temperature_timer.cancel()
+				self._temperature_timer = None
 		elif newState == self.STATE_OPERATIONAL:
-			self._temperature_timer.cancel()
-			self._temperature_timer = RepeatedTimer(0.2, self._poll_temperature, run_first=True)
+			if self._temperature_timer is not None:
+				self._temperature_timer.cancel()
+			self._temperature_timer = RepeatedTimer(0.5, self._poll_temperature, run_first=True)
 			self._temperature_timer.start()
 		else:
 			if self._temperature_timer is not None:
@@ -427,6 +428,7 @@ class MachineCom(object):
 		if self._temperature_timer is not None:
 			try:
 				self._temperature_timer.cancel()
+				self._temperature_timer = None
 			except:
 				pass
 
@@ -474,6 +476,21 @@ class MachineCom(object):
 			cmd = process_gcode_line(cmd)
 			if not cmd:
 				return
+
+		if cmd[0] == "/":
+			if "toggleStatusReport" in cmd:
+				if self._temperature_timer is None:
+					self._temperature_timer = RepeatedTimer(0.5, self._poll_temperature, run_first=True)
+					self._temperature_timer.start()
+				else:
+					self._temperature_timer.cancel()
+					self._temperature_timer = None
+			else:
+				self._log("Command not Found!")
+				self._log("available commands are:")
+				self._log("   /toggleStatusReport")
+			return
+
 		eepromCmd = re.search("^\$[0-9]+=.+$", cmd)
 		if(eepromCmd and self.isPrinting()):
 			self._log("Warning: Configuration changes during print are not allowed!")
@@ -1381,6 +1398,8 @@ class MachineCom(object):
 	def _onConnected(self, nextState):
 		self._serial.timeout = settings().getFloat(["serial", "timeout", "communication"])
 		#self._temperature_timer = RepeatedTimer(lambda: get_interval("temperature"), self._poll_temperature, run_first=True)
+		if self._temperature_timer is not None:
+			self._temperature_timer.cancel()
 		self._temperature_timer = RepeatedTimer(0.5, self._poll_temperature, run_first=True)
 		self._temperature_timer.start()
 
