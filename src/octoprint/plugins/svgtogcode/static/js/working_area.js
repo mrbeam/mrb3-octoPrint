@@ -414,7 +414,7 @@ $(function(){
 				newImg.transformable();
 				newImg.ftDisableRotate();
 				newImg.ftRegisterCallback(self.svgTransformUpdate);
-				file.id = previewId;
+				file.id = id;
 				file.previewId = previewId;
 				file.url = url;
 				file.subtype = "bitmap";
