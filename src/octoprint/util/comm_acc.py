@@ -486,10 +486,23 @@ class MachineCom(object):
 				else:
 					self._temperature_timer.cancel()
 					self._temperature_timer = None
+			if "setstatusfreqency" in specialcmd:
+				data = specialcmd.split(' ')
+				try:
+					frequency = float(data[1])
+				except:
+					self._log("No frequency setting found! Using 1 sec.")
+					frequency = 1
+				if self._temperature_timer is not None:
+					self._temperature_timer.cancel()
+
+				self._temperature_timer = RepeatedTimer(frequency, self._poll_temperature, run_first=True)
+				self._temperature_timer.start()
 			else:
 				self._log("Command not Found!")
 				self._log("available commands are:")
 				self._log("   /togglestatusreport")
+				self._log("   /setstatusfreqency <Inteval Sec>")
 			return
 
 		eepromCmd = re.search("^\$[0-9]+=.+$", cmd)
