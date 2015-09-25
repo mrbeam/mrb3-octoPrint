@@ -478,7 +478,8 @@ class MachineCom(object):
 				return
 
 		if cmd[0] == "/":
-			if "toggleStatusReport" in cmd:
+			specialcmd = cmd[1:].lower()
+			if "togglestatusreport" in specialcmd:
 				if self._temperature_timer is None:
 					self._temperature_timer = RepeatedTimer(0.5, self._poll_temperature, run_first=True)
 					self._temperature_timer.start()
@@ -488,7 +489,7 @@ class MachineCom(object):
 			else:
 				self._log("Command not Found!")
 				self._log("available commands are:")
-				self._log("   /toggleStatusReport")
+				self._log("   /togglestatusreport")
 			return
 
 		eepromCmd = re.search("^\$[0-9]+=.+$", cmd)
