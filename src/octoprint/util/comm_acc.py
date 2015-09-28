@@ -486,11 +486,11 @@ class MachineCom(object):
 				else:
 					self._temperature_timer.cancel()
 					self._temperature_timer = None
-			if "setstatusfreqency" in specialcmd:
+			elif "setstatusfrequency" in specialcmd:
 				data = specialcmd.split(' ')
 				try:
 					frequency = float(data[1])
-				except:
+				except ValueError:
 					self._log("No frequency setting found! Using 1 sec.")
 					frequency = 1
 				if self._temperature_timer is not None:
@@ -502,7 +502,7 @@ class MachineCom(object):
 				self._log("Command not Found!")
 				self._log("available commands are:")
 				self._log("   /togglestatusreport")
-				self._log("   /setstatusfreqency <Inteval Sec>")
+				self._log("   /setstatusfrequency <Inteval Sec>")
 			return
 
 		eepromCmd = re.search("^\$[0-9]+=.+$", cmd)
