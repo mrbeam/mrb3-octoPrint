@@ -975,8 +975,8 @@ class MachineCom(object):
 				line = self._readline()
 				if line is None:
 					break
-				if line.strip() is not "":
-					self._timeout = get_new_timeout("communication")
+				# if line.strip() is not "":
+				# 	self._timeout = get_new_timeout("communication")
 
 				# ##~~ debugging output handling
 				# if line.startswith("//"):
@@ -1268,13 +1268,13 @@ class MachineCom(object):
 					elif line.lower().startswith("resend") or line.lower().startswith("rs"):
 						self._handleResendRequest(line)
 
-					elif line == "" and time.time() > self._timeout:
-						if not self._long_running_command:
-							self._log("Communication timeout during printing, forcing a line")
-							self._sendCommand("?")
-							self._clear_to_send.set()
-						else:
-							self._logger.debug("Ran into a communication timeout, but a command known to be a long runner is currently active")
+					# elif line == "" and time.time() > self._timeout:
+					# 	if not self._long_running_command:
+					# 		self._log("Communication timeout during printing, forcing a line")
+					# 		self._sendCommand("?")
+					# 		self._clear_to_send.set()
+					# 	else:
+					# 		self._logger.debug("Ran into a communication timeout, but a command known to be a long runner is currently active")
 
 				## Baudrate detection
 				elif self._state == self.STATE_DETECT_BAUDRATE:
@@ -1323,9 +1323,9 @@ class MachineCom(object):
 #						self._clear_to_send.set()
 					elif "<Idle" in line:
 						self._onConnected(self.STATE_OPERATIONAL)
-					elif time.time() > self._timeout:
-						print("TIMEOUT_CLOSE")
-						self.close()
+					# elif time.time() > self._timeout:
+					# 	print("TIMEOUT_CLOSE")
+					# 	self.close()
 
 				### Operational
 				elif self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PAUSED:
