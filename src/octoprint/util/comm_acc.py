@@ -4,10 +4,6 @@ __author__ = "Gina Häußge <osd@foosel.net> based on work by David Braam"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
 __copyright__ = "Copyright (C) 2013 David Braam - Released under terms of the AGPLv3 License"
 
-### DEBUGING START
-import yappi
-### DEBUG END
-
 import os
 import glob
 import time
@@ -975,8 +971,6 @@ class MachineCom(object):
 			self._sendCommand("?")
 			self._clear_to_send.set()
 
-		yappi.start()
-
 		while self._monitoring_active:
 			try:
 				line = self._readline()
@@ -1359,7 +1353,6 @@ class MachineCom(object):
 				self._changeState(self.STATE_ERROR)
 				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 		self._log("Connection closed, closing down monitor")
-		yappi.get_func_stats().print_all(out=open("/tmp/yappi", 'w'))
 
 	def _process_registered_message(self, line, feedback_matcher, feedback_controls, feedback_errors):
 		feedback_match = feedback_matcher.search(line)
