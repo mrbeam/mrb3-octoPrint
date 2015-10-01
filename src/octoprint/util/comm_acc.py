@@ -1359,8 +1359,7 @@ class MachineCom(object):
 				self._changeState(self.STATE_ERROR)
 				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 		self._log("Connection closed, closing down monitor")
-
-		yappi.get_func_stats().print_all()
+		yappi.get_func_stats().print_all(out=open("/tmp/yappi", 'w'))
 
 	def _process_registered_message(self, line, feedback_matcher, feedback_controls, feedback_errors):
 		feedback_match = feedback_matcher.search(line)
