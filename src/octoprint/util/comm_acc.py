@@ -1008,68 +1008,69 @@ class MachineCom(object):
 						self._changeState(self.STATE_OPERATIONAL)
 						self._onHomingDone();
 
-					# TODO check if "Alarm" is enough
-					if("Alarm lock" in line):
-						self._changeState(self.STATE_LOCKED)
+					#if 'MPos:' in line:
+					#	# check movement
+					#	if grblLastStatus == line:
+					#		grblMoving = False
+					#	else:
+					#		grblMoving = True
+					#	grblLastStatus = line
+					#	self._update_grbl_pos(line)
+
+					# TODO maybe better in _gcode_X_sent ...
+					if("Idle" in line and (self._state == self.STATE_LOCKED)):
+						self._changeState(self.STATE_OPERATIONAL)
+
+					## TODO check if "Alarm" is enough
+					#if("Alarm lock" in line):
+					#	self._changeState(self.STATE_LOCKED)
 					if("['$H'|'$X' to unlock]" in line):
 						self._changeState(self.STATE_LOCKED)
 
-					# TODO maybe better in _gcode_X_sent ...
-					if("Idle" in line and (self._state == self.STATE_LOCKED)   ):
-						self._changeState(self.STATE_OPERATIONAL)
-
-					# TODO highly experimental. needs testing.
-					if("Hold" in line and self._state == self.STATE_PRINTING):
-						self._changeState(self.STATE_PAUSED)
+					## TODO highly experimental. needs testing.
+					#if("Hold" in line and self._state == self.STATE_PRINTING):
+					#	self._changeState(self.STATE_PAUSED)
 					#if("Run" in line and self._state == self.STATE_PAUSED):
 					#	self._changeState(self.STATE_PRINTING)
 
-					if 'MPos:' in line:
-						# check movement
-						if grblLastStatus == line:
-							grblMoving = False
-						else:
-							grblMoving = True
-						grblLastStatus = line
 
-						self._update_grbl_pos(line)
 
-					if("ALARM: Hard/soft limit" in line):
-						errorMsg = "Machine Limit Hit. Please reset the machine and do a homing cycle"
-						self._log(errorMsg)
-						self._errorValue = errorMsg
-						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
-						eventManager().fire(Events.LIMITS_HIT, {"error": self.getErrorString()})
-						self._openSerial()
-						self._changeState(self.STATE_CONNECTING)
+					#if("ALARM: Hard/soft limit" in line):
+					#	errorMsg = "Machine Limit Hit. Please reset the machine and do a homing cycle"
+					#	self._log(errorMsg)
+					#	self._errorValue = errorMsg
+					#	eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+					#	eventManager().fire(Events.LIMITS_HIT, {"error": self.getErrorString()})
+					#	self._openSerial()
+					#	self._changeState(self.STATE_CONNECTING)
 
-					if("Invalid gcode" in line and self._state == self.STATE_PRINTING):
-						# TODO Pause machine instead of resetting it.
-						errorMsg = line
-						self._log(errorMsg)
-						self._errorValue = errorMsg
-#						self._changeState(self.STATE_ERROR)
-						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
-						self._openSerial()
-						self._changeState(self.STATE_CONNECTING)
+					#if("Invalid gcode" in line and self._state == self.STATE_PRINTING):
+					#	# TODO Pause machine instead of resetting it.
+					#	errorMsg = line
+					#	self._log(errorMsg)
+					#	self._errorValue = errorMsg
+#					#	self._changeState(self.STATE_ERROR)
+					#	eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+					#	self._openSerial()
+					#	self._changeState(self.STATE_CONNECTING)
 
-					if("Grbl" in line and self._state == self.STATE_PRINTING):
-						errorMsg = "Machine reset."
-						self._log(errorMsg)
-						self._errorValue = errorMsg
-						self._changeState(self.STATE_LOCKED)
-						eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+					#if("Grbl" in line and self._state == self.STATE_PRINTING):
+					#	errorMsg = "Machine reset."
+					#	self._log(errorMsg)
+					#	self._errorValue = errorMsg
+					#	self._changeState(self.STATE_LOCKED)
+					#	eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
-					if("Grbl" in line):
-						versionMatch = re.search("Grbl (?P<grbl>.+?)(_(?P<git>[0-9a-f]{7})(?P<dirty>-dirty)?)? \[.+\]", line)
-						if(versionMatch):
-							versionDict = versionMatch.groupdict()
-							self._writeGrblVersionToFile(versionDict)
-							if self._compareGrblVersion(versionDict) is False:
-								self._flashGrbl()
+					#if("Grbl" in line):
+					#	versionMatch = re.search("Grbl (?P<grbl>.+?)(_(?P<git>[0-9a-f]{7})(?P<dirty>-dirty)?)? \[.+\]", line)
+					#	if(versionMatch):
+					#		versionDict = versionMatch.groupdict()
+					#		self._writeGrblVersionToFile(versionDict)
+					#		if self._compareGrblVersion(versionDict) is False:
+					#			self._flashGrbl()
 
-					if("error:" in line):
-						self.handle_grbl_error(line)
+					#if("error:" in line):
+					#	self.handle_grbl_error(line)
 
 #				##~~ SD file list
 #				# if we are currently receiving an sd file list, each line is just a filename, so just read it and abort processing
@@ -1239,16 +1240,44 @@ class MachineCom(object):
 						feedback_errors.append("_all")
 
 				##~~ Parsing for pause triggers
-				if pause_triggers and not self.isStreaming():
-					if "enable" in pause_triggers.keys() and pause_triggers["enable"].search(line) is not None:
-						self.setPause(True)
-					elif "disable" in pause_triggers.keys() and pause_triggers["disable"].search(line) is not None:
-						self.setPause(False)
-					elif "toggle" in pause_triggers.keys() and pause_triggers["toggle"].search(line) is not None:
-						self.setPause(not self.isPaused())
+				#if pause_triggers and not self.isStreaming():
+				#	if "enable" in pause_triggers.keys() and pause_triggers["enable"].search(line) is not None:
+				#		self.setPause(True)
+				#	elif "disable" in pause_triggers.keys() and pause_triggers["disable"].search(line) is not None:
+				#		self.setPause(False)
+				#	elif "toggle" in pause_triggers.keys() and pause_triggers["toggle"].search(line) is not None:
+				#		self.setPause(not self.isPaused())
 
-				### Baudrate detection
-				if self._state == self.STATE_DETECT_BAUDRATE:
+				### Printing
+				if self._state == self.STATE_PRINTING:
+					if "ok" in line or (supportWait and "wait" in line):
+						# a wait while printing means our printer's buffer ran out, probably due to some ok getting
+						# swallowed, so we treat it the same as an ok here teo take up communication again
+						if self._resendSwallowNextOk:
+							self._resendSwallowNextOk = False
+
+						elif self._resendDelta is not None:
+							self._resendNextCommand()
+
+						else:
+							if self._sendFromQueue():
+								pass
+							elif not self.isSdPrinting():
+								self._sendNext()
+
+					elif line.lower().startswith("resend") or line.lower().startswith("rs"):
+						self._handleResendRequest(line)
+
+					elif line == "" and time.time() > self._timeout:
+						if not self._long_running_command:
+							self._log("Communication timeout during printing, forcing a line")
+							self._sendCommand("?")
+							self._clear_to_send.set()
+						else:
+							self._logger.debug("Ran into a communication timeout, but a command known to be a long runner is currently active")
+
+				## Baudrate detection
+				elif self._state == self.STATE_DETECT_BAUDRATE:
 					if line == '' or time.time() > self._timeout:
 						if self._baudrateDetectRetry > 0:
 							self._serial.timeout = detection_timeout
@@ -1286,8 +1315,6 @@ class MachineCom(object):
 						self._onConnected(self.STATE_LOCKED)
 						self._clear_to_send.set()
 
-
-
 				### Connection attempt
 				elif self._state == self.STATE_CONNECTING:
 					#line = self.__readline()
@@ -1312,34 +1339,6 @@ class MachineCom(object):
 							pass
 
 					# resend -> start resend procedure from requested line
-					elif line.lower().startswith("resend") or line.lower().startswith("rs"):
-						self._handleResendRequest(line)
-
-				### Printing
-				elif self._state == self.STATE_PRINTING:
-					if line == "" and time.time() > self._timeout:
-						if not self._long_running_command:
-							self._log("Communication timeout during printing, forcing a line")
-							self._sendCommand("?")
-							self._clear_to_send.set()
-						else:
-							self._logger.debug("Ran into a communication timeout, but a command known to be a long runner is currently active")
-
-					if "ok" in line or (supportWait and "wait" in line):
-						# a wait while printing means our printer's buffer ran out, probably due to some ok getting
-						# swallowed, so we treat it the same as an ok here teo take up communication again
-						if self._resendSwallowNextOk:
-							self._resendSwallowNextOk = False
-
-						elif self._resendDelta is not None:
-							self._resendNextCommand()
-
-						else:
-							if self._sendFromQueue():
-								pass
-							elif not self.isSdPrinting():
-								self._sendNext()
-
 					elif line.lower().startswith("resend") or line.lower().startswith("rs"):
 						self._handleResendRequest(line)
 			except:
