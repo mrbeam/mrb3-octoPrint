@@ -428,13 +428,13 @@ class MachineCom(object):
 			try:
 				self._temperature_timer.cancel()
 				self._temperature_timer = None
-			except:
+			except AttributeError:
 				pass
 
 		if self._sd_status_timer is not None:
 			try:
 				self._sd_status_timer.cancel()
-			except:
+			except AttributeError:
 				pass
 
 		self._monitoring_active = False
