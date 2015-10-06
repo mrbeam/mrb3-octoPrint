@@ -123,6 +123,14 @@ $(function() {
             self._processProgressData(data.progress);
             self._processZData(data.currentZ);
             self._processBusyFiles(data.busyFiles);
+            self._processWPosData(data.workPosition);
+        };
+        self._processWPosData = function(data) {
+            if (data == null) {
+                self.currentPos({x: 0, y: 0});
+            } else {
+                self.currentPos({x: data[0], y: data[1]});
+            }
         };
         self._processStateData = function(data) {
             var prevPaused = self.isPaused();

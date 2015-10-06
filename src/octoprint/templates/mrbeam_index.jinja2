@@ -127,7 +127,7 @@
 										</div>
 									</div>
 
-									<div class="accordion-body in" id="connection_wrapper" 
+									<div class="accordion-body in" id="connection_wrapper"
 										 data-bind="visible: !isFlashing() && isErrorOrClosed() && loginState.isUser()">
 										<div class="accordion-inner">
 											<label for="connection_ports" data-bind="css: {disabled: !isErrorOrClosed()}, enable: isErrorOrClosed() && loginState.isUser()">{{ _('Serial Port') }}</label>
@@ -216,11 +216,12 @@
 														<div class="local_transformation muted">
 															<i class="icon-move" title="{{ _('translation') }}"></i>
 															<span class="translation" >0,0</span>
-															<i class="icon-resize-full" title="{{ _('scale') }}"></i>
-															<span class="scale" >100%</span>
 															<i class="icon-repeat" title="{{ _('rotation') }}"></i>
-															<span class="rotation" >0°</span>
-
+															<span class="rotation" >0°</span></br>
+															<i class="icon-resize-horizontal" title="{{ _('horizontal') }}"></i>
+															<span class="horizontal" >0mm</span>
+															<i class="icon-resize-vertical" title="{{ _('vertical') }}"></i>
+															<span class="vertical" >0mm</span>
 														</div>
 														<div class="misfit_warning" >
 															<i class="icon-exclamation-sign" style="color:red;" title="{{ _('exceeds working area') }}"> Design exceeds the working area.</i>
@@ -241,11 +242,12 @@
 														<div class="local_transformation muted">
 															<i class="icon-move" title="{{ _('translation') }}"></i>
 															<span class="translation" >0,0</span>
-															<i class="icon-resize-full" title="{{ _('scale') }}"></i>
-															<span class="scale" >100%</span>
 															<i class="icon-repeat" title="{{ _('rotation') }}"></i>
-															<span class="rotation" >0°</span>
-
+															<span class="rotation" >0°</span></br>
+															<i class="icon-resize-horizontal" title="{{ _('horizontal') }}"></i>
+															<span class="horizontal" >0mm</span>
+															<i class="icon-resize-vertical" title="{{ _('vertical') }}"></i>
+															<span class="vertical" >0mm</span>
 														</div>
 														<div class="misfit_warning" >
 															<i class="icon-exclamation-sign" style="color:red;" title="{{ _('exceeds working area') }}"> Design exceeds the working area.</i>

@@ -239,7 +239,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 			less=["less/svgtogcode.less"],
 			css=["css/svgtogcode.css", "css/mrbeam.css"]
 		)
-	
+
 	##~~ SettingsPlugin API
 
 	def on_settings_save(self, data):
@@ -267,7 +267,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 			intensity = min(max(data["defaultIntensity"], 1), 1000)
 			s.set(["defaultIntensity"], intensity)
 		if "defaultFeedrate" in data and data["defaultFeedrate"]:
-			feedrate = max(1,data["defaultFeedrate"]) 
+			feedrate = max(1,data["defaultFeedrate"])
 			s.set(["defaultFeedrate"], feedrate)
 		if "svgDPI" in data and data["svgDPI"]:
 			s.set(["svgDPI"], data["svgDPI"])
@@ -344,7 +344,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 		if not machinecode_path:
 			path, _ = os.path.splitext(model_path)
 			machinecode_path = path + ".gco"
-
+		
 		self._svgtogcode_logger.info("### Slicing %s to %s using profile stored at %s" % (model_path, machinecode_path, profile_path))
 
 		## direct call
@@ -353,8 +353,10 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 		converter_path = homedir+"/mrbeam-inkscape-ext"
 
 		hostname = socket.gethostname()
-		if("Bucanero" in hostname):				
+		if("Bucanero" in hostname):
 			converter_path = '/home/teja/workspace/mrbeam-inkscape-ext'
+		elif("denkbrett" in hostname):
+			converter_path = '/home/flo/mrbeam/git/mrbeam-inkscape-ext'
 
 		import sys
 		sys.path.append(converter_path)
@@ -399,7 +401,7 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 
 			self._svgtogcode_logger.info("-" * 40)
 
-#			## shell call 
+#			## shell call
 #			engine_settings = self._convert_to_engine(profile_path)
 #
 #			from os.path import expanduser

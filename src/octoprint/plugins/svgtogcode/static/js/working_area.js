@@ -317,11 +317,13 @@ $(function(){
 			var endIdx = transform.local.indexOf(',', startIdx);
 			var rot = parseFloat(transform.local.substring(startIdx, endIdx)) || 0;
 //			if(!rot) rot = 0; // avoid NaN
-			var scale = (Math.pow(transform.localMatrix.a,2) + Math.pow(transform.localMatrix.b,2)) * 100;
+			var horizontal = self.px2mm((bbox.x2 - bbox.x) * globalScale);
+			var vertical = self.px2mm((bbox.y2 - bbox.y) * globalScale);
 			var id = svg.attr('id');
 			var label_id = id.substr(0, id.indexOf('-'));
 			$('#'+label_id+' .translation').text(tx.toFixed(1) + ',' + ty.toFixed(1));
-			$('#'+label_id+' .scale').text(scale.toFixed(1) + '%');
+			$('#'+label_id+' .horizontal').text(horizontal.toFixed() + 'mm');
+			$('#'+label_id+' .vertical').text(vertical.toFixed() + 'mm');
 			$('#'+label_id+' .rotation').text(rot.toFixed(1) + '°');
 		};
 
@@ -412,7 +414,7 @@ $(function(){
 				newImg.transformable();
 				newImg.ftDisableRotate();
 				newImg.ftRegisterCallback(self.svgTransformUpdate);
-				file.id = previewId;
+				file.id = id;
 				file.previewId = previewId;
 				file.url = url;
 				file.subtype = "bitmap";
