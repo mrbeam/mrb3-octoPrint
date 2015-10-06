@@ -3,10 +3,6 @@ import sys
 from octoprint.daemon import Daemon
 from octoprint.server import Server
 
-### DEBUG START
-import cProfile
-### DEBUG END
-
 #~~ version
 
 from ._version import get_versions
@@ -85,7 +81,4 @@ def main():
 		octoprint.run()
 
 if __name__ == "__main__":
-	### DEBUG START
-	cProfile.run('main()', '/tmp/profilestats')
-	### DEBUG END
-	#main()
+	main()
