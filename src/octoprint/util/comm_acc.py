@@ -1708,7 +1708,7 @@ class MachineCom(object):
 		while self._send_queue_active:
 			try:
 				if(self.RX_BUFFER_SIZE - sum(self.acc_line_lengths) < 20):
-					time.sleep(0.001)
+					time.sleep(0.1)
 					continue
 
 				# wait until we have something in the queue
