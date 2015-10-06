@@ -1759,7 +1759,7 @@ class MachineCom(object):
 				peeked_entry = self._send_queue.peek()
 				p_command, p_linenbr, p_cmd_type = peeked_entry
 
-				if(self.RX_BUFFER_SIZE - sum(self.acc_line_lengths) - len(p_command) < 10):
+				if(self.RX_BUFFER_SIZE - sum(self.acc_line_lengths) - len(p_command) < 5):
 					time.sleep(0.001)
 					continue
 
