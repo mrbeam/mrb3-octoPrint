@@ -256,19 +256,6 @@ class MachineCom(object):
 		if self._state == newState:
 			return
 
-		if newState == self.STATE_PRINTING:
-			if self._temperature_timer is not None:
-				self._temperature_timer.cancel()
-				self._temperature_timer = None
-		elif newState == self.STATE_OPERATIONAL:
-			if self._temperature_timer is not None:
-				self._temperature_timer.cancel()
-			self._temperature_timer = RepeatedTimer(0.5, self._poll_temperature, run_first=True)
-			self._temperature_timer.start()
-		else:
-			if self._temperature_timer is not None:
-				self._temperature_timer.cancel()
-
 		if newState == self.STATE_CLOSED or newState == self.STATE_CLOSED_WITH_ERROR:
 			if settings().get(["feature", "sdSupport"]):
 				self._sdFileList = False
@@ -480,7 +467,7 @@ class MachineCom(object):
 			specialcmd = cmd[1:].lower()
 			if "togglestatusreport" in specialcmd:
 				if self._temperature_timer is None:
-					self._temperature_timer = RepeatedTimer(0.5, self._poll_temperature, run_first=True)
+					self._temperature_timer = RepeatedTimer(1, self._poll_temperature, run_first=True)
 					self._temperature_timer.start()
 				else:
 					self._temperature_timer.cancel()
@@ -1416,7 +1403,7 @@ class MachineCom(object):
 		#self._temperature_timer = RepeatedTimer(lambda: get_interval("temperature"), self._poll_temperature, run_first=True)
 		if self._temperature_timer is not None:
 			self._temperature_timer.cancel()
-		self._temperature_timer = RepeatedTimer(0.5, self._poll_temperature, run_first=True)
+		self._temperature_timer = RepeatedTimer(1, self._poll_temperature, run_first=True)
 		self._temperature_timer.start()
 
 		if(nextState == None):
