@@ -1756,7 +1756,10 @@ class MachineCom(object):
 
 		while self._send_queue_active:
 			try:
-				if(self.RX_BUFFER_SIZE - sum(self.acc_line_lengths) < 20):
+				peeked_entry = self._send_queue.peek()
+				p_command, p_linenbr, p_cmd_type = peeked_entry
+
+				if(self.RX_BUFFER_SIZE - sum(self.acc_line_lengths) - len(p_command) < 10):
 					time.sleep(0.001)
 					continue
 
@@ -2341,6 +2344,7 @@ class TypedQueue(queue.Queue):
 	def __init__(self, maxsize=0):
 		queue.Queue.__init__(self, maxsize=maxsize)
 		self._lookup = []
+		self._peekedItem = None;
 
 	def _put(self, item):
 		if isinstance(item, tuple) and len(item) == 3:
@@ -2354,7 +2358,11 @@ class TypedQueue(queue.Queue):
 		queue.Queue._put(self, item)
 
 	def _get(self):
-		item = queue.Queue._get(self)
+		if self._peekedItem is None:
+			item = queue.Queue._get(self)
+		else:
+			item = self._peekedItem
+			self._peekedItem = None
 
 		if isinstance(item, tuple) and len(item) == 3:
 			cmd, line, cmd_type = item
@@ -2363,6 +2371,10 @@ class TypedQueue(queue.Queue):
 
 		return item
 
+	def peek(self):
+		if self._peekedItem is None:
+			self._peekedItem = self._get()
+		return self._peekedItem
 
 class TypeAlreadyInQueue(Exception):
 	def __init__(self, t, *args, **kwargs):
