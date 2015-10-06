@@ -491,6 +491,7 @@ class MachineCom(object):
 				self._log("available commands are:")
 				self._log("   /togglestatusreport")
 				self._log("   /setstatusfrequency <Inteval Sec>")
+				self._log("   /disconnect")
 			return
 
 		eepromCmd = re.search("^\$[0-9]+=.+$", cmd)
