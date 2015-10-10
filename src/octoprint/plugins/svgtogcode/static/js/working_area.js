@@ -392,7 +392,13 @@ $(function(){
             });
 
 		};
-
+		
+		self.placePhoto = function (dataUrl) {
+			// upload
+			
+			// place
+		};
+		
 		self.placeIMG = function (file) {
 			var url = self._getIMGserveUrl(file);
 			var img = new Image();

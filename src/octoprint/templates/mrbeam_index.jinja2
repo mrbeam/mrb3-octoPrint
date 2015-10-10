@@ -494,11 +494,16 @@
 									<div style="display: none;" data-bind="visible: loginState.isUser">
 										<div class="row-fluid upload-buttons">
 
-											<span class="btn btn-primary fileinput-button span12" data-bind="css: {disabled: !$root.loginState.isUser()}" style="margin-bottom: 10px">
+											<span class="btn btn-primary fileinput-button " data-bind="css: {disabled: !$root.loginState.isUser(), span12: !hasCamera(), span8: hasCamera()}" style="margin-bottom: 10px">
 												<i class="icon-upload-alt icon-white"></i>
 												<span>{{ _('Upload') }}</span>
 												<input id="gcode_upload" type="file" name="file" class="fileinput-button" data-bind="enable: loginState.isUser()">
 											</span>
+											<a class="btn btn-primary span4" href="#" role="button" data-bind="visible:hasCamera(), css: {disabled: !$root.loginState.isUser()}, click: takePhoto" >
+												<i class="icon-camera icon-white"></i>
+												<span>{{ _('Photo') }}</span>
+											</a>
+												
 										</div>
 										<div id="gcode_upload_progress" class="progress" style="width: 100%;">
 											<div class="bar" style="width: 0%"></div>
@@ -715,6 +720,7 @@
         {#% include 'dialogs/settings.jinja2' %#}
         {% include 'dialogs/slicing.jinja2' %}
 		{% include 'dialogs/usersettings.jinja2' %}
+        {% include 'dialogs/take_photo.jinja2' %}
         <!-- End of dialogs -->
 
         <!-- Overlays -->

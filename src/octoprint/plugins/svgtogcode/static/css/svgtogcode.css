@@ -85,3 +85,9 @@ svg text {
 	font-size: large;
     padding-right: .5em;
 }
+
+#photo_preview {
+	width: 80vw;
+	height: 70vh;
+	margin: auto;
+}
