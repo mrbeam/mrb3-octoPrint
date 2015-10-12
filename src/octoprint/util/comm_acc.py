@@ -958,7 +958,6 @@ class MachineCom(object):
 		# enqueue an M105 first thing
 		if try_hello:
 			self._sendCommand("?")
-			self._clear_to_send.set()
 
 		while self._monitoring_active:
 			try:
@@ -1312,7 +1311,6 @@ class MachineCom(object):
 						if not self._long_running_command:
 							self._log("Communication timeout during printing, forcing a line")
 							self._sendCommand("?")
-							self._clear_to_send.set()
 						else:
 							self._logger.debug("Ran into a communication timeout, but a command known to be a long runner is currently active")
 
@@ -1738,6 +1736,7 @@ class MachineCom(object):
 					return
 				else:
 					self._log("--- True")
+					self._clear_to_send.set()
 					self._status_report_queued = True
 			self._send_queue.put((command, linenumber, command_type))
 		except TypeAlreadyInQueue as e:
@@ -1758,7 +1757,6 @@ class MachineCom(object):
 
 				if(self.RX_BUFFER_SIZE - sum(self.acc_line_lengths) - len(p_command) < 5):
 					time.sleep(0.001)
-					self._log("--- wait")
 					continue
 
 				# wait until we have something in the queue
