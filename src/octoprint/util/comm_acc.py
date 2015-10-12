@@ -175,6 +175,7 @@ class MachineCom(object):
 		self.acc_line_lengths = [] # store char count of all send commands until ok is received
 		self._clear_to_send = CountedEvent(max=10, name="comm.clear_to_send")
 		self._send_queue = TypedQueue()
+		self._status_report_queued = False
 		self._temperature_timer = None
 		self._sd_status_timer = None
 
@@ -1730,6 +1731,10 @@ class MachineCom(object):
 		"""
 
 		try:
+			if command == "?" and self._status_report_queued == True:
+				return
+			elif command == "?" and self._status_report_queued == False:
+				self._status_report_queued = True
 			self._send_queue.put((command, linenumber, command_type))
 		except TypeAlreadyInQueue as e:
 			self._logger.debug("Type already in queue: " + e.type)
@@ -1753,6 +1758,9 @@ class MachineCom(object):
 
 				# wait until we have something in the queue
 				entry = self._send_queue.get()
+
+				if entry == "?":
+					self._status_report_queued = False
 
 				# make sure we are still active
 				if not self._send_queue_active:
