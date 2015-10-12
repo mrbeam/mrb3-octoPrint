@@ -1753,6 +1753,7 @@ class MachineCom(object):
 					continue
 
 				# wait until we have something in the queue
+				print "qsize = " % self._send_queue.qsize()
 				entry = self._send_queue.get()
 
 				# make sure we are still active
