@@ -1737,6 +1737,7 @@ class MachineCom(object):
 				if self._status_report_queued is True:
 					return
 				else:
+					self._log("--- True")
 					self._status_report_queued = True
 			self._send_queue.put((command, linenumber, command_type))
 		except TypeAlreadyInQueue as e:
@@ -1763,6 +1764,7 @@ class MachineCom(object):
 				entry = self._send_queue.get()
 
 				if "?" in entry:
+					self._log("--- False")
 					self._status_report_queued = False
 
 				# make sure we are still active
