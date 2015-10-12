@@ -28,14 +28,15 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 	 * 
 	 * @returns {path}
 	 */
-	Element.prototype.selectFilled = function(){
+
+	Element.prototype.removeUnfilled = function(){
 		var elem = this;
 		var selection = [];
 		var children = elem.children();
 
 		
 		if (children.length > 0) {
-			var goRecursive = (elem.type !== "defs" &&
+			var goRecursive = (elem.type !== "defs" && // ignore these tags
 				elem.type !== "clipPath" &&
 				elem.type !== "metadata" &&
 				elem.type !== "rdf:rdf" &&
@@ -45,12 +46,14 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			if(goRecursive) {
 				for (var i = 0; i < children.length; i++) {
 					var child = children[i];
-					selection = selection.concat(child.selectFilled());
+					selection = selection.concat(child.removeUnfilled());
 				}
 			}
 		} else {
 			if(elem.is_filled()){
 				selection.push(elem);
+			} else {
+				elem.remove();
 			}
 		}
 		return selection;
@@ -60,15 +63,21 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		var elem = this;
 		
 		// TODO text support
+		// TODO opacity support
 		if (elem.type !== "circle" &&
 			elem.type !== "rect" &&
 			elem.type !== "ellipse" &&
 			elem.type !== "line" &&
 			elem.type !== "polygon" &&
 			elem.type !== "polyline" &&
-			elem.type !== "path"){
+			elem.type !== "path" && 
+			elem.type !== "image"){
 			
 			return false;
+		}
+		
+		if(elem.type === 'image'){
+			return true;
 		}
 		
 		var fill = elem.attr('fill');
@@ -81,61 +90,113 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		}
 		return false;
 	};
+	
+	Element.prototype.embedImage = function(){
+		var elem = this;
+		if(elem.type !== 'image') return;
+
+		var url = elem.attr('href');
+		var image = new Image();
+
+		image.onload = function () {
+			var canvas = document.createElement('canvas');
+			canvas.width = this.naturalWidth; // or 'width' if you want a special/scaled size
+			canvas.height = this.naturalHeight; // or 'height' if you want a special/scaled size
+
+			canvas.getContext('2d').drawImage(this, 0, 0);
+			var dataUrl = canvas.toDataURL('image/png');
+			elem.attr('href', dataUrl);
+			canvas.remove();
+			console.log('embedded img');
+		};
+
+		image.src = url;
+	
+	};
+	
+	Element.prototype.renderPNG = function (wMM, hMM, pxPerMM, callback) {
+		var elem = this;
+
+		// get svg as dataUrl
+		var svgStr = elem.outerSVG();
+		var svgDataUri = 'data:image/svg+xml;base64,' + window.btoa(svgStr);
+		var source = new Image();
+		source.src = svgDataUri;
+
+		// init render canvas and attach to page
+		var renderCanvas = document.createElement('canvas');
+		renderCanvas.id = "renderCanvas";
+		renderCanvas.width = wMM * pxPerMM;
+		renderCanvas.height = hMM * pxPerMM;	
+		document.getElementsByTagName('body')[0].appendChild(renderCanvas);
+		var renderCanvasContext = renderCanvas.getContext('2d');
+
+		// render SVG image to the canvas once it loads.
+		source.onload = function () {
+			renderCanvasContext.drawImage(source, 0, 0, renderCanvas.width, renderCanvas.height);
+
+			// place fill bitmap into svg
+			var fillBitmap = renderCanvas.toDataURL("image/png");
+			if(typeof callback === 'function'){
+				callback(fillBitmap);
+			}
+			//renderCanvas.remove();
+		};
+
+		// catch browsers without native svg support
+		source.onerror = function() {
+			console.error("Can't export! Maybe your browser doesn't support native SVG. Sorry.");
+		};
+	};
+
 
 });
 
-_renderSvgFills = function (wMM, hMM, resolution) {
-	$('#renderCanvas').remove();
-	$('#fillSvg').remove();
+_renderInfill = function (wMM, hMM, pxPerMM, callback) {
+	// TODO abort transformations
+	$('#tmpSvg').remove();
 	snap.selectAll('#fillRendering').remove();
 	var wPT = wMM * 90/25.4;
 	var hPT = hMM * 90/25.4;
-	var fillSvg = Snap(wPT,hPT);
-	fillSvg.attr('id', 'fillSvg');
-	
+	var tmpSvg = Snap(wPT,hPT);
+	tmpSvg.attr('id', 'tmpSvg');
+
 	// get filled
-	var fillings = snap.select("#userContent").selectFilled();
+	var userContent = snap.select("#userContent").clone();
+	tmpSvg.append(userContent);
+	userContent.bake();
+	var fillings = userContent.removeUnfilled();
 	for (var i = 0; i < fillings.length; i++) {
 		var item = fillings[i];
-		var clone = item.clone();
-		clone.attr('fill', '#ff0000');
-		clone.attr('stroke', 'none');
-		fillSvg.append(clone);
+		if(item.type === 'image'){
+			item.embedImage();
+		} else {
+			item.attr('fill', '#ff0000');
+			item.attr('stroke', 'none');
+		}
 	}
-	var svgStr = fillSvg.outerSVG();
+	
+	var cb;
+	if(typeof callback === 'function'){
+		cb = callback;
+	} else {
+		cb = function(result){
+			var waBB = snap.select('#coordGrid').getBBox();
+			_check_fill(result, waBB.w, waBB.h);
+//			$('#tmpSvg').remove();
+		};
+	}
+	
+	tmpSvg.renderPNG(wMM, hMM, pxPerMM, cb);
+};
 
-	// render to canvas
-	var svgDataUri = 'data:image/svg+xml;base64,' + window.btoa(svgStr);
-	var source = new Image();
-	source.src = svgDataUri;
 
-	// get bitmap from canvas
-	// Set up our canvas on the page before doing anything.
-	var renderCanvas = document.createElement('canvas');
-	renderCanvas.id = "renderCanvas";
-//	renderCanvas.width = self.workingAreaWidthMM * 10; // 10 px/mm machine resolution. TODO: make configurable
-//	renderCanvas.height = self.workingAreaWidthMM * 10;
-	renderCanvas.width = wMM * resolution;
-	renderCanvas.height = hMM * resolution;
-	console.log("created rendercanvas with ", renderCanvas.width, renderCanvas.height);
-	var waBB = snap.select('#coordGrid').getBBox();
-	document.getElementsByTagName('body')[0].appendChild(renderCanvas);
-	var renderCanvasContext = renderCanvas.getContext('2d');
+_check_fill = function(imgDataUrl, w, h){
+	var fillImage = snap.image(imgDataUrl, 0, 0, w, h);
+	fillImage.attr('id', 'fillRendering');
 
-	// Render SVG image to the canvas once it loads.
-	source.onload = function () {
-		renderCanvasContext.drawImage(source, 0, 0);
-
-		// place fill bitmap into svg
-		var fillBitmap = renderCanvas.toDataURL("image/png");
-		var fillImage = snap.image(fillBitmap, 0, 0, waBB.w, waBB.h);
-		fillImage.attr('id', 'fillRendering');
-		//fillImage.attr('preserveAspectRatio', 'true');
-		
-		snap.select("#userContent").prepend(fillImage);
-//		renderCanvas.remove();
-//		fillSvg.remove();
-	};
+	snap.select("#userContent").prepend(fillImage);
+	
 };
 
 
