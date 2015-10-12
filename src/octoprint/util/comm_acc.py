@@ -1731,7 +1731,6 @@ class MachineCom(object):
 		"""
 
 		try:
-			self._log(">>> put: %s" % command)
 			self._send_queue.put((command, linenumber, command_type))
 		except TypeAlreadyInQueue as e:
 			self._logger.debug("Type already in queue: " + e.type)
