@@ -1763,7 +1763,7 @@ class MachineCom(object):
 				# wait until we have something in the queue
 				self._log("+++ start get")
 				entry = self._send_queue.get()
-				self._log("+++ start get")
+				self._log("+++ end get")
 
 				if "?" in entry:
 					self._log("--- False")
