@@ -140,7 +140,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			if(typeof callback === 'function'){
 				callback(fillBitmap);
 			}
-			//renderCanvas.remove();
+			renderCanvas.remove();
 		};
 
 		// catch browsers without native svg support
@@ -169,6 +169,12 @@ _renderInfill = function (wMM, hMM, pxPerMM, callback) {
 	for (var i = 0; i < fillings.length; i++) {
 		var item = fillings[i];
 		if(item.type === 'image'){
+			var style = item.attr('style');
+			if(style !== null){
+				var strippedFilters = style.replace(/filter.+?;/, '');
+				item.attr('style', strippedFilters);
+			}
+			// TODO embed Image callbacks!!
 			item.embedImage();
 		} else {
 			item.attr('fill', '#ff0000');
@@ -183,7 +189,7 @@ _renderInfill = function (wMM, hMM, pxPerMM, callback) {
 		cb = function(result){
 			var waBB = snap.select('#coordGrid').getBBox();
 			_check_fill(result, waBB.w, waBB.h);
-//			$('#tmpSvg').remove();
+			$('#tmpSvg').remove();
 		};
 	}
 	
