@@ -1761,7 +1761,9 @@ class MachineCom(object):
 					continue
 
 				# wait until we have something in the queue
+				self._log("+++ start get")
 				entry = self._send_queue.get()
+				self._log("+++ start get")
 
 				if "?" in entry:
 					self._log("--- False")
@@ -1815,7 +1817,9 @@ class MachineCom(object):
 					self._clear_to_send.clear()
 
 				# now we just wait for the next clear and then start again
+				self._log("*** start wait")
 				self._clear_to_send.wait()
+				self._log("*** end wait")
 			except:
 				self._logger.exception("Caught an exception in the send loop")
 		self._log("Closing down send loop")
