@@ -1387,7 +1387,7 @@ class MachineCom(object):
 
 		if self.isOperational() and not self.isStreaming() and not self._long_running_command and not self._heating:
 			#self.sendCommand("?", cmd_type="temperature_poll")
-			self.sendCommand("?")
+			self._sendCommand("?")
 
 	def _poll_sd_status(self):
 		"""
