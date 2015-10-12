@@ -1762,7 +1762,7 @@ class MachineCom(object):
 				# wait until we have something in the queue
 				entry = self._send_queue.get()
 
-				if entry == "?":
+				if "?" in entry:
 					self._status_report_queued = False
 
 				# make sure we are still active
