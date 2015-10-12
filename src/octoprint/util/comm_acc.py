@@ -175,7 +175,6 @@ class MachineCom(object):
 		self.acc_line_lengths = [] # store char count of all send commands until ok is received
 		self._clear_to_send = CountedEvent(max=10, name="comm.clear_to_send")
 		self._send_queue = TypedQueue()
-		self._status_report_queued = False
 		self._temperature_timer = None
 		self._sd_status_timer = None
 
@@ -1731,14 +1730,6 @@ class MachineCom(object):
 		"""
 
 		try:
-			if "?" in command:
-				string = "--- found ?: %s" % command
-				self._log(string)
-				if self._status_report_queued is True:
-					return
-				else:
-					self._log("--- True")
-					self._status_report_queued = True
 			self._log(">>> put: %s" % command)
 			self._send_queue.put((command, linenumber, command_type))
 		except TypeAlreadyInQueue as e:
@@ -1762,13 +1753,7 @@ class MachineCom(object):
 					continue
 
 				# wait until we have something in the queue
-				self._log("+++ start get")
 				entry = self._send_queue.get()
-				self._log("+++ end get")
-
-				if "?" in entry:
-					self._log("--- False")
-					self._status_report_queued = False
 
 				# make sure we are still active
 				if not self._send_queue_active:
@@ -1818,9 +1803,7 @@ class MachineCom(object):
 					self._clear_to_send.clear()
 
 				# now we just wait for the next clear and then start again
-				self._log("*** start wait")
 				self._clear_to_send.wait()
-				self._log("*** end wait")
 			except:
 				self._logger.exception("Caught an exception in the send loop")
 		self._log("Closing down send loop")
