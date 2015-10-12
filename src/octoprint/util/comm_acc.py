@@ -1386,7 +1386,8 @@ class MachineCom(object):
 		"""
 
 		if self.isOperational() and not self.isStreaming() and not self._long_running_command and not self._heating:
-			self.sendCommand("?", cmd_type="temperature_poll")
+			#self.sendCommand("?", cmd_type="temperature_poll")
+			self.sendCommand("?")
 
 	def _poll_sd_status(self):
 		"""
@@ -1753,8 +1754,6 @@ class MachineCom(object):
 					continue
 
 				# wait until we have something in the queue
-				string =  "qsize = %s" % self._send_queue.qsize()
-				self._log(string)
 				entry = self._send_queue.get()
 
 				# make sure we are still active
