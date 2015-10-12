@@ -256,6 +256,15 @@ class MachineCom(object):
 		if self._state == newState:
 			return
 
+		if newState == self.STATE_PRINTING:
+			if self._temperature_timer is not None:
+				self._temperature_timer.cancel()
+		elif newState == self.STATE_OPERATIONAL:
+			if self._temperature_timer is not None:
+				self._temperature_timer.cancel()
+			self._temperature_timer = RepeatedTimer(1, self._poll_temperature, run_first=True)
+			self._temperature_timer.start()
+
 		if newState == self.STATE_CLOSED or newState == self.STATE_CLOSED_WITH_ERROR:
 			if settings().get(["feature", "sdSupport"]):
 				self._sdFileList = False
@@ -1386,8 +1395,7 @@ class MachineCom(object):
 		"""
 
 		if self.isOperational() and not self.isStreaming() and not self._long_running_command and not self._heating:
-			#self.sendCommand("?", cmd_type="temperature_poll")
-			self._sendCommand("?")
+			self.sendCommand("?", cmd_type="temperature_poll")
 
 	def _poll_sd_status(self):
 		"""
