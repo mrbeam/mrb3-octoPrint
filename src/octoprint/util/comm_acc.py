@@ -1732,6 +1732,7 @@ class MachineCom(object):
 
 		try:
 			if "?" in command:
+				self._log("--- found ?: ", command)
 				if self._status_report_queued is True:
 					return
 				else:
