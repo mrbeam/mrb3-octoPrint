@@ -1731,10 +1731,11 @@ class MachineCom(object):
 		"""
 
 		try:
-			if command == "?" and self._status_report_queued == True:
-				return
-			elif command == "?" and self._status_report_queued == False:
-				self._status_report_queued = True
+			if "?" in command:
+				if self._status_report_queued is True:
+					return
+				else:
+					self._status_report_queued = True
 			self._send_queue.put((command, linenumber, command_type))
 		except TypeAlreadyInQueue as e:
 			self._logger.debug("Type already in queue: " + e.type)
