@@ -393,12 +393,6 @@ $(function(){
 
 		};
 		
-		self.placePhoto = function (dataUrl) {
-			// upload
-			
-			// place
-		};
-		
 		self.placeIMG = function (file) {
 			var url = self._getIMGserveUrl(file);
 			var img = new Image();
@@ -632,16 +626,20 @@ $(function(){
 		self.getCompositionSVG = function(){
 			self.abortFreeTransforms();
 			var tmpsvg = snap.select("#userContent").innerSVG(); // get working area
-			if(tmpsvg !== ''){
+			return self._wrapInSvgAndScale(tmpsvg);
+		};
+		
+		self._wrapInSvgAndScale = function(content){
+			if(content !== ''){
 				var dpiFactor = self.svgDPI()/25.4; // convert mm to pix 90dpi for inkscape, 72 for illustrator
 				var w = dpiFactor * self.workingAreaWidthMM();
 				var h = dpiFactor * self.workingAreaHeightMM();
 
 				// TODO: look for better solution to solve this Firefox bug problem
-				tmpsvg = tmpsvg.replace("(\\\"","(");
-				tmpsvg = tmpsvg.replace("\\\")",")");
+				content = content.replace("(\\\"","(");
+				content = content.replace("\\\")",")");
 
-				var svg = '<svg height="'+ h +'" version="1.1" width="'+ w +'" xmlns="http://www.w3.org/2000/svg"><defs/>'+ tmpsvg +'</svg>';
+				var svg = '<svg height="'+ h +'" version="1.1" width="'+ w +'" xmlns="http://www.w3.org/2000/svg"><defs/>'+ content +'</svg>';
 				return svg;
 			} else {
 				return;
@@ -704,7 +702,7 @@ $(function(){
 		self.clear_gcode = function(){
 			snap.select('#gCodePreview').clear();
 		};
-
+		
 		self.onStartup = function(){
 			self.state.workingArea = self;
 			self.files.workingArea = self;

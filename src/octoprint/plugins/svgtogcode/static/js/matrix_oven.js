@@ -37,7 +37,8 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			toCubics = false;
 		if (typeof (dec) === 'undefined')
 			dec = 5;
-		var children = elem.selectAll('*')
+		//var children = elem.selectAll('*')
+		var children = elem.children();
 		if (children.length > 0) {
 			for (var i = 0; i < children.length; i++) {
 				var child = children[i];

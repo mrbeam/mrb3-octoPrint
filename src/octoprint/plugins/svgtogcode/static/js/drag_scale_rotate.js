@@ -1,9 +1,8 @@
-//    Matrix Oven - a snapsvg.io plugin to apply & remove transformations from svg files.
+//    Drag, Scale & Rotate - a snapsvg.io plugin to free transform objects in an svg.
 //    Copyright (C) 2015  Teja Philipp <osd@tejaphilipp.de>
 //    
-//    based on work by https://gist.github.com/timo22345/9413158 
-//    and https://github.com/duopixel/Method-Draw/blob/master/editor/src/svgcanvas.js
-//
+//    heavily inspired by http://svg.dabbles.info
+//    
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU Affero General Public License as
 //    published by the Free Software Foundation, either version 3 of the
@@ -22,7 +21,7 @@
 Snap.plugin(function (Snap, Element, Paper, global) {
 	
 	/**
-	 * bakes transformations of the element and all sub-elements into coordinates
+	 * 
 	 * 
 	 * @returns {undefined}
 	 */
