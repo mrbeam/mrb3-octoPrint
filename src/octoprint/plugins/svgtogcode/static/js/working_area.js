@@ -310,13 +310,9 @@ $(function(){
 			var bbox = svg.getBBox();
 			var tx = self.px2mm(bbox.x * globalScale);
 			var ty = self.workingAreaHeightMM() - self.px2mm(bbox.y2 * globalScale);
-//			var tx = self.px2mm(svg.data('tx')*globalScale).toFixed(1);
-//			var ty = -self.px2mm(svg.data('ty')*globalScale).toFixed(1);
-//			var rot = svg.data('angle') || 0;
 			var startIdx = transform.local.indexOf('r') + 1;
 			var endIdx = transform.local.indexOf(',', startIdx);
 			var rot = parseFloat(transform.local.substring(startIdx, endIdx)) || 0;
-//			if(!rot) rot = 0; // avoid NaN
 			var horizontal = self.px2mm((bbox.x2 - bbox.x) * globalScale);
 			var vertical = self.px2mm((bbox.y2 - bbox.y) * globalScale);
 			var id = svg.attr('id');
