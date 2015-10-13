@@ -1,4 +1,4 @@
-//    render_fills - a snapsvg.io plugin to render fills of svg files into a bitmap.
+//    render_fills.js - a snapsvg.io plugin to render the infill of svg files into a bitmap.
 //    Copyright (C) 2015  Teja Philipp <osd@tejaphilipp.de>
 //    
 //    based on work by http://davidwalsh.name/convert-canvas-image 
@@ -91,7 +91,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		return false;
 	};
 	
-	Element.prototype.embedImage = function(){
+	Element.prototype.embedImage = function(callback){
 		var elem = this;
 		if(elem.type !== 'image') return;
 
@@ -107,7 +107,10 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			var dataUrl = canvas.toDataURL('image/png');
 			elem.attr('href', dataUrl);
 			canvas.remove();
-			console.log('embedded img');
+			if(typeof callback === 'function'){
+				callback(elem.attr('id'));
+				console.log('embedded img');
+			}
 		};
 
 		image.src = url;
@@ -152,58 +155,6 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 
 });
 
-_renderInfill = function (wMM, hMM, pxPerMM, callback) {
-	// TODO abort transformations
-	$('#tmpSvg').remove();
-	snap.selectAll('#fillRendering').remove();
-	var wPT = wMM * 90/25.4;
-	var hPT = hMM * 90/25.4;
-	var tmpSvg = Snap(wPT,hPT);
-	tmpSvg.attr('id', 'tmpSvg');
-
-	// get filled
-	var userContent = snap.select("#userContent").clone();
-	tmpSvg.append(userContent);
-	userContent.bake();
-	var fillings = userContent.removeUnfilled();
-	for (var i = 0; i < fillings.length; i++) {
-		var item = fillings[i];
-		if(item.type === 'image'){
-			var style = item.attr('style');
-			if(style !== null){
-				var strippedFilters = style.replace(/filter.+?;/, '');
-				item.attr('style', strippedFilters);
-			}
-			// TODO embed Image callbacks!!
-			item.embedImage();
-		} else {
-			item.attr('fill', '#ff0000');
-			item.attr('stroke', 'none');
-		}
-	}
-	
-	var cb;
-	if(typeof callback === 'function'){
-		cb = callback;
-	} else {
-		cb = function(result){
-			var waBB = snap.select('#coordGrid').getBBox();
-			_check_fill(result, waBB.w, waBB.h);
-			$('#tmpSvg').remove();
-		};
-	}
-	
-	tmpSvg.renderPNG(wMM, hMM, pxPerMM, cb);
-};
-
-
-_check_fill = function(imgDataUrl, w, h){
-	var fillImage = snap.image(imgDataUrl, 0, 0, w, h);
-	fillImage.attr('id', 'fillRendering');
-
-	snap.select("#userContent").prepend(fillImage);
-	
-};
 
 
 

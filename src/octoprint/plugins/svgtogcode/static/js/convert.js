@@ -76,30 +76,32 @@ $(function(){
 
 		// shows conversion dialog and extracts svg first
 		self.show_conversion_dialog = function() {
-			self.svg = self.workingArea.getCompositionSVG();
-			self.gcodeFilesToAppend = self.workingArea.getPlacedGcodes();
-			self.show_image_parameters(self.workingArea.getPlacedImages().length > 0);
-			self.show_vector_parameters(self.workingArea.getPlacedSvgs().length > 0);
-			
-			if(self.svg !== undefined){
-				if(self.laserIntensity() === undefined){
-					var intensity = self.settings.settings.plugins.svgtogcode.defaultIntensity();
-					self.laserIntensity(intensity);
-				} 
-				if(self.laserSpeed() === undefined){
-					var speed = self.settings.settings.plugins.svgtogcode.defaultFeedrate();
-					self.laserSpeed(speed);
-				}
+			self.workingArea.getCompositionSVG(function(composition){
+				self.svg = composition;	
+				self.gcodeFilesToAppend = self.workingArea.getPlacedGcodes();
+				self.show_image_parameters(self.workingArea.getPlacedImages().length > 0);
+				self.show_vector_parameters(self.workingArea.getPlacedSvgs().length > 0);
 
-				var gcodeFile = self.create_gcode_filename(self.workingArea.placedDesigns());
-				self.gcodeFilename(gcodeFile);
-				
-				self.title(gettext("Converting"));
-				$("#dialog_vector_graphics_conversion").modal("show"); // calls self.convert() afterwards
-			} else {
-				// just gcodes were placed. Start lasering right away.
-				self.convert();
-			}
+				if(self.svg !== undefined){
+					if(self.laserIntensity() === undefined){
+						var intensity = self.settings.settings.plugins.svgtogcode.defaultIntensity();
+						self.laserIntensity(intensity);
+					} 
+					if(self.laserSpeed() === undefined){
+						var speed = self.settings.settings.plugins.svgtogcode.defaultFeedrate();
+						self.laserSpeed(speed);
+					}
+
+					var gcodeFile = self.create_gcode_filename(self.workingArea.placedDesigns());
+					self.gcodeFilename(gcodeFile);
+
+					self.title(gettext("Converting"));
+					$("#dialog_vector_graphics_conversion").modal("show"); // calls self.convert() afterwards
+				} else {
+					// just gcodes were placed. Start lasering right away.
+					self.convert();
+				}
+			});
 		};
 
 		self.create_gcode_filename = function(placedDesigns){

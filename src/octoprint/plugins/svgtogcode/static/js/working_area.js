@@ -623,10 +623,12 @@ $(function(){
 			self.check_sizes_and_placements();
 		};
 
-		self.getCompositionSVG = function(){
+		self.getCompositionSVG = function(callback){
 			self.abortFreeTransforms();
-			var tmpsvg = snap.select("#userContent").innerSVG(); // get working area
-			return self._wrapInSvgAndScale(tmpsvg);
+			self.renderInfill(self.workingAreaWidthMM(), self.workingAreaHeightMM(), 10, function(){
+				var tmpsvg = snap.select("#userContent").innerSVG(); // get working area
+				callback( self._wrapInSvgAndScale(tmpsvg));
+			});
 		};
 		
 		self._wrapInSvgAndScale = function(content){
@@ -685,8 +687,9 @@ $(function(){
 
 		self.draw_gcode_img_placeholder = function(x,y,w,h,url, target){
 			var i = snap.rect(x,y,w,h).attr({
-				stroke: '#AA0000',
-				'stroke-width': 1
+				stroke: '#AAAAAA',
+				'stroke-width': 1,
+				fill: 'none'
 			});
 			snap.select(target).append(i);
 			if(url !== ""){
@@ -735,6 +738,75 @@ $(function(){
 				}
 			});
 		};
+		
+		self._embedAllImages = function(svg, callback){
+			
+			var allImages = svg.selectAll('image');
+			var linkedImages = allImages.items.filter(function(i){ return !i.attr('href').startsWith('data:') });
+			if(linkedImages.length > 0){
+				var callbackCounter = linkedImages.length;
+				for (var i = 0; i < linkedImages.length; i++) {
+					var img = linkedImages[i];
+					img.embedImage(function(){
+						callbackCounter--;
+						if(callbackCounter === 0 && typeof callback === 'function'){
+							callback();
+						}
+					});
+				}
+			} else {
+				// callback if nothing to embed
+				if(typeof callback === 'function'){
+					callback();
+				}
+			}
+		}
+
+		self.renderInfill = function (wMM, hMM, pxPerMM, callback) {
+			self.abortFreeTransforms();
+//			$('#tmpSvg').remove();
+//			snap.selectAll('#fillRendering').remove();
+			var wPT = wMM * 90 / 25.4;
+			var hPT = hMM * 90 / 25.4;
+			var tmpSvg = Snap(wPT, hPT);
+			tmpSvg.attr('id', 'tmpSvg');
+
+			// get filled
+			var userContent = snap.select("#userContent").clone();
+			tmpSvg.append(userContent);
+			userContent.bake();
+			self._embedAllImages(tmpSvg, function(){
+				var fillings = userContent.removeUnfilled();
+				for (var i = 0; i < fillings.length; i++) {
+					var item = fillings[i];
+					if (item.type === 'image') {
+						var style = item.attr('style');
+						if (style !== null) {
+							var strippedFilters = style.replace(/filter.+?;/, '');
+							item.attr('style', strippedFilters);
+						}
+					} else {
+						item.attr('fill', '#ff0000');
+						item.attr('stroke', 'none');
+					}
+				}
+
+				var cb = function (result) {
+					var waBB = snap.select('#coordGrid').getBBox();
+					var fillImage = snap.image(result, 0, 0, waBB.w, waBB.h);
+					fillImage.attr('id', 'fillRendering');
+					snap.select("#userContent").prepend(fillImage);
+					$('#tmpSvg').remove();
+					if (typeof callback === 'function') {
+						callback();
+					}
+				};
+
+				tmpSvg.renderPNG(wMM, hMM, pxPerMM, cb);
+			});
+		};
+
+
 
 		self.onBeforeBinding = function(){
 			self.files.workingArea = self;
