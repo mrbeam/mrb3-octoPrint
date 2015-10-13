@@ -792,7 +792,7 @@ $(function(){
 							item.attr('style', strippedFilters);
 						}
 					} else {
-						item.attr('fill', '#ff0000');
+						//item.attr('fill', '#ff0000');
 						item.attr('stroke', 'none');
 					}
 				}
