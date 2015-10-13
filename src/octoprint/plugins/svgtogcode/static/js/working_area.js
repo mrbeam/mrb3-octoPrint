@@ -412,7 +412,7 @@ $(function(){
 				newImg.attr({id: previewId, filter: 'url(#grayscale_filter)', 'data-serveurl': url});
 				snap.select("#userContent").append(newImg);
 				newImg.transformable();
-				newImg.ftDisableRotate();
+				//newImg.ftDisableRotate();
 				newImg.ftRegisterCallback(self.svgTransformUpdate);
 				file.id = id;
 				file.previewId = previewId;
@@ -630,13 +630,14 @@ $(function(){
 			var wPT = wMM * 90 / 25.4;
 			var hPT = hMM * 90 / 25.4;
 			var compSvg = Snap(wPT, hPT);
-			compSvg.attr('id', 'tmpSvg');
+			compSvg.attr('id', 'compSvg');
 
 			var userContent = snap.select("#userContent").clone();
 			compSvg.append(userContent);
 			
 			self.renderInfill(compSvg, wMM, hMM, 10, function(){
 				callback( self._wrapInSvgAndScale(compSvg));
+				$('#compSvg').remove();
 			});
 		};
 		
@@ -797,15 +798,17 @@ $(function(){
 				}
 
 				var cb = function(result) {
-					svg.selectAll('image').remove();
-					var waBB = snap.select('#coordGrid').getBBox();
-					var fillImage = snap.image(result, 0, 0, waBB.w, waBB.h);
-					fillImage.attr('id', 'fillRendering');
-					svg.append(fillImage);
-					
+					if(fillings.length > 0){
+						svg.selectAll('image').remove();
+						var waBB = snap.select('#coordGrid').getBBox();
+						var fillImage = snap.image(result, 0, 0, waBB.w, waBB.h);
+						fillImage.attr('id', 'fillRendering');
+						svg.append(fillImage);
+					}
 					if (typeof callback === 'function') {
 						callback(svg);
 					}
+					self._cleanup_render_mess();
 				};
 
 				tmpSvg.renderPNG(wMM, hMM, pxPerMM, cb);
