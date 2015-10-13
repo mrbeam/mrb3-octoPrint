@@ -625,23 +625,33 @@ $(function(){
 
 		self.getCompositionSVG = function(callback){
 			self.abortFreeTransforms();
-			self.renderInfill(self.workingAreaWidthMM(), self.workingAreaHeightMM(), 10, function(){
-				var tmpsvg = snap.select("#userContent").innerSVG(); // get working area
-				callback( self._wrapInSvgAndScale(tmpsvg));
+			var wMM = self.workingAreaWidthMM();
+			var hMM = self.workingAreaHeightMM();
+			var wPT = wMM * 90 / 25.4;
+			var hPT = hMM * 90 / 25.4;
+			var compSvg = Snap(wPT, hPT);
+			compSvg.attr('id', 'tmpSvg');
+
+			var userContent = snap.select("#userContent").clone();
+			compSvg.append(userContent);
+			
+			self.renderInfill(compSvg, wMM, hMM, 10, function(){
+				callback( self._wrapInSvgAndScale(compSvg));
 			});
 		};
 		
 		self._wrapInSvgAndScale = function(content){
-			if(content !== ''){
+			var svgStr = content.innerSVG();
+			if(svgStr !== ''){
 				var dpiFactor = self.svgDPI()/25.4; // convert mm to pix 90dpi for inkscape, 72 for illustrator
 				var w = dpiFactor * self.workingAreaWidthMM();
 				var h = dpiFactor * self.workingAreaHeightMM();
 
 				// TODO: look for better solution to solve this Firefox bug problem
-				content = content.replace("(\\\"","(");
-				content = content.replace("\\\")",")");
+				svgStr = svgStr.replace("(\\\"","(");
+				svgStr = svgStr.replace("\\\")",")");
 
-				var svg = '<svg height="'+ h +'" version="1.1" width="'+ w +'" xmlns="http://www.w3.org/2000/svg"><defs/>'+ content +'</svg>';
+				var svg = '<svg height="'+ h +'" version="1.1" width="'+ w +'" xmlns="http://www.w3.org/2000/svg"><defs/>'+ svgStr +'</svg>';
 				return svg;
 			} else {
 				return;
@@ -762,19 +772,14 @@ $(function(){
 			}
 		}
 
-		self.renderInfill = function (wMM, hMM, pxPerMM, callback) {
-			self.abortFreeTransforms();
-//			$('#tmpSvg').remove();
-//			snap.selectAll('#fillRendering').remove();
+		// render the infill and inject it as an image into the svg
+		self.renderInfill = function (svg, wMM, hMM, pxPerMM, callback) {
 			var wPT = wMM * 90 / 25.4;
 			var hPT = hMM * 90 / 25.4;
-			var tmpSvg = Snap(wPT, hPT);
-			tmpSvg.attr('id', 'tmpSvg');
-
-			// get filled
-			var userContent = snap.select("#userContent").clone();
+			var tmpSvg = Snap(wPT, hPT).attr('id', 'tmpSvg');
+			// get only filled items and embed the images
+			var userContent = svg.clone();
 			tmpSvg.append(userContent);
-			userContent.bake();
 			self._embedAllImages(tmpSvg, function(){
 				var fillings = userContent.removeUnfilled();
 				for (var i = 0; i < fillings.length; i++) {
@@ -791,14 +796,15 @@ $(function(){
 					}
 				}
 
-				var cb = function (result) {
+				var cb = function(result) {
+					svg.selectAll('image').remove();
 					var waBB = snap.select('#coordGrid').getBBox();
 					var fillImage = snap.image(result, 0, 0, waBB.w, waBB.h);
 					fillImage.attr('id', 'fillRendering');
-					snap.select("#userContent").prepend(fillImage);
-					$('#tmpSvg').remove();
+					svg.append(fillImage);
+					
 					if (typeof callback === 'function') {
-						callback();
+						callback(svg);
 					}
 				};
 
@@ -806,7 +812,9 @@ $(function(){
 			});
 		};
 
-
+		self._cleanup_render_mess = function(){
+			$('#tmpSvg').remove();
+		};
 
 		self.onBeforeBinding = function(){
 			self.files.workingArea = self;
