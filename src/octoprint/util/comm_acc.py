@@ -4,7 +4,6 @@ __author__ = "Gina Häußge <osd@foosel.net> based on work by David Braam"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
 __copyright__ = "Copyright (C) 2013 David Braam - Released under terms of the AGPLv3 License"
 
-
 import os
 import glob
 import time
@@ -260,15 +259,11 @@ class MachineCom(object):
 		if newState == self.STATE_PRINTING:
 			if self._temperature_timer is not None:
 				self._temperature_timer.cancel()
-				self._temperature_timer = None
 		elif newState == self.STATE_OPERATIONAL:
 			if self._temperature_timer is not None:
 				self._temperature_timer.cancel()
-			self._temperature_timer = RepeatedTimer(0.5, self._poll_temperature, run_first=True)
+			self._temperature_timer = RepeatedTimer(1, self._poll_temperature, run_first=True)
 			self._temperature_timer.start()
-		else:
-			if self._temperature_timer is not None:
-				self._temperature_timer.cancel()
 
 		if newState == self.STATE_CLOSED or newState == self.STATE_CLOSED_WITH_ERROR:
 			if settings().get(["feature", "sdSupport"]):
@@ -429,13 +424,13 @@ class MachineCom(object):
 			try:
 				self._temperature_timer.cancel()
 				self._temperature_timer = None
-			except:
+			except AttributeError:
 				pass
 
 		if self._sd_status_timer is not None:
 			try:
 				self._sd_status_timer.cancel()
-			except:
+			except AttributeError:
 				pass
 
 		self._monitoring_active = False
@@ -481,7 +476,7 @@ class MachineCom(object):
 			specialcmd = cmd[1:].lower()
 			if "togglestatusreport" in specialcmd:
 				if self._temperature_timer is None:
-					self._temperature_timer = RepeatedTimer(0.5, self._poll_temperature, run_first=True)
+					self._temperature_timer = RepeatedTimer(1, self._poll_temperature, run_first=True)
 					self._temperature_timer.start()
 				else:
 					self._temperature_timer.cancel()
@@ -498,11 +493,14 @@ class MachineCom(object):
 
 				self._temperature_timer = RepeatedTimer(frequency, self._poll_temperature, run_first=True)
 				self._temperature_timer.start()
+			elif "disconnect" in specialcmd:
+				self.close()
 			else:
 				self._log("Command not Found! %s" % cmd)
 				self._log("available commands are:")
 				self._log("   /togglestatusreport")
 				self._log("   /setstatusfrequency <Inteval Sec>")
+				self._log("   /disconnect")
 			return
 
 		eepromCmd = re.search("^\$[0-9]+=.+$", cmd)
@@ -1239,6 +1237,7 @@ class MachineCom(object):
 						feedback_errors.append("_all")
 
 				##~~ Parsing for pause triggers
+
 				if pause_triggers and not self.isStreaming():
 					if "enable" in pause_triggers.keys() and pause_triggers["enable"].search(line) is not None:
 						self.setPause(True)
@@ -1296,9 +1295,9 @@ class MachineCom(object):
 #						self._clear_to_send.set()
 					elif "<Idle" in line:
 						self._onConnected(self.STATE_OPERATIONAL)
-					elif time.time() > self._timeout:
-						print("TIMEOUT_CLOSE")
-						self.close()
+					# elif time.time() > self._timeout:
+					# 	print("TIMEOUT_CLOSE")
+					# 	self.close()
 
 				### Operational
 				elif self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PAUSED:
@@ -1414,7 +1413,7 @@ class MachineCom(object):
 		#self._temperature_timer = RepeatedTimer(lambda: get_interval("temperature"), self._poll_temperature, run_first=True)
 		if self._temperature_timer is not None:
 			self._temperature_timer.cancel()
-		self._temperature_timer = RepeatedTimer(0.5, self._poll_temperature, run_first=True)
+		self._temperature_timer = RepeatedTimer(1, self._poll_temperature, run_first=True)
 		self._temperature_timer.start()
 
 		if(nextState == None):
@@ -1754,8 +1753,11 @@ class MachineCom(object):
 
 		while self._send_queue_active:
 			try:
-				if(self.RX_BUFFER_SIZE - sum(self.acc_line_lengths) < 20):
-					time.sleep(0.1)
+				peeked_entry = self._send_queue.peek()
+				p_command, p_linenbr, p_cmd_type = peeked_entry
+
+				if(self.RX_BUFFER_SIZE - sum(self.acc_line_lengths) - len(p_command) < 5):
+					time.sleep(0.001)
 					continue
 
 				# wait until we have something in the queue
@@ -2339,6 +2341,7 @@ class TypedQueue(queue.Queue):
 	def __init__(self, maxsize=0):
 		queue.Queue.__init__(self, maxsize=maxsize)
 		self._lookup = []
+		self._peekedItem = None;
 
 	def _put(self, item):
 		if isinstance(item, tuple) and len(item) == 3:
@@ -2352,7 +2355,11 @@ class TypedQueue(queue.Queue):
 		queue.Queue._put(self, item)
 
 	def _get(self):
-		item = queue.Queue._get(self)
+		if self._peekedItem is None:
+			item = queue.Queue._get(self)
+		else:
+			item = self._peekedItem
+			self._peekedItem = None
 
 		if isinstance(item, tuple) and len(item) == 3:
 			cmd, line, cmd_type = item
@@ -2361,6 +2368,10 @@ class TypedQueue(queue.Queue):
 
 		return item
 
+	def peek(self):
+		if self._peekedItem is None:
+			self._peekedItem = self._get()
+		return self._peekedItem
 
 class TypeAlreadyInQueue(Exception):
 	def __init__(self, t, *args, **kwargs):
