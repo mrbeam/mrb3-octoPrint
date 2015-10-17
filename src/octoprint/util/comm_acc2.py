@@ -774,11 +774,11 @@ def get_interval(t):
 
 def serialList():
 	baselist = [glob.glob("/dev/ttyUSB*"),
-			   + glob.glob("/dev/ttyACM*"),
-			   + glob.glob("/dev/tty.usb*"),
-			   + glob.glob("/dev/cu.*"),
-			   + glob.glob("/dev/cuaU*"),
-			   + glob.glob("/dev/rfcomm*")]
+				glob.glob("/dev/ttyACM*"),
+				glob.glob("/dev/tty.usb*"),
+				glob.glob("/dev/cu.*"),
+				glob.glob("/dev/cuaU*"),
+				glob.glob("/dev/rfcomm*")]
 
 	additionalPorts = settings().get(["serial", "additionalPorts"])
 	for additional in additionalPorts:
