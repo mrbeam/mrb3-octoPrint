@@ -35,10 +35,15 @@ $(function(){
 		self.laserSpeed = ko.observable(undefined);
 		self.maxSpeed = ko.observable(3000);
 		self.minSpeed = ko.observable(20);
+		self.fill_areas = ko.observable(false);
+		self.show_fill_areas_checkbox = ko.observable(false);
 		
 		// image engraving stuff
 		// preset values are a good start for wood engraving
-		self.show_image_parameters = ko.observable(false);
+		self.images_placed = ko.observable(false);
+		self.show_image_parameters = ko.computed(function(){
+			return self.images_placed() || self.fill_areas();
+		});
 		self.imgIntensityWhite = ko.observable(0);
 		self.imgIntensityBlack = ko.observable(500);
 		self.imgFeedrateWhite = ko.observable(1500); 
@@ -76,32 +81,31 @@ $(function(){
 
 		// shows conversion dialog and extracts svg first
 		self.show_conversion_dialog = function() {
-			self.workingArea.getCompositionSVG(function(composition){
-				self.svg = composition;	
-				self.gcodeFilesToAppend = self.workingArea.getPlacedGcodes();
-				self.show_image_parameters(self.workingArea.getPlacedImages().length > 0);
-				self.show_vector_parameters(self.workingArea.getPlacedSvgs().length > 0);
+			self.gcodeFilesToAppend = self.workingArea.getPlacedGcodes();
+			self.show_vector_parameters(self.workingArea.getPlacedSvgs().length > 0);
+			self.show_fill_areas_checkbox(self.workingArea.hasFilledVectors())
+			self.images_placed(self.workingArea.getPlacedImages().length > 0);
+			//self.show_image_parameters(self.workingArea.getPlacedImages().length > 0);
 
-				if(self.svg !== undefined){
-					if(self.laserIntensity() === undefined){
-						var intensity = self.settings.settings.plugins.svgtogcode.defaultIntensity();
-						self.laserIntensity(intensity);
-					} 
-					if(self.laserSpeed() === undefined){
-						var speed = self.settings.settings.plugins.svgtogcode.defaultFeedrate();
-						self.laserSpeed(speed);
-					}
-
-					var gcodeFile = self.create_gcode_filename(self.workingArea.placedDesigns());
-					self.gcodeFilename(gcodeFile);
-
-					self.title(gettext("Converting"));
-					$("#dialog_vector_graphics_conversion").modal("show"); // calls self.convert() afterwards
-				} else {
-					// just gcodes were placed. Start lasering right away.
-					self.convert();
+			if(self.show_vector_parameters() || self.show_image_parameters()){
+				if(self.laserIntensity() === undefined){
+					var intensity = self.settings.settings.plugins.svgtogcode.defaultIntensity();
+					self.laserIntensity(intensity);
+				} 
+				if(self.laserSpeed() === undefined){
+					var speed = self.settings.settings.plugins.svgtogcode.defaultFeedrate();
+					self.laserSpeed(speed);
 				}
-			});
+
+				var gcodeFile = self.create_gcode_filename(self.workingArea.placedDesigns());
+				self.gcodeFilename(gcodeFile);
+
+				self.title(gettext("Converting"));
+				$("#dialog_vector_graphics_conversion").modal("show"); // calls self.convert() afterwards
+			} else {
+				// just gcodes were placed. Start lasering right away.
+				self.convert();
+			}
 		};
 
 		self.create_gcode_filename = function(placedDesigns){
@@ -235,43 +239,47 @@ $(function(){
 			if(self.gcodeFilesToAppend.length === 1 && self.svg === undefined){
 				self.files.startGcodeWithSafetyWarning(self.gcodeFilesToAppend[0]);
 			} else {
-				var filename = self.gcodeFilename() + self.settingsString() + '.gco';
-				var gcodeFilename = self._sanitize(filename);
+				self.workingArea.getCompositionSVG(self.fill_areas(), function(composition){
+					self.svg = composition;	
+					var filename = self.gcodeFilename() + self.settingsString() + '.gco';
+					var gcodeFilename = self._sanitize(filename);
 
-				var data = {
-					command: "convert",
-					"profile.speed": self.laserSpeed(),
-					"profile.intensity": self.laserIntensity(),
-					"profile.pierce_time": self.pierceTime(),
-					"profile.intensity_black" : self.imgIntensityBlack(),
-					"profile.intensity_white" : self.imgIntensityWhite(),
-					"profile.feedrate_black" : self.imgFeedrateBlack(),
-					"profile.feedrate_white" : self.imgFeedrateWhite(),
-					"profile.img_contrast" : self.imgContrast(),
-					"profile.img_sharpening" : self.imgSharpening(),
-					"profile.img_dithering" : self.imgDithering(),
-					"profile.beam_diameter" : self.beamDiameter(),
-					slicer: "svgtogcode",
-					gcode: gcodeFilename
-				};
+					var data = {
+						command: "convert",
+						"profile.speed": self.laserSpeed(),
+						"profile.intensity": self.laserIntensity(),
+						"profile.fill_areas": self.fill_areas(),
+						"profile.pierce_time": self.pierceTime(),
+						"profile.intensity_black" : self.imgIntensityBlack(),
+						"profile.intensity_white" : self.imgIntensityWhite(),
+						"profile.feedrate_black" : self.imgFeedrateBlack(),
+						"profile.feedrate_white" : self.imgFeedrateWhite(),
+						"profile.img_contrast" : self.imgContrast(),
+						"profile.img_sharpening" : self.imgSharpening(),
+						"profile.img_dithering" : self.imgDithering(),
+						"profile.beam_diameter" : self.beamDiameter(),
+						slicer: "svgtogcode",
+						gcode: gcodeFilename
+					};
 
-				if(self.svg !== undefined){
-					data.svg = self.svg;
-				} else {
-					data.svg = '<svg height="0" version="1.1" width="0" xmlns="http://www.w3.org/2000/svg"><defs/></svg>';
-				}
-				if(self.gcodeFilesToAppend !== undefined){
-					data.gcodeFilesToAppend = self.gcodeFilesToAppend;
-				}
+					if(self.svg !== undefined){
+						data.svg = self.svg;
+					} else {
+						data.svg = '<svg height="0" version="1.1" width="0" xmlns="http://www.w3.org/2000/svg"><defs/></svg>';
+					}
+					if(self.gcodeFilesToAppend !== undefined){
+						data.gcodeFilesToAppend = self.gcodeFilesToAppend;
+					}
 
-				$.ajax({
-					url: API_BASEURL + "files/convert",
-					type: "POST",
-					dataType: "json",
-					contentType: "application/json; charset=UTF-8",
-					data: JSON.stringify(data)
+					$.ajax({
+						url: API_BASEURL + "files/convert",
+						type: "POST",
+						dataType: "json",
+						contentType: "application/json; charset=UTF-8",
+						data: JSON.stringify(data)
+					});
+
 				});
-
 			}
 		};
 

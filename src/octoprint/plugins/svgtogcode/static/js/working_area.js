@@ -619,7 +619,7 @@ $(function(){
 			self.check_sizes_and_placements();
 		};
 
-		self.getCompositionSVG = function(callback){
+		self.getCompositionSVG = function(fillAreas, callback){
 			self.abortFreeTransforms();
 			var wMM = self.workingAreaWidthMM();
 			var hMM = self.workingAreaHeightMM();
@@ -631,8 +631,8 @@ $(function(){
 			var userContent = snap.select("#userContent").clone();
 			compSvg.append(userContent);
 			
-			self.renderInfill(compSvg, wMM, hMM, 10, function(){
-				callback( self._wrapInSvgAndScale(compSvg));
+			self.renderInfill(compSvg, fillAreas, wMM, hMM, 10, function(svgWithRenderedInfill){
+				callback( self._wrapInSvgAndScale(svgWithRenderedInfill));
 				$('#compSvg').remove();
 			});
 		};
@@ -680,6 +680,19 @@ $(function(){
 			return gcodeFiles;
 		}, self);
 
+		self.hasFilledVectors = function(){
+			var el = snap.selectAll('#userContent *');
+			for (var i = 0; i < el.length; i++) {
+				var e = el[i];
+				var fill = e.attr('fill');
+				var op = e.attr('fill-opacity');
+				if(fill !== 'none' && op > 0){
+					return true;
+				}
+
+			}
+			return false;
+		};
 
 		self.draw_gcode = function(points, intensity, target){
 			var stroke_color = intensity === 0 ? '#BBBBBB' : '#FF0000';
@@ -770,7 +783,7 @@ $(function(){
 		}
 
 		// render the infill and inject it as an image into the svg
-		self.renderInfill = function (svg, wMM, hMM, pxPerMM, callback) {
+		self.renderInfill = function (svg, fillAreas, wMM, hMM, pxPerMM, callback) {
 			var wPT = wMM * 90 / 25.4;
 			var hPT = hMM * 90 / 25.4;
 			var tmpSvg = Snap(wPT, hPT).attr('id', 'tmpSvg');
@@ -778,16 +791,19 @@ $(function(){
 			var userContent = svg.clone();
 			tmpSvg.append(userContent);
 			self._embedAllImages(tmpSvg, function(){
-				var fillings = userContent.removeUnfilled();
+				var fillings = userContent.removeUnfilled(fillAreas);
 				for (var i = 0; i < fillings.length; i++) {
 					var item = fillings[i];
+					
 					if (item.type === 'image') {
+						// remove filter effects on images for proper rendering
 						var style = item.attr('style');
 						if (style !== null) {
 							var strippedFilters = style.replace(/filter.+?;/, '');
 							item.attr('style', strippedFilters);
 						}
 					} else {
+						// remove stroke from other elements
 						//item.attr('fill', '#ff0000');
 						item.attr('stroke', 'none');
 					}
@@ -795,6 +811,7 @@ $(function(){
 
 				var cb = function(result) {
 					if(fillings.length > 0){
+						// replace all images with the fill rendering
 						svg.selectAll('image').remove();
 						var waBB = snap.select('#coordGrid').getBBox();
 						var fillImage = snap.image(result, 0, 0, waBB.w, waBB.h);
