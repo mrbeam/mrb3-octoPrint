@@ -11,7 +11,6 @@ import glob
 import time
 import serial
 import re
-import queue
 
 from yaml import load as yamlload
 from yaml import dump as yamldump
@@ -69,6 +68,7 @@ class MachineCom(object):
 		self._acc_line_buffer = []
 		self._pauseWaitTimeLost = 0.0
 		self._send_event = threading.Event()
+		self._send_event.clear()
 
 		self._real_time_commands={'poll_status':False,
 								'feed_hold':False,
@@ -130,6 +130,10 @@ class MachineCom(object):
 		self._log("Connection closed, closing down monitor")
 
 	def _send_loop(self):
+		# first wait until serial connection is established
+		self._send_event.wait()
+		self._send_event.clear()
+
 		while self._sending_active:
 			try:
 				if self._real_time_commands['poll_status']:
@@ -266,6 +270,7 @@ class MachineCom(object):
 				self._writeGrblVersionToFile(versionDict)
 				if self._compareGrblVersion(versionDict) is False:
 					self._flashGrbl()
+			self._send_event.set()
 			self._onConnected(self.STATE_LOCKED)
 
 	def _state_locked_handle(self, line):
@@ -585,6 +590,63 @@ class MachineComPrintCallback(object):
 	def on_comm_pos_update(self, MPos, WPos):
 		pass
 
+class PrintingFileInformation(object):
+	"""
+	Encapsulates information regarding the current file being printed: file name, current position, total size and
+	time the print started.
+	Allows to reset the current file position to 0 and to calculate the current progress as a floating point
+	value between 0 and 1.
+	"""
+
+	def __init__(self, filename):
+		self._logger = logging.getLogger(__name__)
+		self._filename = filename
+		self._pos = 0
+		self._size = None
+		self._start_time = None
+
+	def getStartTime(self):
+		return self._start_time
+
+	def getFilename(self):
+		return self._filename
+
+	def getFilesize(self):
+		return self._size
+
+	def getFilepos(self):
+		return self._pos
+
+	def getFileLocation(self):
+		return FileDestinations.LOCAL
+
+	def getProgress(self):
+		"""
+		The current progress of the file, calculated as relation between file position and absolute size. Returns -1
+		if file size is None or < 1.
+		"""
+		if self._size is None or not self._size > 0:
+			return -1
+		return float(self._pos) / float(self._size)
+
+	def reset(self):
+		"""
+		Resets the current file position to 0.
+		"""
+		self._pos = 0
+
+	def start(self):
+		"""
+		Marks the print job as started and remembers the start time.
+		"""
+		self._start_time = time.time()
+
+	def close(self):
+		"""
+		Closes the print job.
+		"""
+		pass
+
 class PrintingGcodeFileInformation(PrintingFileInformation):
 	"""
 	Encapsulates information regarding an ongoing direct print. Takes care of the needed file handle and ensures
@@ -649,63 +711,6 @@ class PrintingGcodeFileInformation(PrintingFileInformation):
 			self.close()
 			self._logger.exception("Exception while processing line")
 			raise e
-
-class PrintingFileInformation(object):
-	"""
-	Encapsulates information regarding the current file being printed: file name, current position, total size and
-	time the print started.
-	Allows to reset the current file position to 0 and to calculate the current progress as a floating point
-	value between 0 and 1.
-	"""
-
-	def __init__(self, filename):
-		self._logger = logging.getLogger(__name__)
-		self._filename = filename
-		self._pos = 0
-		self._size = None
-		self._start_time = None
-
-	def getStartTime(self):
-		return self._start_time
-
-	def getFilename(self):
-		return self._filename
-
-	def getFilesize(self):
-		return self._size
-
-	def getFilepos(self):
-		return self._pos
-
-	def getFileLocation(self):
-		return FileDestinations.LOCAL
-
-	def getProgress(self):
-		"""
-		The current progress of the file, calculated as relation between file position and absolute size. Returns -1
-		if file size is None or < 1.
-		"""
-		if self._size is None or not self._size > 0:
-			return -1
-		return float(self._pos) / float(self._size)
-
-	def reset(self):
-		"""
-		Resets the current file position to 0.
-		"""
-		self._pos = 0
-
-	def start(self):
-		"""
-		Marks the print job as started and remembers the start time.
-		"""
-		self._start_time = time.time()
-
-	def close(self):
-		"""
-		Closes the print job.
-		"""
-		pass
 
 def convert_pause_triggers(configured_triggers):
 	triggers = {
