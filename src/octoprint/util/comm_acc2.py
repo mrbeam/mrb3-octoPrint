@@ -20,6 +20,7 @@ import octoprint.plugin
 
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings, default_settings
+from octoprint.filemanager.destinations import FileDestinations
 from octoprint.util import get_exception_string, RepeatedTimer, CountedEvent, sanitize_ascii
 
 ### MachineCom #########################################################################################################
@@ -215,6 +216,7 @@ class MachineCom(object):
 			if serial_obj is not None:
 				# first hook to succeed wins, but any can pass on to the next
 				self._changeState(self.STATE_OPEN_SERIAL)
+				self._log(repr(self._serial))
 				self._serial = serial_obj
 				return True
 		return False
