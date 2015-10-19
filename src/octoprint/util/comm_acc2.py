@@ -11,6 +11,7 @@ import glob
 import time
 import serial
 import re
+import queue
 
 from yaml import load as yamlload
 from yaml import dump as yamldump
@@ -58,13 +59,21 @@ class MachineCom(object):
 		self._callback = callbackObject
 		self._printerProfileManager = printerProfileManager
 
+		self.RX_BUFFER_SIZE = 127
+
 		self._state = self.STATE_NONE
 		self._errorValue = "Unknown Error"
 		self._serial = None
 		self._currentFile = None
-		self._clear_to_send = CountedEvent(max=10, name="comm.clear_to_send")
-		self._long_running_command = False
 		self._status_timer = None
+		self._acc_line_buffer = []
+		self._pauseWaitTimeLost = 0.0
+		self._send_event = threading.Event()
+
+		self._real_time_commands={'poll_status':False,
+								'feed_hold':False,
+								'cycle_start':False,
+								'soft_reset':False}
 
 		# hooks
 		self._pluginManager = octoprint.plugin.plugin_manager()
@@ -412,7 +421,36 @@ class MachineCom(object):
 		self._log("Connection closed, closing down monitor")
 
 	def _send_loop(self):
-		pass
+		while self._sending_active:
+			if self._real_time_commands['poll_status']:
+				self._sendCommand('?')
+				self._real_time_commands['poll_status']=False
+			elif self._real_time_commands['feed_hold']:
+				self._sendCommand('!')
+				self._real_time_commands['feed_hold']=False
+			elif self._real_time_commands['cycle_start']:
+				self._sendCommand('~')
+				self._real_time_commands['cycle_start']=False
+			elif self._real_time_commands['soft_reset']:
+				self._sendCommand(b'\x18')
+				self._real_time_commands['soft_reset']=False
+			elif self.isOperational() or self.isPaused():
+				pass # TODO send buffered command
+			elif self.isPrinting():
+				self._sendCommand(self._getNext())
+			self._send_event.wait(1)
+			self._send_event.clear()
+
+	def _sendCommand(self, cmd):
+		if sum([len(x) for x in self._acc_line_buffer]) + len(cmd) +1 < self.RX_BUFFER_SIZE:
+			self._log("Send: %s" % cmd)
+			self._acc_line_buffer.append(cmd)
+			try:
+				self._serial.write(cmd + '\n')
+			except serial.SerialException:
+				self._log("Unexpected error while writing serial port: %s" % (get_exception_string()))
+				self._errorValue = get_exception_string()
+				self.close(True)
 
 	def _openSerial(self):
 		def default(_, port, baudrate, read_timeout):
@@ -457,7 +495,6 @@ class MachineCom(object):
 				# first hook to succeed wins, but any can pass on to the next
 				self._changeState(self.STATE_OPEN_SERIAL)
 				self._serial = serial_obj
-				self._clear_to_send.clear()
 				return True
 		return False
 
@@ -482,6 +519,24 @@ class MachineCom(object):
 			self._log("WARN: While reading last line: %s" % e)
 			self._log("Recv: %r" % ret)
 		return ret
+
+	def _getNext(self):
+		line = self._currentFile.getNext()
+		if line is None:
+			payload = {
+				"file": self._currentFile.getFilename(),
+				"filename": os.path.basename(self._currentFile.getFilename()),
+				"origin": self._currentFile.getFileLocation(),
+				"time": self.getPrintTime()
+			}
+			self._callback.on_comm_print_job_done()
+			self._changeState(self.STATE_OPERATIONAL)
+			eventManager().fire(Events.PRINT_DONE, payload)
+
+			self.sendCommand("M5")
+			self.sendCommand("G0X0Y0")
+			self.sendCommand("M9")
+		return line
 
 	def _state_none_handle(self, line):
 		pass
@@ -514,10 +569,12 @@ class MachineCom(object):
 		if newState == self.STATE_PRINTING:
 			if self._status_timer is not None:
 				self._status_timer.cancel()
+			self._status_timer = RepeatedTimer(1, self._poll_status)
+			self._status_timer.start()
 		elif newState == self.STATE_OPERATIONAL:
 			if self._status_timer is not None:
 				self._status_timer.cancel()
-			self._status_timer = RepeatedTimer(1, self._poll_status, run_first=True)
+			self._status_timer = RepeatedTimer(2, self._poll_status)
 			self._status_timer.start()
 
 		if newState == self.STATE_CLOSED or newState == self.STATE_CLOSED_WITH_ERROR:
@@ -556,8 +613,8 @@ class MachineCom(object):
 		return None
 
 	def _poll_status(self):
-		if self.isOperational() and not self._long_running_command:
-			self.sendCommand("?", cmd_type="status_poll")
+		if self.isOperational():
+			self._real_time_commands['poll_status']=True
 
 	def _log(self, message):
 		self._callback.on_comm_log(message)
@@ -615,8 +672,64 @@ class MachineCom(object):
 		with open(versionFile, 'w') as outfile:
 			outfile.write(yamldump(versionDict, default_flow_style=True))
 
-	def sendCommand(self, cmd, cmd_type=None):
-		pass
+	def sendCommand(self, cmd, cmd_type=None, processed=False):
+		cmd = cmd.encode('ascii', 'replace')
+		if not processed:
+			cmd = process_gcode_line(cmd)
+			if not cmd:
+				return
+
+		# if cmd[0] == "/":
+		# 	specialcmd = cmd[1:].lower()
+		# 	if "togglestatusreport" in specialcmd:
+		# 		if self._temperature_timer is None:
+		# 			self._temperature_timer = RepeatedTimer(1, self._poll_temperature, run_first=True)
+		# 			self._temperature_timer.start()
+		# 		else:
+		# 			self._temperature_timer.cancel()
+		# 			self._temperature_timer = None
+		# 	elif "setstatusfrequency" in specialcmd:
+		# 		data = specialcmd.split(' ')
+		# 		try:
+		# 			frequency = float(data[1])
+		# 		except ValueError:
+		# 			self._log("No frequency setting found! Using 1 sec.")
+		# 			frequency = 1
+		# 		if self._temperature_timer is not None:
+		# 			self._temperature_timer.cancel()
+		#
+		# 		self._temperature_timer = RepeatedTimer(frequency, self._poll_temperature, run_first=True)
+		# 		self._temperature_timer.start()
+		# 	elif "disconnect" in specialcmd:
+		# 		self.close()
+		# 	else:
+		# 		self._log("Command not Found! %s" % cmd)
+		# 		self._log("available commands are:")
+		# 		self._log("   /togglestatusreport")
+		# 		self._log("   /setstatusfrequency <Inteval Sec>")
+		# 		self._log("   /disconnect")
+		# 	return
+
+		eepromCmd = re.search("^\$[0-9]+=.+$", cmd)
+		if(eepromCmd and self.isPrinting()):
+			self._log("Warning: Configuration changes during print are not allowed!")
+
+		if self.isPrinting():
+			self._commandQueue.put((cmd, cmd_type))
+		elif self.isOperational() or self.isLocked() or self.isHoming():
+			self._sendCommand(cmd, cmd_type=cmd_type)
+
+	def selectFile(self, filename, sd):
+		if self.isBusy():
+			return
+
+		self._currentFile = PrintingGcodeFileInformation(filename)
+		eventManager().fire(Events.FILE_SELECTED, {
+			"file": self._currentFile.getFilename(),
+			"filename": os.path.basename(self._currentFile.getFilename()),
+			"origin": self._currentFile.getFileLocation()
+		})
+		self._callback.on_comm_file_selected(filename, self._currentFile.getFilesize(), False)
 
 	def getStateString(self):
 		if self._state == self.STATE_NONE:
@@ -647,6 +760,9 @@ class MachineCom(object):
 			return "Flashing"
 		return "?%d?" % (self._state)
 
+	def getConnection(self):
+		return self._port, self._baudrate
+
 	def isOperational(self):
 		return self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PRINTING or self._state == self.STATE_PAUSED
 
@@ -656,8 +772,23 @@ class MachineCom(object):
 	def isPaused(self):
 		return self._state == self.STATE_PAUSED
 
+	def isLocked(self):
+		return self._state == self.STATE_LOCKED
+
+	def isHoming(self):
+		return self._state == self.STATE_HOMING
+
+	def isBusy(self):
+		return self.isPrinting() or self.isPaused()
+
 	def getErrorString(self):
 		return self._errorValue
+
+	def getPrintTime(self):
+		if self._currentFile is None or self._currentFile.getStartTime() is None:
+			return None
+		else:
+			return time.time() - self._currentFile.getStartTime() - self._pauseWaitTimeLost
 
 	def close(self, isError = False):
 		if self._status_timer is not None:
@@ -669,6 +800,9 @@ class MachineCom(object):
 
 		self._monitoring_active = False
 		self._sending_active = False
+
+		self.sending_thread.join()
+		self.monitoring_thread.join()
 
 		printing = self.isPrinting() or self.isPaused()
 		if self._serial is not None:
@@ -734,6 +868,128 @@ class MachineComPrintCallback(object):
 	def on_comm_pos_update(self, MPos, WPos):
 		pass
 
+class PrintingGcodeFileInformation(PrintingFileInformation):
+	"""
+	Encapsulates information regarding an ongoing direct print. Takes care of the needed file handle and ensures
+	that the file is closed in case of an error.
+	"""
+
+	def __init__(self, filename, offsets_callback=None, current_tool_callback=None):
+		PrintingFileInformation.__init__(self, filename)
+
+		self._handle = None
+
+		self._first_line = None
+
+		self._offsets_callback = offsets_callback
+		self._current_tool_callback = current_tool_callback
+
+		if not os.path.exists(self._filename) or not os.path.isfile(self._filename):
+			raise IOError("File %s does not exist" % self._filename)
+		self._size = os.stat(self._filename).st_size
+		self._pos = 0
+
+	def start(self):
+		"""
+		Opens the file for reading and determines the file size.
+		"""
+		PrintingFileInformation.start(self)
+		self._handle = open(self._filename, "r")
+
+	def close(self):
+		"""
+		Closes the file if it's still open.
+		"""
+		PrintingFileInformation.close(self)
+		if self._handle is not None:
+			try:
+				self._handle.close()
+			except:
+				pass
+		self._handle = None
+
+	def getNext(self):
+		"""
+		Retrieves the next line for printing.
+		"""
+		if self._handle is None:
+			raise ValueError("File %s is not open for reading" % self._filename)
+
+		try:
+			processed = None
+			while processed is None:
+				if self._handle is None:
+					# file got closed just now
+					return None
+				line = self._handle.readline()
+				if not line:
+					self.close()
+				processed = process_gcode_line(line)
+			self._pos = self._handle.tell()
+
+			return processed
+		except Exception as e:
+			self.close()
+			self._logger.exception("Exception while processing line")
+			raise e
+
+class PrintingFileInformation(object):
+	"""
+	Encapsulates information regarding the current file being printed: file name, current position, total size and
+	time the print started.
+	Allows to reset the current file position to 0 and to calculate the current progress as a floating point
+	value between 0 and 1.
+	"""
+
+	def __init__(self, filename):
+		self._logger = logging.getLogger(__name__)
+		self._filename = filename
+		self._pos = 0
+		self._size = None
+		self._start_time = None
+
+	def getStartTime(self):
+		return self._start_time
+
+	def getFilename(self):
+		return self._filename
+
+	def getFilesize(self):
+		return self._size
+
+	def getFilepos(self):
+		return self._pos
+
+	def getFileLocation(self):
+		return FileDestinations.LOCAL
+
+	def getProgress(self):
+		"""
+		The current progress of the file, calculated as relation between file position and absolute size. Returns -1
+		if file size is None or < 1.
+		"""
+		if self._size is None or not self._size > 0:
+			return -1
+		return float(self._pos) / float(self._size)
+
+	def reset(self):
+		"""
+		Resets the current file position to 0.
+		"""
+		self._pos = 0
+
+	def start(self):
+		"""
+		Marks the print job as started and remembers the start time.
+		"""
+		self._start_time = time.time()
+
+	def close(self):
+		"""
+		Closes the print job.
+		"""
+		pass
+
 def convert_pause_triggers(configured_triggers):
 	triggers = {
 		"enable": [],
@@ -761,6 +1017,26 @@ def convert_pause_triggers(configured_triggers):
 		if len(triggers[t]) > 0:
 			result[t] = re.compile("|".join(map(lambda pattern: "({pattern})".format(pattern=pattern), triggers[t])))
 	return result
+
+def process_gcode_line(line):
+	line = strip_comment(line).strip()
+	if len(line):
+		return None
+	return line
+
+def strip_comment(line):
+	if not ";" in line:
+		# shortcut
+		return line
+
+	escaped = False
+	result = []
+	for c in line:
+		if c == ";" and not escaped:
+			break
+		result += c
+		escaped = (c == "\\") and not escaped
+	return "".join(result)
 
 def get_new_timeout(t):
 	now = time.time()
