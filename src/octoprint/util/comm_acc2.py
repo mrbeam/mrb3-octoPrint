@@ -117,302 +117,11 @@ class MachineCom(object):
 					break
 				if line.strip() is not "":
 					self._timeout = get_new_timeout("communication")
-
 				# parse line depending on state
 				self._state_parse_dict[self._state](self, line)
-
 				return
-
-
-
-
-
-
-				# # GRBL Position update
-				# if self._grbl :
-				# 	if(self._state == self.STATE_HOMING and 'ok' in line):
-				# 		self._changeState(self.STATE_OPERATIONAL)
-				# 		self._onHomingDone();
-				#
-				# 	# TODO check if "Alarm" is enough
-				# 	if("Alarm lock" in line):
-				# 		self._changeState(self.STATE_LOCKED)
-				# 	if("['$H'|'$X' to unlock]" in line):
-				# 		self._changeState(self.STATE_LOCKED)
-				#
-				# 	# TODO maybe better in _gcode_X_sent ...
-				# 	if("Idle" in line and (self._state == self.STATE_LOCKED)   ):
-				# 		self._changeState(self.STATE_OPERATIONAL)
-				#
-				# 	# TODO highly experimental. needs testing.
-				# 	if("Hold" in line and self._state == self.STATE_PRINTING):
-				# 		self._changeState(self.STATE_PAUSED)
-				# 	#if("Run" in line and self._state == self.STATE_PAUSED):
-				# 	#	self._changeState(self.STATE_PRINTING)
-				#
-				# 	if 'MPos:' in line:
-				# 		self._update_grbl_pos(line)
-				#
-				# 	if("ALARM: Hard/soft limit" in line):
-				# 		errorMsg = "Machine Limit Hit. Please reset the machine and do a homing cycle"
-				# 		self._log(errorMsg)
-				# 		self._errorValue = errorMsg
-				# 		eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
-				# 		eventManager().fire(Events.LIMITS_HIT, {"error": self.getErrorString()})
-				# 		self._openSerial()
-				# 		self._changeState(self.STATE_CONNECTING)
-				#
-				# 	if("Invalid gcode" in line and self._state == self.STATE_PRINTING):
-				# 		# TODO Pause machine instead of resetting it.
-				# 		errorMsg = line
-				# 		self._log(errorMsg)
-				# 		self._errorValue = errorMsg
-				# 		#						self._changeState(self.STATE_ERROR)
-				# 		eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
-				# 		self._openSerial()
-				# 		self._changeState(self.STATE_CONNECTING)
-				#
-				# 	if("Grbl" in line and self._state == self.STATE_PRINTING):
-				# 		errorMsg = "Machine reset."
-				# 		self._log(errorMsg)
-				# 		self._errorValue = errorMsg
-				# 		self._changeState(self.STATE_LOCKED)
-				# 		eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
-				#
-				# 	if("Grbl" in line):
-				# 		versionMatch = re.search("Grbl (?P<grbl>.+?)(_(?P<git>[0-9a-f]{7})(?P<dirty>-dirty)?)? \[.+\]", line)
-				# 		if(versionMatch):
-				# 			versionDict = versionMatch.groupdict()
-				# 			self._writeGrblVersionToFile(versionDict)
-				# 			if self._compareGrblVersion(versionDict) is False:
-				# 				self._flashGrbl()
-				#
-				# 	if("error:" in line):
-				# 		self.handle_grbl_error(line)
-				#
-				# 	#				##~~ SD file list
-				# 	#				# if we are currently receiving an sd file list, each line is just a filename, so just read it and abort processing
-				# 	#				if self._sdFileList and not "End file list" in line:
-				# 	#					preprocessed_line = line.strip().lower()
-				# 	#					fileinfo = preprocessed_line.rsplit(None, 1)
-				# 	#					if len(fileinfo) > 1:
-				# 	#						# we might have extended file information here, so let's split filename and size and try to make them a bit nicer
-				# 	#						filename, size = fileinfo
-				# 	#						try:
-				# 	#							size = int(size)
-				# 	#						except ValueError:
-				# 	#							# whatever that was, it was not an integer, so we'll just use the whole line as filename and set size to None
-				# 	#							filename = preprocessed_line
-				# 	#							size = None
-				# 	#					else:
-				# 	#						# no extended file information, so only the filename is there and we set size to None
-				# 	#						filename = preprocessed_line
-				# 	#						size = None
-				# 	#
-				# 	#					if valid_file_type(filename, "machinecode"):
-				# 	#						if filter_non_ascii(filename):
-				# 	#							self._logger.warn("Got a file from printer's SD that has a non-ascii filename (%s), that shouldn't happen according to the protocol" % filename)
-				# 	#						else:
-				# 	#							if not filename.startswith("/"):
-				# 	#								# file from the root of the sd -- we'll prepend a /
-				# 	#								filename = "/" + filename
-				# 	#							self._sdFiles.append((filename, size))
-				# 	#						continue
-				#
-				# ##~~ process oks
-				# if line.strip().startswith("ok") or (self.isPrinting() and supportWait and line.strip().startswith("wait")):
-				# 	self._clear_to_send.set()
-				# 	self._long_running_command = False
-				#
-				# #				##~~ Temperature processing
-				# #				if ' T:' in line or line.startswith('T:') or ' T0:' in line or line.startswith('T0:') or ' B:' in line or line.startswith('B:'):
-				# #					if not disable_external_heatup_detection and not line.strip().startswith("ok") and not self._heating:
-				# #						self._logger.debug("Externally triggered heatup detected")
-				# #						self._heating = True
-				# #						self._heatupWaitStartTime = time.time()
-				# #					self._processTemperatures(line)
-				# #					self._callback.on_comm_temperature_update(self._temp, self._bedTemp)
-				# #
-				# #				elif supportRepetierTargetTemp and ('TargetExtr' in line or 'TargetBed' in line):
-				# #					matchExtr = self._regex_repetierTempExtr.match(line)
-				# #					matchBed = self._regex_repetierTempBed.match(line)
-				# #
-				# #					if matchExtr is not None:
-				# #						toolNum = int(matchExtr.group(1))
-				# #						try:
-				# #							target = float(matchExtr.group(2))
-				# #							if toolNum in self._temp.keys() and self._temp[toolNum] is not None and isinstance(self._temp[toolNum], tuple):
-				# #								(actual, oldTarget) = self._temp[toolNum]
-				# #								self._temp[toolNum] = (actual, target)
-				# #							else:
-				# #								self._temp[toolNum] = (None, target)
-				# #							self._callback.on_comm_temperature_update(self._temp, self._bedTemp)
-				# #						except ValueError:
-				# #							pass
-				# #					elif matchBed is not None:
-				# #						try:
-				# #							target = float(matchBed.group(1))
-				# #							if self._bedTemp is not None and isinstance(self._bedTemp, tuple):
-				# #								(actual, oldTarget) = self._bedTemp
-				# #								self._bedTemp = (actual, target)
-				# #							else:
-				# #								self._bedTemp = (None, target)
-				# #							self._callback.on_comm_temperature_update(self._temp, self._bedTemp)
-				# #						except ValueError:
-				# #							pass
-				#
-				# #				#If we are waiting for an M109 or M190 then measure the time we lost during heatup, so we can remove that time from our printing time estimate.
-				# #				if 'ok' in line and self._heatupWaitStartTime:
-				# #					self._heatupWaitTimeLost = self._heatupWaitTimeLost + (time.time() - self._heatupWaitStartTime)
-				# #					self._heatupWaitStartTime = None
-				# #					self._heating = False
-				#
-				# #				##~~ SD Card handling
-				# #				elif 'SD init fail' in line or 'volume.init failed' in line or 'openRoot failed' in line:
-				# #					self._sdAvailable = False
-				# #					self._sdFiles = []
-				# #					self._callback.on_comm_sd_state_change(self._sdAvailable)
-				# #				elif 'Not SD printing' in line:
-				# #					if self.isSdFileSelected() and self.isPrinting():
-				# #						# something went wrong, printer is reporting that we actually are not printing right now...
-				# #						self._sdFilePos = 0
-				# #						self._changeState(self.STATE_OPERATIONAL)
-				# #				elif 'SD card ok' in line and not self._sdAvailable:
-				# #					self._sdAvailable = True
-				# #					self.refreshSdFiles()
-				# #					self._callback.on_comm_sd_state_change(self._sdAvailable)
-				# #				elif 'Begin file list' in line:
-				# #					self._sdFiles = []
-				# #					self._sdFileList = True
-				# #				elif 'End file list' in line:
-				# #					self._sdFileList = False
-				# #					self._callback.on_comm_sd_files(self._sdFiles)
-				# #				elif 'SD printing byte' in line and self.isSdPrinting():
-				# #					# answer to M27, at least on Marlin, Repetier and Sprinter: "SD printing byte %d/%d"
-				# #					match = self._regex_sdPrintingByte.search(line)
-				# #					self._currentFile.setFilepos(int(match.group(1)))
-				# #					self._callback.on_comm_progress()
-				# #				elif 'File opened' in line and not self._ignore_select:
-				# #					# answer to M23, at least on Marlin, Repetier and Sprinter: "File opened:%s Size:%d"
-				# #					match = self._regex_sdFileOpened.search(line)
-				# #					if self._sdFileToSelect:
-				# #						name = self._sdFileToSelect
-				# #						self._sdFileToSelect = None
-				# #					else:
-				# #						name = match.group(1)
-				# #					self._currentFile = PrintingSdFileInformation(name, int(match.group(2)))
-				# #				elif 'File selected' in line:
-				# #					if self._ignore_select:
-				# #						self._ignore_select = False
-				# #					elif self._currentFile is not None:
-				# #						# final answer to M23, at least on Marlin, Repetier and Sprinter: "File selected"
-				# #						self._callback.on_comm_file_selected(self._currentFile.getFilename(), self._currentFile.getFilesize(), True)
-				# #						eventManager().fire(Events.FILE_SELECTED, {
-				# #							"file": self._currentFile.getFilename(),
-				# #							"origin": self._currentFile.getFileLocation()
-				# #						})
-				# #				elif 'Writing to file' in line:
-				# #					# anwer to M28, at least on Marlin, Repetier and Sprinter: "Writing to file: %s"
-				# #					self._changeState(self.STATE_PRINTING)
-				# #					self._clear_to_send.set()
-				# #					line = "ok"
-				# #				elif 'Done printing file' in line and self.isSdPrinting():
-				# #					# printer is reporting file finished printing
-				# #					self._sdFilePos = 0
-				# #					self._callback.on_comm_print_job_done()
-				# #					self._changeState(self.STATE_OPERATIONAL)
-				# #					eventManager().fire(Events.PRINT_DONE, {
-				# #						"file": self._currentFile.getFilename(),
-				# #						"filename": os.path.basename(self._currentFile.getFilename()),
-				# #						"origin": self._currentFile.getFileLocation(),
-				# #						"time": self.getPrintTime()
-				# #					})
-				# #					if self._sd_status_timer is not None:
-				# #						try:
-				# #							self._sd_status_timer.cancel()
-				# #						except:
-				# #							pass
-				# #				elif 'Done saving file' in line:
-				# #					self.refreshSdFiles()
-				# #				elif 'File deleted' in line and line.strip().endswith("ok"):
-				# #					# buggy Marlin version that doesn't send a proper \r after the "File deleted" statement, fixed in
-				# #					# current versions
-				# #					self._clear_to_send.set()
-				#
-				# ##~~ Message handling
-				# elif line.strip() != '' \
-				# 		and line.strip() != 'ok' and not line.startswith("wait") \
-				# 		and not line.startswith('Resend:') \
-				# 		and line != 'echo:Unknown command:""\n' \
-				# 		and line != "Unsupported statement" \
-				# 		and self.isOperational():
-				# 	self._callback.on_comm_message(line)
-				#
-				# ##~~ Parsing for feedback commands
-				# if feedback_controls and feedback_matcher and not "_all" in feedback_errors:
-				# 	try:
-				# 		self._process_registered_message(line, feedback_matcher, feedback_controls, feedback_errors)
-				# 	except:
-				# 		# something went wrong while feedback matching
-				# 		self._logger.exception("Error while trying to apply feedback control matching, disabling it")
-				# 		feedback_errors.append("_all")
-				#
-				# ##~~ Parsing for pause triggers
-				#
-				# if pause_triggers and not self.isStreaming():
-				# 	if "enable" in pause_triggers.keys() and pause_triggers["enable"].search(line) is not None:
-				# 		self.setPause(True)
-				# 	elif "disable" in pause_triggers.keys() and pause_triggers["disable"].search(line) is not None:
-				# 		self.setPause(False)
-				# 	elif "toggle" in pause_triggers.keys() and pause_triggers["toggle"].search(line) is not None:
-				# 		self.setPause(not self.isPaused())
-				#
-				#
-				# ### Operational
-				# elif self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PAUSED:
-				# 	if "ok" in line:
-				# 		# if we still have commands to process, process them
-				# 		if self._resendSwallowNextOk:
-				# 			self._resendSwallowNextOk = False
-				# 		elif self._resendDelta is not None:
-				# 			self._resendNextCommand()
-				# 		elif self._sendFromQueue():
-				# 			pass
-				#
-				# 	# resend -> start resend procedure from requested line
-				# 	elif line.lower().startswith("resend") or line.lower().startswith("rs"):
-				# 		self._handleResendRequest(line)
-				#
-				# ### Printing
-				# elif self._state == self.STATE_PRINTING:
-				# 	if line == "" and time.time() > self._timeout:
-				# 		if not self._long_running_command:
-				# 			self._log("Communication timeout during printing, forcing a line")
-				# 			self._sendCommand("?")
-				# 			self._clear_to_send.set()
-				# 		else:
-				# 			self._logger.debug("Ran into a communication timeout, but a command known to be a long runner is currently active")
-				#
-				# 	if "ok" in line or (supportWait and "wait" in line):
-				# 		# a wait while printing means our printer's buffer ran out, probably due to some ok getting
-				# 		# swallowed, so we treat it the same as an ok here teo take up communication again
-				# 		if self._resendSwallowNextOk:
-				# 			self._resendSwallowNextOk = False
-				#
-				# 		elif self._resendDelta is not None:
-				# 			self._resendNextCommand()
-				#
-				# 		else:
-				# 			if self._sendFromQueue():
-				# 				pass
-				# 			elif not self.isSdPrinting():
-				# 				self._sendNext()
-				#
-				# 	elif line.lower().startswith("resend") or line.lower().startswith("rs"):
-				# 		self._handleResendRequest(line)
 			except:
-				self._logger.exception("Something crashed inside the serial connection loop, please report this in OctoPrint's bug tracker:")
-
+				self._logger.exception("Something crashed inside the monitoring loop, please report this to Mr. Beam")
 				errorMsg = "See octoprint.log for details"
 				self._log(errorMsg)
 				self._errorValue = errorMsg
@@ -422,24 +131,32 @@ class MachineCom(object):
 
 	def _send_loop(self):
 		while self._sending_active:
-			if self._real_time_commands['poll_status']:
-				self._sendCommand('?')
-				self._real_time_commands['poll_status']=False
-			elif self._real_time_commands['feed_hold']:
-				self._sendCommand('!')
-				self._real_time_commands['feed_hold']=False
-			elif self._real_time_commands['cycle_start']:
-				self._sendCommand('~')
-				self._real_time_commands['cycle_start']=False
-			elif self._real_time_commands['soft_reset']:
-				self._sendCommand(b'\x18')
-				self._real_time_commands['soft_reset']=False
-			elif self.isOperational() or self.isPaused():
-				pass # TODO send buffered command
-			elif self.isPrinting():
-				self._sendCommand(self._getNext())
-			self._send_event.wait(1)
-			self._send_event.clear()
+			try:
+				if self._real_time_commands['poll_status']:
+					self._sendCommand('?')
+					self._real_time_commands['poll_status']=False
+				elif self._real_time_commands['feed_hold']:
+					self._sendCommand('!')
+					self._real_time_commands['feed_hold']=False
+				elif self._real_time_commands['cycle_start']:
+					self._sendCommand('~')
+					self._real_time_commands['cycle_start']=False
+				elif self._real_time_commands['soft_reset']:
+					self._sendCommand(b'\x18')
+					self._real_time_commands['soft_reset']=False
+				elif self.isOperational() or self.isPaused():
+					pass # TODO send buffered command
+				elif self.isPrinting():
+					self._sendCommand(self._getNext())
+				self._send_event.wait(1)
+				self._send_event.clear()
+			except:
+				self._logger.exception("Something crashed inside the sending loop, please report this to Mr. Beam")
+				errorMsg = "See octoprint.log for details"
+				self._log(errorMsg)
+				self._errorValue = errorMsg
+				self._changeState(self.STATE_ERROR)
+				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
 	def _sendCommand(self, cmd):
 		if sum([len(x) for x in self._acc_line_buffer]) + len(cmd) +1 < self.RX_BUFFER_SIZE:
