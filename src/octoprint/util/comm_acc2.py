@@ -71,6 +71,7 @@ class MachineCom(object):
 		self._status_timer = None
 		self._acc_line_buffer = []
 		self._cmd = None
+		self._pauseWaitStartTime = None
 		self._pauseWaitTimeLost = 0.0
 		self._commandQueue = Queue.Queue()
 		self._send_event = CountedEvent(max=20)
@@ -650,6 +651,28 @@ class MachineCom(object):
 		}
 
 		eventManager().fire(Events.PRINT_CANCELLED, payload)
+
+	def setPause(self, pause):
+		if not self._currentFile:
+			return
+
+		payload = {
+			"file": self._currentFile.getFilename(),
+			"filename": os.path.basename(self._currentFile.getFilename()),
+			"origin": self._currentFile.getFileLocation()
+		}
+
+		if not pause and self.isPaused():
+			if self._pauseWaitStartTime:
+				self._pauseWaitTimeLost = self._pauseWaitTimeLost + (time.time() - self._pauseWaitStartTime)
+				self._pauseWaitStartTime = None
+			self.sendCommand('~')
+			eventManager().fire(Events.PRINT_RESUMED, payload)
+		elif pause and self.isPrinting():
+			if not self._pauseWaitStartTime:
+				self._pauseWaitStartTime = time.time()
+			self.sendCommand('!')
+			eventManager().fire(Events.PRINT_PAUSED, payload)
 
 	def getStateString(self):
 		if self._state == self.STATE_NONE:
