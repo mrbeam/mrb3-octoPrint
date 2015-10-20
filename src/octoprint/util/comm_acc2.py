@@ -254,6 +254,7 @@ class MachineCom(object):
 				if(len(self._acc_line_buffer) > 0):
 					#print('buffer',sum(self.acc_line_lengths), 'deleting after ok', self.acc_line_lengths[0])
 					del self._acc_line_buffer[0]  # Delete the commands character count corresponding to the last 'ok'
+					self._send_event.set()
 		except serial.SerialException:
 			self._log("Unexpected error while reading serial port: %s" % (get_exception_string()))
 			self._errorValue = get_exception_string()
@@ -307,14 +308,12 @@ class MachineCom(object):
 			self._changeState(self.STATE_OPERATIONAL)
 
 	def _state_operational_handle(self, line):
-		if line.startswith("ok"):
-			self._send_event.set()
-		elif line.startswith("<"):
+		if line.startswith("<"):
 			self._update_grbl_pos(line)
 
 	def _state_printing_handle(self, line):
-		if line.startswith("ok"):
-			self._send_event.set()
+		if line.startswith("<"):
+			self._update_grbl_pos(line)
 
 	def _update_grbl_pos(self, line):
 		# line example:
