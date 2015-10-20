@@ -159,11 +159,7 @@ class MachineCom(object):
 				elif self._real_time_commands['soft_reset']:
 					self.sendCommand(b'\x18')
 					self._real_time_commands['soft_reset']=False
-				#else:
-					#if not self._commandQueue.empty() and not self.isHoming():
-				 	#	self._sendCommand(self._commandQueue.get())
-					#elif self.isPrinting():
-					#	self._sendCommand(self._getNext())
+
 				if self.isPrinting() and self._commandQueue.empty():
 					cmd = self._getNext()
 					if cmd is not None:
@@ -185,6 +181,7 @@ class MachineCom(object):
 			return
 		elif self._cmd is None:
 			self._cmd = self._commandQueue.get()
+			self._commandQueue.task_done()
 		if sum([len(x) for x in self._acc_line_buffer]) + len(self._cmd) +1 < self.RX_BUFFER_SIZE-10:
 			self._log("Send: %s" % self._cmd)
 			self._acc_line_buffer.append(self._cmd)
@@ -633,6 +630,26 @@ class MachineCom(object):
 			self._errorValue = get_exception_string()
 			self._changeState(self.STATE_ERROR)
 			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+
+	def cancelPrint(self):
+		if not self.isOperational():
+			return
+
+		self._commandQueue=Queue.Queue()
+		self.sendCommand('M5')
+		self.sendCommand('G0X0Y0')
+		self.sendCommand('M9')
+		self._commandQueue.join()
+
+		self._changeState(self.STATE_OPERATIONAL)
+
+		payload = {
+			"file": self._currentFile.getFilename(),
+			"filename": os.path.basename(self._currentFile.getFilename()),
+			"origin": self._currentFile.getFileLocation()
+		}
+
+		eventManager().fire(Events.PRINT_CANCELLED, payload)
 
 	def getStateString(self):
 		if self._state == self.STATE_NONE:
