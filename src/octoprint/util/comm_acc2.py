@@ -94,7 +94,7 @@ class MachineCom(object):
 								  self.STATE_CONNECTING:self._state_connecting_handle,
 								  self.STATE_OPERATIONAL:self._state_operational_handle,
 								  self.STATE_PRINTING:self._state_printing_handle,
-								  self.STATE_PAUSED:self._state_none_handle,
+								  self.STATE_PAUSED:self._state_paused_handle,
 								  self.STATE_CLOSED:self._state_none_handle,
 								  self.STATE_ERROR:self._state_none_handle,
 								  self.STATE_CLOSED_WITH_ERROR:self._state_none_handle,
@@ -182,7 +182,6 @@ class MachineCom(object):
 			return
 		elif self._cmd is None:
 			self._cmd = self._commandQueue.get()
-			self._commandQueue.task_done()
 		if sum([len(x) for x in self._acc_line_buffer]) + len(self._cmd) +1 < self.RX_BUFFER_SIZE-10:
 			self._log("Send: %s" % self._cmd)
 			self._acc_line_buffer.append(self._cmd)
@@ -191,6 +190,7 @@ class MachineCom(object):
 				# trigger "sent" phase and use up one "ok"
 				self._process_command_phase("sent", self._cmd)
 				self._cmd = None
+				self._commandQueue.task_done()
 			except serial.SerialException:
 				self._log("Unexpected error while writing serial port: %s" % (get_exception_string()))
 				self._errorValue = get_exception_string()
@@ -313,6 +313,10 @@ class MachineCom(object):
 		if line.startswith("<"):
 			self._update_grbl_pos(line)
 
+	def _state_paused_handle(self, line):
+		if line.startswith("<"):
+			self._update_grbl_pos(line)
+
 	def _update_grbl_pos(self, line):
 		# line example:
 		# <Idle,MPos:-434.000,-596.000,0.000,WPos:0.000,0.000,0.000,S:0,laser off:0>
@@ -405,7 +409,7 @@ class MachineCom(object):
 				self._status_timer.cancel()
 			self._status_timer = RepeatedTimer(1, self._poll_status)
 			self._status_timer.start()
-		elif newState == self.STATE_OPERATIONAL:
+		elif newState == self.STATE_OPERATIONAL or newState == self.STATE_PAUSED:
 			if self._status_timer is not None:
 				self._status_timer.cancel()
 			self._status_timer = RepeatedTimer(2, self._poll_status)
@@ -636,7 +640,8 @@ class MachineCom(object):
 		if not self.isOperational():
 			return
 
-		self._commandQueue=Queue.Queue()
+		with self._commandQueue.mutex:
+			self._commandQueue.queue.clear()
 		self.sendCommand('M5')
 		self.sendCommand('G0X0Y0')
 		self.sendCommand('M9')
