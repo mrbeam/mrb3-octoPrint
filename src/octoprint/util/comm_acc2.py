@@ -69,6 +69,7 @@ class MachineCom(object):
 		self._serial = None
 		self._currentFile = None
 		self._status_timer = None
+		self._pool_status_queued = False
 		self._acc_line_buffer = []
 		self._cmd = None
 		self._pauseWaitStartTime = None
@@ -112,7 +113,6 @@ class MachineCom(object):
 		self._sending_active = True
 		self.sending_thread = threading.Thread(target=self._send_loop, name="comm.sending_thread")
 		self.sending_thread.daemon = True
-		self.sending_thread.start()
 
 	def _monitor_loop(self):
 		#Open the serial port.
@@ -130,7 +130,6 @@ class MachineCom(object):
 					break
 				if line.strip() is not "":
 					self._timeout = get_new_timeout("communication")
-				# parse line depending on state
 				self._state_parse_dict[self._state](line)
 			except:
 				self._logger.exception("Something crashed inside the monitoring loop, please report this to Mr. Beam")
@@ -142,23 +141,19 @@ class MachineCom(object):
 		self._log("Connection closed, closing down monitor")
 
 	def _send_loop(self):
-		# first wait until serial connection is established
-		self._send_event.wait()
-		self._send_event.clear()
-
 		while self._sending_active:
 			try:
 				if self._real_time_commands['poll_status']:
-					self.sendCommand('?')
+					self._sendCommand('?')
 					self._real_time_commands['poll_status']=False
 				elif self._real_time_commands['feed_hold']:
-					self.sendCommand('!')
+					self._sendCommand('!')
 					self._real_time_commands['feed_hold']=False
 				elif self._real_time_commands['cycle_start']:
-					self.sendCommand('~')
+					self._sendCommand('~')
 					self._real_time_commands['cycle_start']=False
 				elif self._real_time_commands['soft_reset']:
-					self.sendCommand(b'\x18')
+					self._sendCommand(b'\x18')
 					self._real_time_commands['soft_reset']=False
 
 				if self.isPrinting() and self._commandQueue.empty():
@@ -167,7 +162,7 @@ class MachineCom(object):
 						self.sendCommand(cmd)
 
 				self._sendCommand()
-				self._send_event.wait(1)
+				self._send_event.wait(0.5)
 				self._send_event.clear()
 			except:
 				self._logger.exception("Something crashed inside the sending loop, please report this to Mr. Beam")
@@ -177,20 +172,31 @@ class MachineCom(object):
 				self._changeState(self.STATE_ERROR)
 				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
-	def _sendCommand(self):
-		if self._cmd is None and self._commandQueue.empty():
-			return
-		elif self._cmd is None:
-			self._cmd = self._commandQueue.get()
-		if sum([len(x) for x in self._acc_line_buffer]) + len(self._cmd) +1 < self.RX_BUFFER_SIZE-10:
-			self._log("Send: %s" % self._cmd)
-			self._acc_line_buffer.append(self._cmd)
+	def _sendCommand(self, cmd=None):
+		if cmd is None:
+			if self._cmd is None and self._commandQueue.empty():
+				return
+			elif self._cmd is None:
+				self._cmd = self._commandQueue.get()
+			if sum([len(x) for x in self._acc_line_buffer]) + len(self._cmd) +1 < self.RX_BUFFER_SIZE:
+				self._log("Send: %s" % self._cmd)
+				self._acc_line_buffer.append(self._cmd)
+				try:
+					self._serial.write(self._cmd + '\n')
+					# trigger "sent" phase and use up one "ok"
+					self._process_command_phase("sent", self._cmd)
+					self._cmd = None
+					self._send_event.set()
+				except serial.SerialException:
+					self._log("Unexpected error while writing serial port: %s" % (get_exception_string()))
+					self._errorValue = get_exception_string()
+					self.close(True)
+		else:
+			self._log("Send: %s" % cmd)
+			self._acc_line_buffer.append(cmd)
 			try:
-				self._serial.write(self._cmd + '\n')
-				# trigger "sent" phase and use up one "ok"
-				self._process_command_phase("sent", self._cmd)
-				self._cmd = None
-				self._commandQueue.task_done()
+				self._serial.write(cmd + '\n')
+				self._process_command_phase("sent", cmd)
 			except serial.SerialException:
 				self._log("Unexpected error while writing serial port: %s" % (get_exception_string()))
 				self._errorValue = get_exception_string()
@@ -251,6 +257,8 @@ class MachineCom(object):
 			if('ok' in ret or 'error' in ret):
 				if(len(self._acc_line_buffer) > 0):
 					#print('buffer',sum(self.acc_line_lengths), 'deleting after ok', self.acc_line_lengths[0])
+					if self._acc_line_buffer[0] == '?':
+						self._pool_status_queued=False
 					del self._acc_line_buffer[0]  # Delete the commands character count corresponding to the last 'ok'
 					self._send_event.set()
 		except serial.SerialException:
@@ -295,7 +303,6 @@ class MachineCom(object):
 			#	self._writeGrblVersionToFile(versionDict)
 			#	if self._compareGrblVersion(versionDict) is False:
 			#		self._flashGrbl()
-			self._send_event.set()
 			self._onConnected(self.STATE_LOCKED)
 
 	def _state_locked_handle(self, line):
@@ -434,6 +441,8 @@ class MachineCom(object):
 		else:
 			self._changeState(nextState)
 
+		self.sending_thread.start()
+
 		payload = dict(port=self._port, baudrate=self._baudrate)
 		eventManager().fire(Events.CONNECTED, payload)
 
@@ -452,8 +461,10 @@ class MachineCom(object):
 
 	def _poll_status(self):
 		if self.isOperational():
-			self._real_time_commands['poll_status']=True
-			self._send_event.set()
+			if self._pool_status_queued is False:
+				self._real_time_commands['poll_status']=True
+				self._pool_status_queued = True
+				self._send_event.set()
 
 	def _log(self, message):
 		self._callback.on_comm_log(message)
@@ -645,7 +656,6 @@ class MachineCom(object):
 		self.sendCommand('M5')
 		self.sendCommand('G0X0Y0')
 		self.sendCommand('M9')
-		self._commandQueue.join()
 
 		self._changeState(self.STATE_OPERATIONAL)
 
@@ -671,12 +681,14 @@ class MachineCom(object):
 			if self._pauseWaitStartTime:
 				self._pauseWaitTimeLost = self._pauseWaitTimeLost + (time.time() - self._pauseWaitStartTime)
 				self._pauseWaitStartTime = None
-			self.sendCommand('~')
+			self._real_time_commands['cycle_start']=True
+			self._send_event.set()
 			eventManager().fire(Events.PRINT_RESUMED, payload)
 		elif pause and self.isPrinting():
 			if not self._pauseWaitStartTime:
 				self._pauseWaitStartTime = time.time()
-			self.sendCommand('!')
+			self._real_time_commands['feed_hold']=True
+			self._send_event.set()
 			eventManager().fire(Events.PRINT_PAUSED, payload)
 
 	def getStateString(self):
