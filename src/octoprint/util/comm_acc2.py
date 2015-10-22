@@ -65,6 +65,7 @@ class MachineCom(object):
 		self.RX_BUFFER_SIZE = 127
 
 		self._state = self.STATE_NONE
+		self._grbl_state = None
 		self._errorValue = "Unknown Error"
 		self._serial = None
 		self._currentFile = None
@@ -76,6 +77,7 @@ class MachineCom(object):
 		self._pauseWaitTimeLost = 0.0
 		self._commandQueue = Queue.Queue()
 		self._send_event = CountedEvent(max=20)
+		self._finished_currentFile = False
 
 		# regular expressions
 		self._regex_command = re.compile("^\s*\$?([GM]\d+|[TH])")
@@ -88,20 +90,6 @@ class MachineCom(object):
 		# hooks
 		self._pluginManager = octoprint.plugin.plugin_manager()
 		self._serial_factory_hooks = self._pluginManager.get_hooks("octoprint.comm.transport.serial.factory")
-
-		self._state_parse_dict = {self.STATE_NONE:self._state_none_handle,
-								  self.STATE_OPEN_SERIAL:self._state_none_handle,
-								  self.STATE_DETECT_SERIAL:self._state_none_handle,
-								  self.STATE_CONNECTING:self._state_connecting_handle,
-								  self.STATE_OPERATIONAL:self._state_operational_handle,
-								  self.STATE_PRINTING:self._state_printing_handle,
-								  self.STATE_PAUSED:self._state_paused_handle,
-								  self.STATE_CLOSED:self._state_none_handle,
-								  self.STATE_ERROR:self._state_none_handle,
-								  self.STATE_CLOSED_WITH_ERROR:self._state_none_handle,
-								  self.STATE_LOCKED:self._state_locked_handle,
-								  self.STATE_HOMING:self._state_homing_handle,
-								  self.STATE_FLASHING:self._state_none_handle}
 
 		# monitoring thread
 		self._monitoring_active = True
@@ -130,7 +118,18 @@ class MachineCom(object):
 					break
 				if line.strip() is not "":
 					self._timeout = get_new_timeout("communication")
-				self._state_parse_dict[self._state](line)
+				if line.startswith('<'): # status report
+					self._handle_status_report(line)
+				elif line.startswith('ok'): # ok message :)
+					self._handle_ok_message()
+				elif line.startswith('err'): # error message
+					self._handle_error_message(line)
+				elif line.startswith('ALA'): # ALARM message
+					self._handle_alarm_message(line)
+				elif line.startswith('['): # feedback message
+					self._handle_feedback_message(line)
+				elif line.startswith('Grb'): # Grbl startup message
+					self._handle_startup_message()
 			except:
 				self._logger.exception("Something crashed inside the monitoring loop, please report this to Mr. Beam")
 				errorMsg = "See octoprint.log for details"
@@ -143,23 +142,14 @@ class MachineCom(object):
 	def _send_loop(self):
 		while self._sending_active:
 			try:
-				if self._real_time_commands['poll_status']:
-					self._sendCommand('?')
-					self._real_time_commands['poll_status']=False
-				elif self._real_time_commands['feed_hold']:
-					self._sendCommand('!')
-					self._real_time_commands['feed_hold']=False
-				elif self._real_time_commands['cycle_start']:
-					self._sendCommand('~')
-					self._real_time_commands['cycle_start']=False
-				elif self._real_time_commands['soft_reset']:
-					self._sendCommand(b'\x18')
-					self._real_time_commands['soft_reset']=False
-
+				self._process_rt_commands()
 				if self.isPrinting() and self._commandQueue.empty():
 					cmd = self._getNext()
 					if cmd is not None:
 						self.sendCommand(cmd)
+						self._callback.on_comm_progress()
+					elif len(self._acc_line_buffer) == 0:
+						self._set_print_finished()
 
 				self._sendCommand()
 				self._send_event.wait(0.5)
@@ -178,7 +168,7 @@ class MachineCom(object):
 				return
 			elif self._cmd is None:
 				self._cmd = self._commandQueue.get()
-			if sum([len(x) for x in self._acc_line_buffer]) + len(self._cmd) +1 < self.RX_BUFFER_SIZE:
+			if sum([len(x) for x in self._acc_line_buffer]) + len(self._cmd) +1 < self.RX_BUFFER_SIZE-1:
 				self._log("Send: %s" % self._cmd)
 				self._acc_line_buffer.append(self._cmd)
 				try:
@@ -201,6 +191,20 @@ class MachineCom(object):
 				self._log("Unexpected error while writing serial port: %s" % (get_exception_string()))
 				self._errorValue = get_exception_string()
 				self.close(True)
+
+	def _process_rt_commands(self):
+		if self._real_time_commands['poll_status']:
+			self._sendCommand('?')
+			self._real_time_commands['poll_status']=False
+		elif self._real_time_commands['feed_hold']:
+			self._sendCommand('!')
+			self._real_time_commands['feed_hold']=False
+		elif self._real_time_commands['cycle_start']:
+			self._sendCommand('~')
+			self._real_time_commands['cycle_start']=False
+		elif self._real_time_commands['soft_reset']:
+			self._sendCommand(b'\x18')
+			self._real_time_commands['soft_reset']=False
 
 	def _openSerial(self):
 		def default(_, port, baudrate, read_timeout):
@@ -275,22 +279,91 @@ class MachineCom(object):
 		return ret
 
 	def _getNext(self):
-		line = self._currentFile.getNext()
-		if line is None:
-			payload = {
-				"file": self._currentFile.getFilename(),
-				"filename": os.path.basename(self._currentFile.getFilename()),
-				"origin": self._currentFile.getFileLocation(),
-				"time": self.getPrintTime()
-			}
-			self._callback.on_comm_print_job_done()
-			self._changeState(self.STATE_OPERATIONAL)
-			eventManager().fire(Events.PRINT_DONE, payload)
+		if self._finished_currentFile is False:
+			line = self._currentFile.getNext()
+			if line is None:
+				self._finished_currentFile = True
+			return line
+		else:
+			return None
 
-			self.sendCommand("M5")
-			self.sendCommand("G0X0Y0")
-			self.sendCommand("M9")
-		return line
+	def _set_print_finished(self):
+		self._callback.on_comm_print_job_done()
+		self._changeState(self.STATE_OPERATIONAL)
+		payload = {
+			"file": self._currentFile.getFilename(),
+			"filename": os.path.basename(self._currentFile.getFilename()),
+			"origin": self._currentFile.getFileLocation(),
+			"time": self.getPrintTime()
+		}
+		eventManager().fire(Events.PRINT_DONE, payload)
+		self.sendCommand("M5")
+		self.sendCommand("G0X0Y0")
+		self.sendCommand("M9")
+
+	def _handle_status_report(self, line):
+		self._grbl_state = line[1:].split(',')[0]
+		self._update_grbl_pos(line)
+
+	def _handle_ok_message(self):
+		if self._state == self.STATE_HOMING:
+			self._changeState(self.STATE_OPERATIONAL)
+
+	def _handle_error_message(self, line):
+		self._errorValue = line
+		eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+		self._changeState(self.STATE_LOCKED)
+
+	def _handle_alarm_message(self, line):
+		if "Hard/soft limit" in line:
+			errorMsg = "Machine Limit Hit. Please reset the machine and do a homing cycle"
+			self._log(errorMsg)
+			self._errorValue = errorMsg
+			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+			eventManager().fire(Events.LIMITS_HIT, {"error": self.getErrorString()})
+		elif "Abort during cycle" in line:
+			errorMsg = "Soft-reset detected. Please reset the machine and do a homing cycle"
+			self._log(errorMsg)
+			self._errorValue = errorMsg
+			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+			eventManager().fire(Events.SOFT_RESET, {"error": self.getErrorString()})
+		elif "Probe fail" in line:
+			errorMsg = "Probing has failed. Please reset the machine and do a homing cycle"
+			self._log(errorMsg)
+			self._errorValue = errorMsg
+			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+		self._openSerial()
+		self._changeState(self.STATE_CONNECTING)
+
+	def _handle_feedback_message(self, line):
+		if line[1:].startswith('Res'): # [Reset to continue]
+			pass
+		elif line[1:].startswith('\'$H'): # ['$H'|'$X' to unlock]
+			pass
+		elif line[1:].startswith('Cau'): # [Caution: Unlocked]
+			pass
+		elif line[1:].startswith('Ena'): # [Enabled]
+			pass
+		elif line[1:].startswith('Dis'): # [Disabled]
+			pass
+
+	def _handle_startup_message(self):
+		if self.isOperational():
+			errorMsg = "Machine reset."
+			self._cmd = None
+			self._acc_line_buffer = []
+			self._pauseWaitStartTime = None
+			self._pauseWaitTimeLost = 0.0
+			self._pool_status_queued = False
+			self._send_event.clear(completely=True)
+			with self._commandQueue.mutex:
+				self._commandQueue.queue.clear()
+			self._log(errorMsg)
+			self._errorValue = errorMsg
+			self._changeState(self.STATE_LOCKED)
+			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+		else:
+			self._onConnected(self.STATE_LOCKED)
 
 	def _state_none_handle(self, line):
 		pass
@@ -414,7 +487,7 @@ class MachineCom(object):
 		if newState == self.STATE_PRINTING:
 			if self._status_timer is not None:
 				self._status_timer.cancel()
-			self._status_timer = RepeatedTimer(1, self._poll_status)
+			self._status_timer = RepeatedTimer(0.5, self._poll_status)
 			self._status_timer.start()
 		elif newState == self.STATE_OPERATIONAL or newState == self.STATE_PAUSED:
 			if self._status_timer is not None:
@@ -441,7 +514,8 @@ class MachineCom(object):
 		else:
 			self._changeState(nextState)
 
-		self.sending_thread.start()
+		if not self.sending_thread.isAlive():
+			self.sending_thread.start()
 
 		payload = dict(port=self._port, baudrate=self._baudrate)
 		eventManager().fire(Events.CONNECTED, payload)
@@ -465,6 +539,11 @@ class MachineCom(object):
 				self._real_time_commands['poll_status']=True
 				self._pool_status_queued = True
 				self._send_event.set()
+
+	def _soft_reset(self):
+		if self.isOperational():
+			self._real_time_commands['soft_reset']=True
+			self._send_event.set()
 
 	def _log(self, message):
 		self._callback.on_comm_log(message)
@@ -620,7 +699,7 @@ class MachineCom(object):
 		self._callback.on_comm_file_selected(filename, self._currentFile.getFilesize(), False)
 
 	def startPrint(self):
-		if not self.isOperational() or self.isPrinting():
+		if not self.isOperational():
 			return
 
 		if self._currentFile is None:
@@ -631,6 +710,7 @@ class MachineCom(object):
 			self.sendCommand("M08")
 
 			self._currentFile.start()
+			self._finished_currentFile = False
 
 			payload = {
 				"file": self._currentFile.getFilename(),
@@ -653,11 +733,9 @@ class MachineCom(object):
 
 		with self._commandQueue.mutex:
 			self._commandQueue.queue.clear()
-		self.sendCommand('M5')
-		self.sendCommand('G0X0Y0')
-		self.sendCommand('M9')
+		self._soft_reset()
 
-		self._changeState(self.STATE_OPERATIONAL)
+		self._changeState(self.STATE_LOCKED)
 
 		payload = {
 			"file": self._currentFile.getFilename(),
@@ -719,6 +797,22 @@ class MachineCom(object):
 		if self._state == self.STATE_FLASHING:
 			return "Flashing"
 		return "?%d?" % (self._state)
+
+	def getPrintProgress(self):
+		if self._currentFile is None:
+			return None
+		return self._currentFile.getProgress()
+
+	def getPrintFilepos(self):
+		if self._currentFile is None:
+			return None
+		return self._currentFile.getFilepos()
+
+	def getCleanedPrintTime(self):
+		printTime = self.getPrintTime()
+		if printTime is None:
+			return None
+		return printTime
 
 	def getConnection(self):
 		return self._port, self._baudrate
