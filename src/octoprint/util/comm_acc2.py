@@ -70,7 +70,6 @@ class MachineCom(object):
 		self._serial = None
 		self._currentFile = None
 		self._status_timer = None
-		self._pool_status_queued = False
 		self._acc_line_buffer = []
 		self._cmd = None
 		self._pauseWaitStartTime = None
@@ -183,9 +182,8 @@ class MachineCom(object):
 					self.close(True)
 		else:
 			self._log("Send: %s" % cmd)
-			self._acc_line_buffer.append(cmd)
 			try:
-				self._serial.write(cmd + '\n')
+				self._serial.write(cmd)
 				self._process_command_phase("sent", cmd)
 			except serial.SerialException:
 				self._log("Unexpected error while writing serial port: %s" % (get_exception_string()))
@@ -261,8 +259,6 @@ class MachineCom(object):
 			if('ok' in ret or 'error' in ret):
 				if(len(self._acc_line_buffer) > 0):
 					#print('buffer',sum(self.acc_line_lengths), 'deleting after ok', self.acc_line_lengths[0])
-					if self._acc_line_buffer[0] == '?':
-						self._pool_status_queued=False
 					del self._acc_line_buffer[0]  # Delete the commands character count corresponding to the last 'ok'
 					self._send_event.set()
 		except serial.SerialException:
@@ -303,6 +299,12 @@ class MachineCom(object):
 
 	def _handle_status_report(self, line):
 		self._grbl_state = line[1:].split(',')[0]
+		if self._grbl_state == 'Queue':
+			if not self.isPaused():
+				self.setPause(True)
+		elif self._grbl_state == 'Run':
+			if self.isPaused():
+				self.setPause(False)
 		self._update_grbl_pos(line)
 
 	def _handle_ok_message(self):
@@ -354,7 +356,6 @@ class MachineCom(object):
 			self._acc_line_buffer = []
 			self._pauseWaitStartTime = None
 			self._pauseWaitTimeLost = 0.0
-			self._pool_status_queued = False
 			self._send_event.clear(completely=True)
 			with self._commandQueue.mutex:
 				self._commandQueue.queue.clear()
@@ -364,38 +365,6 @@ class MachineCom(object):
 			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 		else:
 			self._onConnected(self.STATE_LOCKED)
-
-	def _state_none_handle(self, line):
-		pass
-
-	def _state_connecting_handle(self, line):
-		if line.startswith("Grbl"):
-			#versionMatch = re.search("Grbl (?P<grbl>.+?)(_(?P<git>[0-9a-f]{7})(?P<dirty>-dirty)?)? \[.+\]", line)
-			#if(versionMatch):
-			#	versionDict = versionMatch.groupdict()
-			#	self._writeGrblVersionToFile(versionDict)
-			#	if self._compareGrblVersion(versionDict) is False:
-			#		self._flashGrbl()
-			self._onConnected(self.STATE_LOCKED)
-
-	def _state_locked_handle(self, line):
-		pass
-
-	def _state_homing_handle(self, line):
-		if line.startswith("ok"):
-			self._changeState(self.STATE_OPERATIONAL)
-
-	def _state_operational_handle(self, line):
-		if line.startswith("<"):
-			self._update_grbl_pos(line)
-
-	def _state_printing_handle(self, line):
-		if line.startswith("<"):
-			self._update_grbl_pos(line)
-
-	def _state_paused_handle(self, line):
-		if line.startswith("<"):
-			self._update_grbl_pos(line)
 
 	def _update_grbl_pos(self, line):
 		# line example:
@@ -535,10 +504,8 @@ class MachineCom(object):
 
 	def _poll_status(self):
 		if self.isOperational():
-			if self._pool_status_queued is False:
-				self._real_time_commands['poll_status']=True
-				self._pool_status_queued = True
-				self._send_event.set()
+			self._real_time_commands['poll_status']=True
+			self._send_event.set()
 
 	def _soft_reset(self):
 		if self.isOperational():
