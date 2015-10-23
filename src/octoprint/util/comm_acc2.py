@@ -701,7 +701,8 @@ class MachineCom(object):
 		with self._commandQueue.mutex:
 			self._commandQueue.queue.clear()
 		self._soft_reset()
-
+		self._acc_line_buffer = []
+		self._send_event.clear(completely=True)
 		self._changeState(self.STATE_LOCKED)
 
 		payload = {
