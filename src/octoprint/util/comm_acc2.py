@@ -151,7 +151,7 @@ class MachineCom(object):
 						self._set_print_finished()
 
 				self._sendCommand()
-				self._send_event.wait(0.05)
+				self._send_event.wait(0.01)
 				self._send_event.clear()
 			except:
 				self._logger.exception("Something crashed inside the sending loop, please report this to Mr. Beam")
@@ -255,10 +255,10 @@ class MachineCom(object):
 			return None
 		try:
 			ret = self._serial.readline()
+			self._send_event.set()
 			if('ok' in ret or 'error' in ret):
 				if(len(self._acc_line_buffer) > 0):
 					del self._acc_line_buffer[0]  # Delete the commands character count corresponding to the last 'ok'
-					self._send_event.set()
 		except serial.SerialException:
 			self._log("Unexpected error while reading serial port: %s" % (get_exception_string()))
 			self._errorValue = get_exception_string()
