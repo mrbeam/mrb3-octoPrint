@@ -75,7 +75,7 @@ class MachineCom(object):
 		self._pauseWaitStartTime = None
 		self._pauseWaitTimeLost = 0.0
 		self._commandQueue = Queue.Queue()
-		self._send_event = CountedEvent(max=20)
+		self._send_event = CountedEvent(max=50)
 		self._finished_currentFile = False
 
 		# regular expressions
@@ -151,7 +151,7 @@ class MachineCom(object):
 						self._set_print_finished()
 
 				self._sendCommand()
-				self._send_event.wait(0.5)
+				self._send_event.wait(0.05)
 				self._send_event.clear()
 			except:
 				self._logger.exception("Something crashed inside the sending loop, please report this to Mr. Beam")
@@ -172,7 +172,6 @@ class MachineCom(object):
 				self._acc_line_buffer.append(self._cmd)
 				try:
 					self._serial.write(self._cmd + '\n')
-					# trigger "sent" phase and use up one "ok"
 					self._process_command_phase("sent", self._cmd)
 					self._cmd = None
 					self._send_event.set()
@@ -258,7 +257,6 @@ class MachineCom(object):
 			ret = self._serial.readline()
 			if('ok' in ret or 'error' in ret):
 				if(len(self._acc_line_buffer) > 0):
-					#print('buffer',sum(self.acc_line_lengths), 'deleting after ok', self.acc_line_lengths[0])
 					del self._acc_line_buffer[0]  # Delete the commands character count corresponding to the last 'ok'
 					self._send_event.set()
 		except serial.SerialException:
