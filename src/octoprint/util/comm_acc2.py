@@ -167,11 +167,11 @@ class MachineCom(object):
 				return
 			elif self._cmd is None:
 				self._cmd = self._commandQueue.get()
-			if sum([len(x) for x in self._acc_line_buffer]) + len(self._cmd) +2 < self.RX_BUFFER_SIZE-1:
+			if sum([len(x) for x in self._acc_line_buffer]) + len(self._cmd) +1 < self.RX_BUFFER_SIZE-1:
 				self._log("Send: %s" % self._cmd)
-				self._acc_line_buffer.append(self._cmd)
+				self._acc_line_buffer.append(self._cmd + '\n')
 				try:
-					self._serial.write(self._cmd + '\r\n')
+					self._serial.write(self._cmd + '\n')
 					self._process_command_phase("sent", self._cmd)
 					self._cmd = None
 					self._send_event.set()
