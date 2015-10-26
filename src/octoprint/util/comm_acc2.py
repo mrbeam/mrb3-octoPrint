@@ -75,7 +75,7 @@ class MachineCom(object):
 		self._pauseWaitStartTime = None
 		self._pauseWaitTimeLost = 0.0
 		self._commandQueue = Queue.Queue()
-		self._send_event = CountedEvent(max=50)
+		#self._send_event = CountedEvent(max=50)
 		self._finished_currentFile = False
 
 		# regular expressions
@@ -151,8 +151,8 @@ class MachineCom(object):
 						self._set_print_finished()
 
 				self._sendCommand()
-				self._send_event.wait(0.01)
-				self._send_event.clear()
+				#self._send_event.wait(0.01)
+				#self._send_event.clear()
 			except:
 				self._logger.exception("Something crashed inside the sending loop, please report this to Mr. Beam")
 				errorMsg = "See octoprint.log for details"
@@ -174,7 +174,7 @@ class MachineCom(object):
 					self._serial.write(self._cmd + '\n')
 					self._process_command_phase("sent", self._cmd)
 					self._cmd = None
-					self._send_event.set()
+					#self._send_event.set()
 				except serial.SerialException:
 					self._log("Unexpected error while writing serial port: %s" % (get_exception_string()))
 					self._errorValue = get_exception_string()
@@ -255,7 +255,7 @@ class MachineCom(object):
 			return None
 		try:
 			ret = self._serial.readline()
-			self._send_event.set()
+			#self._send_event.set()
 			if('ok' in ret or 'error' in ret):
 				if(len(self._acc_line_buffer) > 0):
 					del self._acc_line_buffer[0]  # Delete the commands character count corresponding to the last 'ok'
@@ -354,7 +354,7 @@ class MachineCom(object):
 			self._acc_line_buffer = []
 			self._pauseWaitStartTime = None
 			self._pauseWaitTimeLost = 0.0
-			self._send_event.clear(completely=True)
+			#self._send_event.clear(completely=True)
 			with self._commandQueue.mutex:
 				self._commandQueue.queue.clear()
 			self._log(errorMsg)
@@ -503,12 +503,12 @@ class MachineCom(object):
 	def _poll_status(self):
 		if self.isOperational():
 			self._real_time_commands['poll_status']=True
-			self._send_event.set()
+			#self._send_event.set()
 
 	def _soft_reset(self):
 		if self.isOperational():
 			self._real_time_commands['soft_reset']=True
-			self._send_event.set()
+			#self._send_event.set()
 
 	def _log(self, message):
 		self._callback.on_comm_log(message)
@@ -649,7 +649,7 @@ class MachineCom(object):
 			self._log("Warning: Configuration changes during print are not allowed!")
 
 		self._commandQueue.put(cmd)
-		self._send_event.set()
+		#self._send_event.set()
 
 	def selectFile(self, filename, sd):
 		if self.isBusy():
@@ -700,7 +700,7 @@ class MachineCom(object):
 			self._commandQueue.queue.clear()
 		self._soft_reset()
 		self._acc_line_buffer = []
-		self._send_event.clear(completely=True)
+		#self._send_event.clear(completely=True)
 		self._changeState(self.STATE_LOCKED)
 
 		payload = {
@@ -726,13 +726,13 @@ class MachineCom(object):
 				self._pauseWaitTimeLost = self._pauseWaitTimeLost + (time.time() - self._pauseWaitStartTime)
 				self._pauseWaitStartTime = None
 			self._real_time_commands['cycle_start']=True
-			self._send_event.set()
+			#self._send_event.set()
 			eventManager().fire(Events.PRINT_RESUMED, payload)
 		elif pause and self.isPrinting():
 			if not self._pauseWaitStartTime:
 				self._pauseWaitStartTime = time.time()
 			self._real_time_commands['feed_hold']=True
-			self._send_event.set()
+			#self._send_event.set()
 			eventManager().fire(Events.PRINT_PAUSED, payload)
 
 	def getStateString(self):
