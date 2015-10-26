@@ -171,7 +171,7 @@ class MachineCom(object):
 				self._log("Send: %s" % self._cmd)
 				self._acc_line_buffer.append(self._cmd)
 				try:
-					self._serial.write(self._cmd + '\n')
+					self._serial.write(self._cmd + '\r')
 					self._process_command_phase("sent", self._cmd)
 					self._cmd = None
 					self._send_event.set()
@@ -454,7 +454,7 @@ class MachineCom(object):
 		if newState == self.STATE_PRINTING:
 			if self._status_timer is not None:
 				self._status_timer.cancel()
-			self._status_timer = RepeatedTimer(0.5, self._poll_status)
+			self._status_timer = RepeatedTimer(1, self._poll_status)
 			self._status_timer.start()
 		elif newState == self.STATE_OPERATIONAL or newState == self.STATE_PAUSED:
 			if self._status_timer is not None:
