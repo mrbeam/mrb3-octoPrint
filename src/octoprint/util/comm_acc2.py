@@ -87,12 +87,12 @@ class MachineCom(object):
 								'soft_reset':False}
 
 		# metric stuff
-		self._metric_chars = 0
-		self._metric_time = None
-		self._metric_active = True
-		self._metric_thread = threading.Thread(target=self._metric_loop, name="comm._metric_thread")
-		self._metric_thread.daemon = True
-		self._metric_thread.start()
+		#self._metric_chars = 0
+		#self._metric_time = None
+		#self._metric_active = True
+		#self._metric_thread = threading.Thread(target=self._metric_loop, name="comm._metric_thread")
+		#self._metric_thread.daemon = True
+		#self._metric_thread.start()
 
 		# hooks
 		self._pluginManager = octoprint.plugin.plugin_manager()
@@ -195,9 +195,9 @@ class MachineCom(object):
 				self._acc_line_buffer.append(self._cmd + '\n')
 				try:
 					self._serial.write(self._cmd + '\n')
-					self._metric_chars += len(self._cmd) + 1
-					if self._metric_time is None:
-						self._metric_time = time.time()
+					#self._metric_chars += len(self._cmd) + 1
+					#if self._metric_time is None:
+					#	self._metric_time = time.time()
 					self._process_command_phase("sent", self._cmd)
 					self._cmd = None
 					self._send_event.set()
@@ -209,9 +209,9 @@ class MachineCom(object):
 			self._log("Send: %s" % cmd)
 			try:
 				self._serial.write(cmd)
-				self._metric_chars += len(cmd)
-				if self._metric_time is None:
-					self._metric_time = time.time()
+				#self._metric_chars += len(cmd)
+				#if self._metric_time is None:
+				#	self._metric_time = time.time()
 				self._process_command_phase("sent", cmd)
 			except serial.SerialException:
 				self._log("Unexpected error while writing serial port: %s" % (get_exception_string()))
@@ -333,8 +333,8 @@ class MachineCom(object):
 			if self.isPaused():
 				self.setPause(False)
 		self._update_grbl_pos(line)
-		if self._metricf is not None:
-			self._metricf.write(line)
+		#if self._metricf is not None:
+		#	self._metricf.write(line)
 
 	def _handle_ok_message(self):
 		if self._state == self.STATE_HOMING:
@@ -668,12 +668,13 @@ class MachineCom(object):
 			elif "disconnect" in specialcmd:
 				self.close()
 			elif "printmetric" in specialcmd:
-				t = time.time()
-				s = "Metric: %f" % (self._metric_chars / (t - self._metric_time))
-				self._metric_time = None
-				self._metric_chars = 0
-				self._log(s)
-				print
+				pass
+				#t = time.time()
+				#s = "Metric: %f" % (self._metric_chars / (t - self._metric_time))
+				#self._metric_time = None
+				#self._metric_chars = 0
+				#self._log(s)
+				#print
 			else:
 				self._log("Command not Found! %s" % cmd)
 				self._log("available commands are:")
