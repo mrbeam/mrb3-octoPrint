@@ -75,7 +75,7 @@ class MachineCom(object):
 		self._pauseWaitStartTime = None
 		self._pauseWaitTimeLost = 0.0
 		self._commandQueue = Queue.Queue()
-		#self._send_event = CountedEvent(max=50)
+		self._send_event = CountedEvent(max=50)
 		self._finished_currentFile = False
 
 		# regular expressions
@@ -85,6 +85,14 @@ class MachineCom(object):
 								'feed_hold':False,
 								'cycle_start':False,
 								'soft_reset':False}
+
+		# metric stuff
+		self._metric_chars = 0
+		self._metric_time = None
+		self._metric_active = True
+		self._metric_thread = threading.Thread(target=self._metric_loop, name="comm._metric_thread")
+		self._metric_thread.daemon = True
+		self._metric_thread.start()
 
 		# hooks
 		self._pluginManager = octoprint.plugin.plugin_manager()
@@ -151,8 +159,8 @@ class MachineCom(object):
 						self._set_print_finished()
 
 				self._sendCommand()
-				#self._send_event.wait(0.01)
-				#self._send_event.clear()
+				self._send_event.wait(0.01)
+				self._send_event.clear()
 			except:
 				self._logger.exception("Something crashed inside the sending loop, please report this to Mr. Beam")
 				errorMsg = "See octoprint.log for details"
@@ -160,6 +168,21 @@ class MachineCom(object):
 				self._errorValue = errorMsg
 				self._changeState(self.STATE_ERROR)
 				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+
+	def _metric_loop(self):
+		self._metricf = open('metric.tmp','w')
+		self._metricf.write("1 sec interval")
+		while self._metric_active:
+			time.sleep(1)
+			if self._metric_time is not None:
+				t = time.time()
+				#s = "Metric: %f [chars/sec]" % (self._metric_chars / (t - self._metric_time))
+				s = "%.2f" % (self._metric_chars / (t - self._metric_time))
+				self._metric_time = None
+				self._metric_chars = 0
+				self._metricf.write(s)
+				#self._log(s)
+		self._metricf.close()
 
 	def _sendCommand(self, cmd=None):
 		if cmd is None:
@@ -172,9 +195,12 @@ class MachineCom(object):
 				self._acc_line_buffer.append(self._cmd + '\n')
 				try:
 					self._serial.write(self._cmd + '\n')
+					self._metric_chars += len(self._cmd) + 1
+					if self._metric_time is None:
+						self._metric_time = time.time()
 					self._process_command_phase("sent", self._cmd)
 					self._cmd = None
-					#self._send_event.set()
+					self._send_event.set()
 				except serial.SerialException:
 					self._log("Unexpected error while writing serial port: %s" % (get_exception_string()))
 					self._errorValue = get_exception_string()
@@ -183,6 +209,9 @@ class MachineCom(object):
 			self._log("Send: %s" % cmd)
 			try:
 				self._serial.write(cmd)
+				self._metric_chars += len(cmd)
+				if self._metric_time is None:
+					self._metric_time = time.time()
 				self._process_command_phase("sent", cmd)
 			except serial.SerialException:
 				self._log("Unexpected error while writing serial port: %s" % (get_exception_string()))
@@ -255,7 +284,7 @@ class MachineCom(object):
 			return None
 		try:
 			ret = self._serial.readline()
-			#self._send_event.set()
+			self._send_event.set()
 			if('ok' in ret or 'error' in ret):
 				if(len(self._acc_line_buffer) > 0):
 					del self._acc_line_buffer[0]  # Delete the commands character count corresponding to the last 'ok'
@@ -304,6 +333,8 @@ class MachineCom(object):
 			if self.isPaused():
 				self.setPause(False)
 		self._update_grbl_pos(line)
+		if self._metricf is not None:
+			self._metricf.write(line)
 
 	def _handle_ok_message(self):
 		if self._state == self.STATE_HOMING:
@@ -354,7 +385,7 @@ class MachineCom(object):
 			self._acc_line_buffer = []
 			self._pauseWaitStartTime = None
 			self._pauseWaitTimeLost = 0.0
-			#self._send_event.clear(completely=True)
+			self._send_event.clear(completely=True)
 			with self._commandQueue.mutex:
 				self._commandQueue.queue.clear()
 			self._log(errorMsg)
@@ -503,12 +534,12 @@ class MachineCom(object):
 	def _poll_status(self):
 		if self.isOperational():
 			self._real_time_commands['poll_status']=True
-			#self._send_event.set()
+			self._send_event.set()
 
 	def _soft_reset(self):
 		if self.isOperational():
 			self._real_time_commands['soft_reset']=True
-			#self._send_event.set()
+			self._send_event.set()
 
 	def _log(self, message):
 		self._callback.on_comm_log(message)
@@ -624,9 +655,9 @@ class MachineCom(object):
 					self._status_timer.cancel()
 					self._status_timer = None
 			elif "setstatusfrequency" in specialcmd:
-				data = specialcmd.split(' ')
+				data = specialcmd[18:]
 				try:
-					frequency = float(data[1])
+					frequency = float(data)
 				except ValueError:
 					self._log("No frequency setting found! Using 1 sec.")
 					frequency = 1
@@ -636,6 +667,13 @@ class MachineCom(object):
 				self._status_timer.start()
 			elif "disconnect" in specialcmd:
 				self.close()
+			elif "printmetric" in specialcmd:
+				t = time.time()
+				s = "Metric: %f" % (self._metric_chars / (t - self._metric_time))
+				self._metric_time = None
+				self._metric_chars = 0
+				self._log(s)
+				print
 			else:
 				self._log("Command not Found! %s" % cmd)
 				self._log("available commands are:")
@@ -649,7 +687,7 @@ class MachineCom(object):
 			self._log("Warning: Configuration changes during print are not allowed!")
 
 		self._commandQueue.put(cmd)
-		#self._send_event.set()
+		self._send_event.set()
 
 	def selectFile(self, filename, sd):
 		if self.isBusy():
@@ -700,7 +738,7 @@ class MachineCom(object):
 			self._commandQueue.queue.clear()
 		self._soft_reset()
 		self._acc_line_buffer = []
-		#self._send_event.clear(completely=True)
+		self._send_event.clear(completely=True)
 		self._changeState(self.STATE_LOCKED)
 
 		payload = {
@@ -726,13 +764,13 @@ class MachineCom(object):
 				self._pauseWaitTimeLost = self._pauseWaitTimeLost + (time.time() - self._pauseWaitStartTime)
 				self._pauseWaitStartTime = None
 			self._real_time_commands['cycle_start']=True
-			#self._send_event.set()
+			self._send_event.set()
 			eventManager().fire(Events.PRINT_RESUMED, payload)
 		elif pause and self.isPrinting():
 			if not self._pauseWaitStartTime:
 				self._pauseWaitStartTime = time.time()
 			self._real_time_commands['feed_hold']=True
-			#self._send_event.set()
+			self._send_event.set()
 			eventManager().fire(Events.PRINT_PAUSED, payload)
 
 	def getStateString(self):
