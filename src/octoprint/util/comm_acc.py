@@ -1757,8 +1757,7 @@ class MachineCom(object):
 				p_command, p_linenbr, p_cmd_type = peeked_entry
 
 				if(self.RX_BUFFER_SIZE - sum(self.acc_line_lengths) - len(p_command) < 5):
-					#time.sleep(0.001)
-					self._clear_to_send.wait()
+					time.sleep(0.001)
 					continue
 
 				# wait until we have something in the queue
