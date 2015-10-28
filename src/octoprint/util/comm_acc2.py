@@ -159,7 +159,7 @@ class MachineCom(object):
 						self._set_print_finished()
 
 				self._sendCommand()
-				self._send_event.wait(0.01)
+				self._send_event.wait(0.1)
 				self._send_event.clear()
 			except:
 				self._logger.exception("Something crashed inside the sending loop, please report this to Mr. Beam")
@@ -329,7 +329,7 @@ class MachineCom(object):
 		if self._grbl_state == 'Queue':
 			if not self.isPaused():
 				self.setPause(True)
-		elif self._grbl_state == 'Run':
+		elif self._grbl_state == 'Run' or self._grbl_state == 'Idle':
 			if self.isPaused():
 				self.setPause(False)
 		self._update_grbl_pos(line)
@@ -353,7 +353,7 @@ class MachineCom(object):
 			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 			eventManager().fire(Events.LIMITS_HIT, {"error": self.getErrorString()})
 		elif "Abort during cycle" in line:
-			errorMsg = "Soft-reset detected. Please reset the machine and do a homing cycle"
+			errorMsg = "Soft-reset detected. Please do a homing cycle"
 			self._log(errorMsg)
 			self._errorValue = errorMsg
 			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
@@ -363,8 +363,12 @@ class MachineCom(object):
 			self._log(errorMsg)
 			self._errorValue = errorMsg
 			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
-		self._openSerial()
-		self._changeState(self.STATE_CONNECTING)
+
+		with self._commandQueue.mutex:
+			self._commandQueue.queue.clear()
+		self._acc_line_buffer = []
+		self._send_event.clear(completely=True)
+		self._changeState(self.STATE_LOCKED)
 
 	def _handle_feedback_message(self, line):
 		if line[1:].startswith('Res'): # [Reset to continue]
@@ -487,10 +491,15 @@ class MachineCom(object):
 				self._status_timer.cancel()
 			self._status_timer = RepeatedTimer(1, self._poll_status)
 			self._status_timer.start()
-		elif newState == self.STATE_OPERATIONAL or newState == self.STATE_PAUSED:
+		elif newState == self.STATE_OPERATIONAL:
 			if self._status_timer is not None:
 				self._status_timer.cancel()
 			self._status_timer = RepeatedTimer(2, self._poll_status)
+			self._status_timer.start()
+		elif newState == self.STATE_PAUSED:
+			if self._status_timer is not None:
+				self._status_timer.cancel()
+			self._status_timer = RepeatedTimer(0.2, self._poll_status)
 			self._status_timer.start()
 
 		if newState == self.STATE_CLOSED or newState == self.STATE_CLOSED_WITH_ERROR:
@@ -874,9 +883,6 @@ class MachineCom(object):
 
 		self._monitoring_active = False
 		self._sending_active = False
-
-		self.sending_thread.join()
-		self.monitoring_thread.join()
 
 		printing = self.isPrinting() or self.isPaused()
 		if self._serial is not None:
