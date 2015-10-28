@@ -159,7 +159,7 @@ class MachineCom(object):
 						self._set_print_finished()
 
 				self._sendCommand()
-				self._send_event.wait(0.1)
+				self._send_event.wait(1)
 				self._send_event.clear()
 			except:
 				self._logger.exception("Something crashed inside the sending loop, please report this to Mr. Beam")
