@@ -77,6 +77,7 @@ class MachineCom(object):
 		self._commandQueue = Queue.Queue()
 		self._send_event = CountedEvent(max=50)
 		self._finished_currentFile = False
+		self._pause_delay_time = 0
 
 		# regular expressions
 		self._regex_command = re.compile("^\s*\$?([GM]\d+|[TH])")
@@ -327,8 +328,9 @@ class MachineCom(object):
 	def _handle_status_report(self, line):
 		self._grbl_state = line[1:].split(',')[0]
 		if self._grbl_state == 'Queue':
-			if not self.isPaused():
-				self.setPause(True)
+			if time.time() - self._pause_delay_time > 0.6:
+				if not self.isPaused():
+					self.setPause(True)
 		elif self._grbl_state == 'Run' or self._grbl_state == 'Idle':
 			if self.isPaused():
 				self.setPause(False)
@@ -711,6 +713,14 @@ class MachineCom(object):
 		})
 		self._callback.on_comm_file_selected(filename, self._currentFile.getFilesize(), False)
 
+	def unselectFile(self):
+		if self.isBusy():
+			return
+
+		self._currentFile = None
+		eventManager().fire(Events.FILE_DESELECTED)
+		self._callback.on_comm_file_selected(None, None, False)
+
 	def startPrint(self):
 		if not self.isOperational():
 			return
@@ -773,6 +783,7 @@ class MachineCom(object):
 			if self._pauseWaitStartTime:
 				self._pauseWaitTimeLost = self._pauseWaitTimeLost + (time.time() - self._pauseWaitStartTime)
 				self._pauseWaitStartTime = None
+			self._pause_delay_time = time.time()
 			self._real_time_commands['cycle_start']=True
 			self._send_event.set()
 			eventManager().fire(Events.PRINT_RESUMED, payload)
