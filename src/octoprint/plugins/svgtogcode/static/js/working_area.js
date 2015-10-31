@@ -107,6 +107,8 @@ $(function(){
 			if(self.state.isOperational() && !self.state.isPrinting()){
 				var x = self.px2mm(event.offsetX);
 				var y = self.px2mm(event.toElement.ownerSVGElement.offsetHeight - event.offsetY); // hopefully this works across browsers
+				x = Math.min(x, self.workingAreaWidthMM());
+				y = Math.min(y, self.workingAreaHeightMM());
 				$.ajax({
 					url: API_BASEURL + "printer/printhead",
 					type: "POST",
