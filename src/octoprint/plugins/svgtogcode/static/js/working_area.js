@@ -706,12 +706,6 @@ $(function(){
 		};
 
 		self.draw_gcode_img_placeholder = function(x,y,w,h,url, target){
-			var i = snap.rect(x,y,w,h).attr({
-				stroke: '#AAAAAA',
-				'stroke-width': 1,
-				fill: 'none'
-			});
-			snap.select(target).append(i);
 			if(url !== ""){
 				var p = snap.image(url,x,y,w,h).attr({
 					transform: 'matrix(1,0,0,-1,0,'+ String(h) +')',

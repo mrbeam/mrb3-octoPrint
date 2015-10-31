@@ -288,9 +288,7 @@
 										</feComponentTransfer>
 									</filter>
 									<g id="scaleGroup" data-bind="attr: { transform: scaleMatrix() }">
-										<rect data-bind="click: move_laser"
-											  id="coordGrid" x="0" y="0" width="0" height="0"
-											  stroke="none" fill="none"></rect>
+
 										<text
 											xml:space="preserve"
 											data-bind="visible: working_area_empty"
@@ -311,9 +309,12 @@
 										<tspan
 											  x="368.571426" y="712.36218" id="tspan2991"
 											  style="text-anchor:middle;text-align:center" /></text>
-										<g id="userContent" data-bind="visible: !state.isPrinting() && !state.isPaused()"></g>
 										<g id="placedGcodes" data-bind="visible: !state.isPrinting() && !state.isPaused(), attr: { transform: scaleMatrixMMtoDisplay() }"></g>
 										<g id="gCodePreview" data-bind="visible: state.isPrinting() || state.isPaused(), attr: { transform: scaleMatrixMMtoDisplay() }"></g>
+										<rect data-bind="click: move_laser"
+											  id="coordGrid" x="0" y="0" width="0" height="0"
+											  stroke="none" fill="none"></rect>
+										<g id="userContent" data-bind="visible: !state.isPrinting() && !state.isPaused()"></g>
 									</g>
 								</svg>
 
