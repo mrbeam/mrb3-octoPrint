@@ -328,12 +328,13 @@ class MachineCom(object):
 	def _handle_status_report(self, line):
 		self._grbl_state = line[1:].split(',')[0]
 		if self._grbl_state == 'Queue':
-			if time.time() - self._pause_delay_time > 0.6:
+			if time.time() - self._pause_delay_time > 0.3:
 				if not self.isPaused():
 					self.setPause(True)
 		elif self._grbl_state == 'Run' or self._grbl_state == 'Idle':
-			if self.isPaused():
-				self.setPause(False)
+			if time.time() - self._pause_delay_time > 0.3:
+				if self.isPaused():
+					self.setPause(False)
 		self._update_grbl_pos(line)
 		#if self._metricf is not None:
 		#	self._metricf.write(line)
@@ -790,6 +791,7 @@ class MachineCom(object):
 		elif pause and self.isPrinting():
 			if not self._pauseWaitStartTime:
 				self._pauseWaitStartTime = time.time()
+			self._pause_delay_time = time.time()
 			self._real_time_commands['feed_hold']=True
 			self._send_event.set()
 			eventManager().fire(Events.PRINT_PAUSED, payload)
