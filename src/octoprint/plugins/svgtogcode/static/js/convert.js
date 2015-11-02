@@ -236,6 +236,7 @@ $(function(){
 		};
 
 		self.convert = function() {
+			self.slicing_in_progress(true);
 			if(self.gcodeFilesToAppend.length === 1 && self.svg === undefined){
 				self.files.startGcodeWithSafetyWarning(self.gcodeFilesToAppend[0]);
 			} else {
