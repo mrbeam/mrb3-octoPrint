@@ -91,3 +91,14 @@ svg text {
 	height: 70vh;
 	margin: auto;
 }
+
+.overrideSlider {
+	margin-bottom: 8px;
+}
+
+.overrideSlider input {
+	width:45%;	
+}
+.overrideSlider span {
+	padding-left: .6em;
+}
