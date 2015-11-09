@@ -79,7 +79,9 @@ class MachineCom(object):
 		self._finished_currentFile = False
 		self._pause_delay_time = 0
 		self._feedrate_factor = 1
+		self._actual_feedrate = None
 		self._intensity_factor = 1
+		self._actual_intensity = None
 
 		# regular expressions
 		self._regex_command = re.compile("^\s*\$?([GM]\d+|[TH])")
@@ -195,15 +197,12 @@ class MachineCom(object):
 				return
 			elif self._cmd is None:
 				self._cmd = self._commandQueue.get()
-			if sum([len(x) for x in self._acc_line_buffer]) + len(self._cmd) +1 < self.RX_BUFFER_SIZE-1:
+			if sum([len(x) for x in self._acc_line_buffer]) + len(self._cmd) +1 < self.RX_BUFFER_SIZE-5:
+				self._cmd, _, _  = self._process_command_phase("sending", self._cmd)
 				self._log("Send: %s" % self._cmd)
 				self._acc_line_buffer.append(self._cmd + '\n')
 				try:
-					self._cmd = self._process_command_phase("sending", self._cmd)
 					self._serial.write(self._cmd + '\n')
-					#self._metric_chars += len(self._cmd) + 1
-					#if self._metric_time is None:
-					#	self._metric_time = time.time()
 					self._process_command_phase("sent", self._cmd)
 					self._cmd = None
 					self._send_event.set()
@@ -643,23 +642,51 @@ class MachineCom(object):
 		gcode = self._gcode_command_for_cmd(command)
 		return command, command_type, gcode
 
+	def _set_feedrate_override(self, value):
+		temp = value / 100.0
+		if temp > 0:
+			self._feedrate_factor = temp
+			if self._actual_feedrate is not None:
+				temp = round(self._actual_feedrate * self._feedrate_factor)
+				# TODO replace with value from printer profile
+				if temp > 5000:
+					temp = 5000
+				self.sendCommand('F%d' % temp)
+
+	def _set_intensity_override(self, value):
+		temp = value / 100.0
+		if temp >= 0:
+			self._intensity_factor = temp
+			if self._actual_intensity is not None:
+				temp = round(self._actual_intensity * self._intensity_factor)
+				if temp > 1000:
+					temp = 1000
+				self.sendCommand('S%d' % temp)
+
 	def _replace_feedrate(self, cmd):
 		obj = self._regex_feedrate.search(cmd)
 		if obj is not None:
 			feedrate_cmd = cmd[obj.start():obj.end()]
-			self._actual_feedrate = int(feedrate_cmd[1:]) * self._feedrate_factor
+			self._actual_feedrate = int(feedrate_cmd[1:])
+			new_feedrate = round(self._actual_feedrate * self._feedrate_factor)
+			# TODO replace with value from printer profile
+			if new_feedrate > 5000:
+				new_feedrate = 5000
 		else:
 			return cmd
-		return cmd.replace(feedrate_cmd, 'F'+str(self._actual_feedrate))
+		return cmd.replace(feedrate_cmd, 'F%d' % new_feedrate)
 
 	def _replace_intensity(self, cmd):
 		obj = self._regex_intensity.search(cmd)
 		if obj is not None:
 			intensity_cmd = cmd[obj.start():obj.end()]
-			self._actual_intensity = int(intensity_cmd[1:]) * self._intensity_factor
+			self._actual_intensity = int(intensity_cmd[1:])
+			new_intensity = round(self._actual_intensity * self._intensity_factor)
+			if new_intensity > 1000:
+				new_intensity = 1000
 		else:
 			return cmd
-		return cmd.replace(intensity_cmd, 'F'+str(self._actual_intensity))
+		return cmd.replace(intensity_cmd, 'S%d' % new_intensity)
 
 	##~~ command handlers
 	def _gcode_G1_sending(self, cmd, cmd_type=None):
@@ -718,14 +745,12 @@ class MachineCom(object):
 				self._status_timer.start()
 			elif "disconnect" in specialcmd:
 				self.close()
-			elif "printmetric" in specialcmd:
-				pass
-				#t = time.time()
-				#s = "Metric: %f" % (self._metric_chars / (t - self._metric_time))
-				#self._metric_time = None
-				#self._metric_chars = 0
-				#self._log(s)
-				#print
+			elif "feedrate" in specialcmd:
+				data = specialcmd[8:]
+				self._set_feedrate_override(int(data))
+			elif "intensity" in specialcmd:
+				data = specialcmd[9:]
+				self._set_intensity_override(int(data))
 			else:
 				self._log("Command not Found! %s" % cmd)
 				self._log("available commands are:")
