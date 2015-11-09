@@ -36,8 +36,8 @@ $(function() {
 		self.currentPos = ko.observable(undefined);
 		self.intensityOverride = ko.observable(100);
 		self.feedrateOverride = ko.observable(100);
-		self.intensityOverride.extend({ rateLimit: 300 });
-		self.feedrateOverride.extend({ rateLimit: 300 });
+		self.intensityOverride.extend({ rateLimit: 500 });
+		self.feedrateOverride.extend({ rateLimit: 500 });
 
         self.TITLE_PRINT_BUTTON_PAUSED = gettext("Restarts the print job from the beginning");
         self.TITLE_PRINT_BUTTON_UNPAUSED = gettext("Starts the print job");
@@ -287,11 +287,26 @@ $(function() {
 		};
 		
 		self.intensityOverride.subscribe(function(factor){
-			self._jobCommand("M221S"+factor);
+			self._overrideCommand("/intensity "+factor);
 		});
 		self.feedrateOverride.subscribe(function(factor){
-			self._jobCommand("M220S"+factor);
+			self._overrideCommand("/feedrate "+factor);
 		});
+		
+		self._overrideCommand = function(command, callback) {
+            $.ajax({
+                url: API_BASEURL + "printer/command",
+                type: "POST",
+                dataType: "json",
+                contentType: "application/json; charset=UTF-8",
+                data: JSON.stringify({command: command}),
+                success: function(response) {
+                    if (callback != undefined) {
+                        callback();
+                    }
+                }
+            });
+        };
 		
 		self._configureOverrideSliders = function() {
 			self.intensityOverrideSlider = $("#intensity_override_slider").slider({
