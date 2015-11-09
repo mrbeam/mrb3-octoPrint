@@ -34,6 +34,10 @@ $(function() {
 
         self.currentHeight = ko.observable(undefined);
 		self.currentPos = ko.observable(undefined);
+		self.intensityOverride = ko.observable(100);
+		self.feedrateOverride = ko.observable(100);
+		self.intensityOverride.extend({ rateLimit: 300 });
+		self.feedrateOverride.extend({ rateLimit: 300 });
 
         self.TITLE_PRINT_BUTTON_PAUSED = gettext("Restarts the print job from the beginning");
         self.TITLE_PRINT_BUTTON_UNPAUSED = gettext("Starts the print job");
@@ -280,6 +284,40 @@ $(function() {
 
 		self.onEventRealTimeState = function(payload){
 			self.currentPos({x: payload.wx, y: payload.wy});
+		};
+		
+		self.intensityOverride.subscribe(function(factor){
+			self._jobCommand("M221S"+factor);
+		});
+		self.feedrateOverride.subscribe(function(factor){
+			self._jobCommand("M220S"+factor);
+		});
+		
+		self._configureOverrideSliders = function() {
+			self.intensityOverrideSlider = $("#intensity_override_slider").slider({
+				step: 1,
+				min: 10,
+				max: 200,
+				value: 100,
+				tooltip: 'hide'
+			}).on("slide", function(ev){
+				self.intensityOverride(ev.value);
+			});
+			
+			self.feedrateOverrideSlider = $("#feedrate_override_slider").slider({
+				step: 1,
+				min: 10,
+				max: 200,
+				value: 100,
+				tooltip: 'hide'
+			}).on("slide", function(ev){
+				self.feedrateOverride(ev.value);
+			});
+
+		};
+		
+		self.onStartup = function() {
+			self._configureOverrideSliders();
 		};
     }
 
