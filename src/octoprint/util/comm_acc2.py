@@ -79,10 +79,12 @@ class MachineCom(object):
 		self._finished_currentFile = False
 		self._pause_delay_time = 0
 		self._feedrate_factor = 1
+		self._intensity_factor = 1
 
 		# regular expressions
 		self._regex_command = re.compile("^\s*\$?([GM]\d+|[TH])")
 		self._regex_feedrate = re.compile("F\d+", re.IGNORECASE)
+		self._regex_intensity = re.compile("S\d+", re.IGNORECASE)
 
 		self._real_time_commands={'poll_status':False,
 								'feed_hold':False,
@@ -641,33 +643,39 @@ class MachineCom(object):
 		gcode = self._gcode_command_for_cmd(command)
 		return command, command_type, gcode
 
+	def _replace_feedrate(self, cmd):
+		obj = self._regex_feedrate.search(cmd)
+		if obj is not None:
+			feedrate_cmd = cmd[obj.start():obj.end()]
+			self._actual_feedrate = int(feedrate_cmd[1:]) * self._feedrate_factor
+		else:
+			return cmd
+		return cmd.replace(feedrate_cmd, 'F'+str(self._actual_feedrate))
+
+	def _replace_intensity(self, cmd):
+		obj = self._regex_intensity.search(cmd)
+		if obj is not None:
+			intensity_cmd = cmd[obj.start():obj.end()]
+			self._actual_intensity = int(intensity_cmd[1:]) * self._intensity_factor
+		else:
+			return cmd
+		return cmd.replace(intensity_cmd, 'F'+str(self._actual_intensity))
+
 	##~~ command handlers
 	def _gcode_G1_sending(self, cmd, cmd_type=None):
-		obj = self._regex_feedrate.search(cmd)
-		if obj is not None:
-			feedrate_cmd = cmd[obj.start():obj.end()]
-			self._actual_feedrate = int(feedrate_cmd[1:]) * self._feedrate_factor
-		else:
-			return cmd
-		return cmd.replace(feedrate_cmd, 'F'+str(self._actual_feedrate))
+		cmd = self._replace_feedrate(cmd)
+		cmd = self._replace_intensity(cmd)
+		return cmd
 
 	def _gcode_G2_sending(self, cmd, cmd_type=None):
-		obj = self._regex_feedrate.search(cmd)
-		if obj is not None:
-			feedrate_cmd = cmd[obj.start():obj.end()]
-			self._actual_feedrate = int(feedrate_cmd[1:]) * self._feedrate_factor
-		else:
-			return cmd
-		return cmd.replace(feedrate_cmd, 'F'+str(self._actual_feedrate))
+		cmd = self._replace_feedrate(cmd)
+		cmd = self._replace_intensity(cmd)
+		return cmd
 
 	def _gcode_G3_sending(self, cmd, cmd_type=None):
-		obj = self._regex_feedrate.search(cmd)
-		if obj is not None:
-			feedrate_cmd = cmd[obj.start():obj.end()]
-			self._actual_feedrate = int(feedrate_cmd[1:]) * self._feedrate_factor
-		else:
-			return cmd
-		return cmd.replace(feedrate_cmd, 'F'+str(self._actual_feedrate))
+		cmd = self._replace_feedrate(cmd)
+		cmd = self._replace_intensity(cmd)
+		return cmd
 
 	def _gcode_H_sent(self, cmd, cmd_type=None):
 		self._changeState(self.STATE_HOMING)
