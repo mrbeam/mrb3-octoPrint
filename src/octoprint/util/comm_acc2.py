@@ -213,11 +213,8 @@ class MachineCom(object):
 		else:
 			self._log("Send: %s" % cmd)
 			try:
-				self._process_command_phase("sending", self._cmd)
+				self._cmd, _, _  = self._process_command_phase("sending", self._cmd)
 				self._serial.write(cmd)
-				#self._metric_chars += len(cmd)
-				#if self._metric_time is None:
-				#	self._metric_time = time.time()
 				self._process_command_phase("sent", cmd)
 			except serial.SerialException:
 				self._log("Unexpected error while writing serial port: %s" % (get_exception_string()))
