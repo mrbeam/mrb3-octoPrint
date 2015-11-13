@@ -670,6 +670,8 @@ class MachineCom(object):
 				# TODO replace with value from printer profile
 				if new_feedrate > 5000:
 					new_feedrate = 5000
+				elif new_feedrate < 30:
+					new_feedrate = 30
 			else:
 				return cmd
 			return cmd.replace(feedrate_cmd, 'F%d' % new_feedrate)
