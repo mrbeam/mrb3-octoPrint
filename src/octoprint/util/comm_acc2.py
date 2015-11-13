@@ -707,6 +707,15 @@ class MachineCom(object):
 		cmd = self._replace_intensity(cmd)
 		return cmd
 
+	def _gcode_G01_sending(self, cmd, cmd_type=None):
+		return self._gcode_G1_sending(cmd, cmd_type)
+
+	def _gcode_G02_sending(self, cmd, cmd_type=None):
+		return self._gcode_G2_sending(cmd, cmd_type)
+
+	def _gcode_G03_sending(self, cmd, cmd_type=None):
+		return self._gcode_G3_sending(cmd, cmd_type)
+
 	def _gcode_H_sent(self, cmd, cmd_type=None):
 		self._changeState(self.STATE_HOMING)
 		return cmd
