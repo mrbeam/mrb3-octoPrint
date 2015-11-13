@@ -1225,7 +1225,7 @@ def serialList():
 		baselist.insert(0, prev)
 	if settings().getBoolean(["devel", "virtualPrinter", "enabled"]):
 		baselist.append("VIRTUAL")
-	return baselist
+	return filter(None, baselist)
 
 def baudrateList():
 	ret = [250000, 230400, 115200, 57600, 38400, 19200, 9600]
