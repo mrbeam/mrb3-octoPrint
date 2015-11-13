@@ -661,29 +661,33 @@ class MachineCom(object):
 				self.sendCommand('S%d' % temp)
 
 	def _replace_feedrate(self, cmd):
-		obj = self._regex_feedrate.search(cmd)
-		if obj is not None:
-			feedrate_cmd = cmd[obj.start():obj.end()]
-			self._actual_feedrate = int(feedrate_cmd[1:])
-			new_feedrate = round(self._actual_feedrate * self._feedrate_factor)
-			# TODO replace with value from printer profile
-			if new_feedrate > 5000:
-				new_feedrate = 5000
-		else:
-			return cmd
-		return cmd.replace(feedrate_cmd, 'F%d' % new_feedrate)
+		if self._feedrate_factor != 1:
+			obj = self._regex_feedrate.search(cmd)
+			if obj is not None:
+				feedrate_cmd = cmd[obj.start():obj.end()]
+				self._actual_feedrate = int(feedrate_cmd[1:])
+				new_feedrate = round(self._actual_feedrate * self._feedrate_factor)
+				# TODO replace with value from printer profile
+				if new_feedrate > 5000:
+					new_feedrate = 5000
+			else:
+				return cmd
+			return cmd.replace(feedrate_cmd, 'F%d' % new_feedrate)
+		return cmd
 
 	def _replace_intensity(self, cmd):
-		obj = self._regex_intensity.search(cmd)
-		if obj is not None:
-			intensity_cmd = cmd[obj.start():obj.end()]
-			self._actual_intensity = int(intensity_cmd[1:])
-			new_intensity = round(self._actual_intensity * self._intensity_factor)
-			if new_intensity > 1000:
-				new_intensity = 1000
-		else:
-			return cmd
-		return cmd.replace(intensity_cmd, 'S%d' % new_intensity)
+		if self._intensity_factor != 1:
+			obj = self._regex_intensity.search(cmd)
+			if obj is not None:
+				intensity_cmd = cmd[obj.start():obj.end()]
+				self._actual_intensity = int(intensity_cmd[1:])
+				new_intensity = round(self._actual_intensity * self._intensity_factor)
+				if new_intensity > 1000:
+					new_intensity = 1000
+			else:
+				return cmd
+			return cmd.replace(intensity_cmd, 'S%d' % new_intensity)
+		return cmd
 
 	##~~ command handlers
 	def _gcode_G1_sending(self, cmd, cmd_type=None):
