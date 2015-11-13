@@ -1219,12 +1219,14 @@ def get_interval(t):
 		return settings().getFloat(["serial", "timeout", t])
 
 def serialList():
-	baselist = [glob.glob("/dev/ttyUSB*"),
-				glob.glob("/dev/ttyACM*"),
-				glob.glob("/dev/tty.usb*"),
-				glob.glob("/dev/cu.*"),
-				glob.glob("/dev/cuaU*"),
-				glob.glob("/dev/rfcomm*")]
+	baselist = []
+	baselist = baselist \
+				+ glob.glob("/dev/ttyUSB*") \
+				+ glob.glob("/dev/ttyACM*") \
+				+ glob.glob("/dev/tty.usb*") \
+				+ glob.glob("/dev/cu.*") \
+				+ glob.glob("/dev/cuaU*") \
+				+ glob.glob("/dev/rfcomm*")
 
 	additionalPorts = settings().get(["serial", "additionalPorts"])
 	for additional in additionalPorts:
