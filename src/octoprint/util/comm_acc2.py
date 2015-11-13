@@ -332,11 +332,11 @@ class MachineCom(object):
 		if self._grbl_state == 'Queue':
 			if time.time() - self._pause_delay_time > 0.3:
 				if not self.isPaused():
-					self.setPause(True)
+					self.setPause(True, False)
 		elif self._grbl_state == 'Run' or self._grbl_state == 'Idle':
 			if time.time() - self._pause_delay_time > 0.3:
 				if self.isPaused():
-					self.setPause(False)
+					self.setPause(False, False)
 		self._update_grbl_pos(line)
 		#if self._metricf is not None:
 		#	self._metricf.write(line)
@@ -846,7 +846,7 @@ class MachineCom(object):
 
 		eventManager().fire(Events.PRINT_CANCELLED, payload)
 
-	def setPause(self, pause):
+	def setPause(self, pause, send_cmd=True):
 		if not self._currentFile:
 			return
 
@@ -861,14 +861,16 @@ class MachineCom(object):
 				self._pauseWaitTimeLost = self._pauseWaitTimeLost + (time.time() - self._pauseWaitStartTime)
 				self._pauseWaitStartTime = None
 			self._pause_delay_time = time.time()
-			self._real_time_commands['cycle_start']=True
+			if send_cmd is True:
+				self._real_time_commands['cycle_start']=True
 			self._send_event.set()
 			eventManager().fire(Events.PRINT_RESUMED, payload)
 		elif pause and self.isPrinting():
 			if not self._pauseWaitStartTime:
 				self._pauseWaitStartTime = time.time()
 			self._pause_delay_time = time.time()
-			self._real_time_commands['feed_hold']=True
+			if send_cmd is True:
+				self._real_time_commands['feed_hold']=True
 			self._send_event.set()
 			eventManager().fire(Events.PRINT_PAUSED, payload)
 
