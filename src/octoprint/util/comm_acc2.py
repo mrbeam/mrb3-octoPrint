@@ -674,12 +674,12 @@ class MachineCom(object):
 				else:
 					self._actual_feedrate = int(feedrate_cmd[1:])
 					new_feedrate = round(self._actual_feedrate * self._feedrate_factor)
+					# TODO replace with value from printer profile
+					if new_feedrate > 5000:
+						new_feedrate = 5000
+					elif new_feedrate < 30:
+						new_feedrate = 30
 					self._feedrate_dict[feedrate_cmd] = new_feedrate
-				# TODO replace with value from printer profile
-				if new_feedrate > 5000:
-					new_feedrate = 5000
-				elif new_feedrate < 30:
-					new_feedrate = 30
 			else:
 				return cmd
 			return cmd.replace(feedrate_cmd, 'F%d' % round(new_feedrate))
@@ -695,9 +695,9 @@ class MachineCom(object):
 				else:
 					self._actual_intensity = int(intensity_cmd[1:])
 					new_intensity = round(self._actual_intensity * self._intensity_factor)
+					if new_intensity > 1000:
+						new_intensity = 1000
 					self._intensity_dict[intensity_cmd] = new_intensity
-				if new_intensity > 1000:
-					new_intensity = 1000
 			else:
 				return cmd
 			return cmd.replace(intensity_cmd, 'S%d' % round(new_intensity))
