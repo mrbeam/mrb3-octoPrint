@@ -648,7 +648,7 @@ class MachineCom(object):
 				# TODO replace with value from printer profile
 				if temp > 5000:
 					temp = 5000
-				self.sendCommand('F%d' % temp)
+				self.sendCommand('F%d' % round(temp))
 
 	def _set_intensity_override(self, value):
 		temp = value / 100.0
@@ -658,7 +658,7 @@ class MachineCom(object):
 				temp = round(self._actual_intensity * self._intensity_factor)
 				if temp > 1000:
 					temp = 1000
-				self.sendCommand('S%d' % temp)
+				self.sendCommand('S%d' % round(temp))
 
 	def _replace_feedrate(self, cmd):
 		if self._feedrate_factor != 1:
@@ -674,7 +674,7 @@ class MachineCom(object):
 					new_feedrate = 30
 			else:
 				return cmd
-			return cmd.replace(feedrate_cmd, 'F%d' % new_feedrate)
+			return cmd.replace(feedrate_cmd, 'F%d' % round(new_feedrate))
 		return cmd
 
 	def _replace_intensity(self, cmd):
@@ -688,7 +688,7 @@ class MachineCom(object):
 					new_intensity = 1000
 			else:
 				return cmd
-			return cmd.replace(intensity_cmd, 'S%d' % new_intensity)
+			return cmd.replace(intensity_cmd, 'S%d' % round(new_intensity))
 		return cmd
 
 	##~~ command handlers
