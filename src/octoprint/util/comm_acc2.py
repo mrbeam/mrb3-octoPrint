@@ -82,6 +82,8 @@ class MachineCom(object):
 		self._actual_feedrate = None
 		self._intensity_factor = 1
 		self._actual_intensity = None
+		self._feedrate_dict = {}
+		self._intensity_dict = {}
 
 		# regular expressions
 		self._regex_command = re.compile("^\s*\$?([GM]\d+|[TH])")
@@ -643,6 +645,7 @@ class MachineCom(object):
 		temp = value / 100.0
 		if temp > 0:
 			self._feedrate_factor = temp
+			self._feedrate_dict = {}
 			if self._actual_feedrate is not None:
 				temp = round(self._actual_feedrate * self._feedrate_factor)
 				# TODO replace with value from printer profile
@@ -654,6 +657,7 @@ class MachineCom(object):
 		temp = value / 100.0
 		if temp >= 0:
 			self._intensity_factor = temp
+			self._intensity_dict = {}
 			if self._actual_intensity is not None:
 				temp = round(self._actual_intensity * self._intensity_factor)
 				if temp > 1000:
@@ -665,8 +669,12 @@ class MachineCom(object):
 			obj = self._regex_feedrate.search(cmd)
 			if obj is not None:
 				feedrate_cmd = cmd[obj.start():obj.end()]
-				self._actual_feedrate = int(feedrate_cmd[1:])
-				new_feedrate = round(self._actual_feedrate * self._feedrate_factor)
+				if feedrate_cmd in self._feedrate_dict:
+					new_feedrate = self._feedrate_dict[feedrate_cmd]
+				else:
+					self._actual_feedrate = int(feedrate_cmd[1:])
+					new_feedrate = round(self._actual_feedrate * self._feedrate_factor)
+					self._feedrate_dict[feedrate_cmd] = new_feedrate
 				# TODO replace with value from printer profile
 				if new_feedrate > 5000:
 					new_feedrate = 5000
@@ -682,8 +690,12 @@ class MachineCom(object):
 			obj = self._regex_intensity.search(cmd)
 			if obj is not None:
 				intensity_cmd = cmd[obj.start():obj.end()]
-				self._actual_intensity = int(intensity_cmd[1:])
-				new_intensity = round(self._actual_intensity * self._intensity_factor)
+				if intensity_cmd in self._intensity_dict:
+					new_intensity = self._intensity_dict[intensity_cmd]
+				else:
+					self._actual_intensity = int(intensity_cmd[1:])
+					new_intensity = round(self._actual_intensity * self._intensity_factor)
+					self._intensity_dict[intensity_cmd] = new_intensity
 				if new_intensity > 1000:
 					new_intensity = 1000
 			else:
