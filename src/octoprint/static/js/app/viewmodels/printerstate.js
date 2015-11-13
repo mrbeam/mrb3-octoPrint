@@ -314,7 +314,7 @@ $(function() {
 				min: 10,
 				max: 200,
 				value: 100,
-				xtooltip: 'hide'
+//				tooltip: 'hide'
 			}).on("slideStop", function(ev){
 				self.intensityOverride(ev.value);
 			});
@@ -324,7 +324,7 @@ $(function() {
 				min: 10,
 				max: 200,
 				value: 100,
-				xtooltip: 'hide'
+//				tooltip: 'hide'
 			}).on("slideStop", function(ev){
 				self.feedrateOverride(ev.value);
 			});
