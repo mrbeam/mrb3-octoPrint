@@ -100,7 +100,7 @@ $(function() {
                 });
             }
         };
-		
+
         self.fromCurrentData = function(data) {
             self._processStateData(data.state);
         };
@@ -138,7 +138,7 @@ $(function() {
                 }
             });
         };
-             
+
         self.fromResponse = function(response, filenameToFocus, locationToFocus) {
             var files = response.files;
             _.each(files, function(element, index, list) {
@@ -267,7 +267,7 @@ $(function() {
 				return "files_template_dummy";
 			}
 		};
-		
+
         self.getEntryId = function(data) {
             return "gcode_file_" + md5(data["origin"] + ":" + data["name"]);
         };
@@ -344,7 +344,7 @@ $(function() {
             }
             return output;
         };
-		
+
         self.performSearch = function(e) {
             if (e !== undefined) {
                 e.preventDefault();
@@ -375,7 +375,7 @@ $(function() {
 		self.enableSVGConversion = function (data) {
 			return self.loginState.isUser() && !(self.isPrinting() || self.isPaused());
 		};
-		
+
         self.onStartup = function() {
             $(".accordion-toggle[data-target='#files']").click(function() {
                 var files = $("#files");
@@ -602,6 +602,90 @@ $(function() {
                     if (dropZone) dropZoneBackground.removeClass("hover");
 				}, 1000);
             });
+
+			$('#take_photo_dialog').on('hide', function () {
+				$('#photo_preview').data("photobooth").destroy();
+			});
+
+
+			$('#take_photo_dialog').on('shown', function () {
+				$('#photo_preview').photobooth();
+				var w = $('#photo_preview').parent().width()*0.98;
+				var h = w*3.0/4.0;
+				$('#photo_preview').height(h);
+				$('#photo_preview').width(w);
+				$('#photo_preview').data('photobooth').resize(w, h);
+			});
+
+			$('#photo_preview').on("image", function (event, dataUrl) {
+				var photoBlob = self.dataUriToBlob(dataUrl);
+				var t = new Date();
+				var yyyy = t.getFullYear().toString();
+				var mm = (t.getMonth()+1).toString(); // getMonth() is zero-based
+				var dd  = t.getDate().toString();
+				var hh  = t.getHours().toString();
+				var m  = t.getMinutes().toString();
+				var date = yyyy + (mm[1]?mm:"0"+mm[0]) + (dd[1]?dd:"0"+dd[0]) + '_' + (hh[1]?hh:"0"+hh[0])+(m[1]?m:"0"+m[0]); // padding
+
+				var filename = "Photo_" + date + ".png";
+				var data = new FormData();
+				data.append('file', photoBlob, filename);
+
+				jQuery.ajax({
+					url: API_BASEURL + "files/local",
+					data: data,
+					cache: false,
+					contentType: false,
+					processData: false,
+					type: 'POST',
+					success: function(data, resp){
+						gcode_upload_done(resp, {result: data});
+						$('#take_photo_dialog').modal("hide");
+					},
+					fail: gcode_upload_fail,
+					progressall: gcode_upload_progress
+				});
+			});
+
+			self.takePhoto = function () {
+				$('#take_photo_dialog').modal("show");
+			};
+
+			self.hasCamera = function () {
+				var fGetUserMedia = (
+						navigator.getUserMedia ||
+						navigator.webkitGetUserMedia ||
+						navigator.mozGetUserMedia ||
+						navigator.oGetUserMedia ||
+						navigator.msieGetUserMedia ||
+						false
+						);
+				return !!fGetUserMedia;
+			};
+
+			self.dataUriToBlob = function(dataURI) {
+				// serialize the base64/URLEncoded data
+				var byteString;
+				if (dataURI.split(',')[0].indexOf('base64') >= 0) {
+					byteString = atob(dataURI.split(',')[1]);
+				}
+				else {
+					byteString = unescape(dataURI.split(',')[1]);
+				}
+
+				// parse the mime type
+				var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
+				// construct a Blob of the image data
+				var array = [];
+				for (var i = 0; i < byteString.length; i++) {
+					array.push(byteString.charCodeAt(i));
+				}
+				return new Blob(
+						[new Uint8Array(array)],
+						{type: mimeString}
+				);
+			};
 
             self.requestData();
         };

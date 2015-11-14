@@ -107,6 +107,8 @@ $(function(){
 			if(self.state.isOperational() && !self.state.isPrinting()){
 				var x = self.px2mm(event.offsetX);
 				var y = self.px2mm(event.toElement.ownerSVGElement.offsetHeight - event.offsetY); // hopefully this works across browsers
+				x = Math.min(x, self.workingAreaWidthMM());
+				y = Math.min(y, self.workingAreaHeightMM());
 				$.ajax({
 					url: API_BASEURL + "printer/printhead",
 					type: "POST",
@@ -310,13 +312,9 @@ $(function(){
 			var bbox = svg.getBBox();
 			var tx = self.px2mm(bbox.x * globalScale);
 			var ty = self.workingAreaHeightMM() - self.px2mm(bbox.y2 * globalScale);
-//			var tx = self.px2mm(svg.data('tx')*globalScale).toFixed(1);
-//			var ty = -self.px2mm(svg.data('ty')*globalScale).toFixed(1);
-//			var rot = svg.data('angle') || 0;
 			var startIdx = transform.local.indexOf('r') + 1;
 			var endIdx = transform.local.indexOf(',', startIdx);
 			var rot = parseFloat(transform.local.substring(startIdx, endIdx)) || 0;
-//			if(!rot) rot = 0; // avoid NaN
 			var horizontal = self.px2mm((bbox.x2 - bbox.x) * globalScale);
 			var vertical = self.px2mm((bbox.y2 - bbox.y) * globalScale);
 			var id = svg.attr('id');
@@ -392,7 +390,7 @@ $(function(){
             });
 
 		};
-
+		
 		self.placeIMG = function (file) {
 			var url = self._getIMGserveUrl(file);
 			var img = new Image();
@@ -412,7 +410,7 @@ $(function(){
 				newImg.attr({id: previewId, filter: 'url(#grayscale_filter)', 'data-serveurl': url});
 				snap.select("#userContent").append(newImg);
 				newImg.transformable();
-				newImg.ftDisableRotate();
+				//newImg.ftDisableRotate();
 				newImg.ftRegisterCallback(self.svgTransformUpdate);
 				file.id = id;
 				file.previewId = previewId;
@@ -623,19 +621,36 @@ $(function(){
 			self.check_sizes_and_placements();
 		};
 
-		self.getCompositionSVG = function(){
+		self.getCompositionSVG = function(fillAreas, callback){
 			self.abortFreeTransforms();
-			var tmpsvg = snap.select("#userContent").innerSVG(); // get working area
-			if(tmpsvg !== ''){
+			var wMM = self.workingAreaWidthMM();
+			var hMM = self.workingAreaHeightMM();
+			var wPT = wMM * 90 / 25.4;
+			var hPT = hMM * 90 / 25.4;
+			var compSvg = Snap(wPT, hPT);
+			compSvg.attr('id', 'compSvg');
+
+			var userContent = snap.select("#userContent").clone();
+			compSvg.append(userContent);
+			
+			self.renderInfill(compSvg, fillAreas, wMM, hMM, 10, function(svgWithRenderedInfill){
+				callback( self._wrapInSvgAndScale(svgWithRenderedInfill));
+				$('#compSvg').remove();
+			});
+		};
+		
+		self._wrapInSvgAndScale = function(content){
+			var svgStr = content.innerSVG();
+			if(svgStr !== ''){
 				var dpiFactor = self.svgDPI()/25.4; // convert mm to pix 90dpi for inkscape, 72 for illustrator
 				var w = dpiFactor * self.workingAreaWidthMM();
 				var h = dpiFactor * self.workingAreaHeightMM();
 
 				// TODO: look for better solution to solve this Firefox bug problem
-				tmpsvg = tmpsvg.replace("(\\\"","(");
-				tmpsvg = tmpsvg.replace("\\\")",")");
+				svgStr = svgStr.replace("(\\\"","(");
+				svgStr = svgStr.replace("\\\")",")");
 
-				var svg = '<svg height="'+ h +'" version="1.1" width="'+ w +'" xmlns="http://www.w3.org/2000/svg"><defs/>'+ tmpsvg +'</svg>';
+				var svg = '<svg height="'+ h +'" version="1.1" width="'+ w +'" xmlns="http://www.w3.org/2000/svg"><defs/>'+ svgStr +'</svg>';
 				return svg;
 			} else {
 				return;
@@ -667,6 +682,19 @@ $(function(){
 			return gcodeFiles;
 		}, self);
 
+		self.hasFilledVectors = function(){
+			var el = snap.selectAll('#userContent *');
+			for (var i = 0; i < el.length; i++) {
+				var e = el[i];
+				var fill = e.attr('fill');
+				var op = e.attr('fill-opacity');
+				if(fill !== 'none' && op > 0){
+					return true;
+				}
+
+			}
+			return false;
+		};
 
 		self.draw_gcode = function(points, intensity, target){
 			var stroke_color = intensity === 0 ? '#BBBBBB' : '#FF0000';
@@ -680,11 +708,6 @@ $(function(){
 		};
 
 		self.draw_gcode_img_placeholder = function(x,y,w,h,url, target){
-			var i = snap.rect(x,y,w,h).attr({
-				stroke: '#AA0000',
-				'stroke-width': 1
-			});
-			snap.select(target).append(i);
 			if(url !== ""){
 				var p = snap.image(url,x,y,w,h).attr({
 					transform: 'matrix(1,0,0,-1,0,'+ String(h) +')',
@@ -698,7 +721,7 @@ $(function(){
 		self.clear_gcode = function(){
 			snap.select('#gCodePreview').clear();
 		};
-
+		
 		self.onStartup = function(){
 			self.state.workingArea = self;
 			self.files.workingArea = self;
@@ -730,6 +753,79 @@ $(function(){
 					}
 				}
 			});
+		};
+		
+		self._embedAllImages = function(svg, callback){
+			
+			var allImages = svg.selectAll('image');
+			var linkedImages = allImages.items.filter(function(i){ return !i.attr('href').startsWith('data:') });
+			if(linkedImages.length > 0){
+				var callbackCounter = linkedImages.length;
+				for (var i = 0; i < linkedImages.length; i++) {
+					var img = linkedImages[i];
+					img.embedImage(function(){
+						callbackCounter--;
+						if(callbackCounter === 0 && typeof callback === 'function'){
+							callback();
+						}
+					});
+				}
+			} else {
+				// callback if nothing to embed
+				if(typeof callback === 'function'){
+					callback();
+				}
+			}
+		}
+
+		// render the infill and inject it as an image into the svg
+		self.renderInfill = function (svg, fillAreas, wMM, hMM, pxPerMM, callback) {
+			var wPT = wMM * 90 / 25.4;
+			var hPT = hMM * 90 / 25.4;
+			var tmpSvg = Snap(wPT, hPT).attr('id', 'tmpSvg');
+			// get only filled items and embed the images
+			var userContent = svg.clone();
+			tmpSvg.append(userContent);
+			self._embedAllImages(tmpSvg, function(){
+				var fillings = userContent.removeUnfilled(fillAreas);
+				for (var i = 0; i < fillings.length; i++) {
+					var item = fillings[i];
+					
+					if (item.type === 'image') {
+						// remove filter effects on images for proper rendering
+						var style = item.attr('style');
+						if (style !== null) {
+							var strippedFilters = style.replace(/filter.+?;/, '');
+							item.attr('style', strippedFilters);
+						}
+					} else {
+						// remove stroke from other elements
+						//item.attr('fill', '#ff0000');
+						item.attr('stroke', 'none');
+					}
+				}
+
+				var cb = function(result) {
+					if(fillings.length > 0){
+						// replace all images with the fill rendering
+						svg.selectAll('image').remove();
+						var waBB = snap.select('#coordGrid').getBBox();
+						var fillImage = snap.image(result, 0, 0, waBB.w, waBB.h);
+						fillImage.attr('id', 'fillRendering');
+						svg.append(fillImage);
+					}
+					if (typeof callback === 'function') {
+						callback(svg);
+					}
+					self._cleanup_render_mess();
+				};
+
+				tmpSvg.renderPNG(wMM, hMM, pxPerMM, cb);
+			});
+		};
+
+		self._cleanup_render_mess = function(){
+			$('#tmpSvg').remove();
 		};
 
 		self.onBeforeBinding = function(){

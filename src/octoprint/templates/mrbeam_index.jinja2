@@ -155,8 +155,20 @@
 												{{ _('Timelapse') }}: <strong data-bind="text: timelapseString"></strong><br>
 												-->
 												{{ _('Approx. Total Job Time') }}: <strong data-bind="text: estimatedPrintTimeString"></strong><br>
-												<div class="progress" data-bind="visible: isPrinting() || isPaused()">
-													<div class="bar" id="job_progressBar" data-bind="style: { width: progressString() + '%' }">&nbsp;{{ _('Processed') }} :  <strong data-bind="text: byteString"></strong></div>
+												<div data-bind="visible: isPrinting() || isPaused()">
+													
+													<div class="progress">
+														<div class="bar" id="job_progressBar" data-bind="style: { width: progressString() + '%' }">&nbsp;{{ _('Processed') }} :  <strong data-bind="text: byteString"></strong></div>
+													</div>
+													<div class="overrideSlider">
+														<input id="intensity_override_slider" type="text" data-bind="sliderValue: intensityOverride">
+														<span data-bind="text:intensityOverride()">100</span>% Intensity
+													</div>
+													<div class="overrideSlider">
+														<input id="feedrate_override_slider" type="text" data-bind="sliderValue: feedrateOverride">
+														<span data-bind="text:feedrateOverride()">100</span>% Feedrate
+													</div>
+
 												</div>
 												<!--                                {{ _('Print Time') }}: <strong data-bind="text: printTimeString"></strong><br>
 																				{{ _('Print Time Left') }}: <strong data-bind="text: printTimeLeftString"></strong><br>-->
@@ -288,13 +300,11 @@
 										</feComponentTransfer>
 									</filter>
 									<g id="scaleGroup" data-bind="attr: { transform: scaleMatrix() }">
-										<rect data-bind="click: move_laser"
-											  id="coordGrid" x="0" y="0" width="0" height="0"
-											  stroke="none" fill="none"></rect>
+
 										<text
 											xml:space="preserve"
 											data-bind="visible: working_area_empty"
-											style="font-size:64px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#DDDDDD;fill-opacity:1;stroke:none;font-family:DIN-BoldAlternate;-inkscape-font-specification:DIN-BoldAlternate Bold"
+											style="font-size:64px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#DDDDDD;fill-opacity:1;stroke:none;font-family:DIN-BoldAlternate, Helvetica, Arial, Sans-serif;"
 											x="396.81018"
 											y="552.36218"
 											id="add_designs_hint"
@@ -311,9 +321,12 @@
 										<tspan
 											  x="368.571426" y="712.36218" id="tspan2991"
 											  style="text-anchor:middle;text-align:center" /></text>
-										<g id="userContent" data-bind="visible: !state.isPrinting() && !state.isPaused()"></g>
 										<g id="placedGcodes" data-bind="visible: !state.isPrinting() && !state.isPaused(), attr: { transform: scaleMatrixMMtoDisplay() }"></g>
 										<g id="gCodePreview" data-bind="visible: state.isPrinting() || state.isPaused(), attr: { transform: scaleMatrixMMtoDisplay() }"></g>
+										<rect data-bind="click: move_laser"
+											  id="coordGrid" x="0" y="0" width="0" height="0"
+											  stroke="none" fill="none"></rect>
+										<g id="userContent" data-bind="visible: !state.isPrinting() && !state.isPaused()"></g>
 									</g>
 								</svg>
 
@@ -494,11 +507,16 @@
 									<div style="display: none;" data-bind="visible: loginState.isUser">
 										<div class="row-fluid upload-buttons">
 
-											<span class="btn btn-primary fileinput-button span12" data-bind="css: {disabled: !$root.loginState.isUser()}" style="margin-bottom: 10px">
+											<span class="btn btn-primary fileinput-button " data-bind="css: {disabled: !$root.loginState.isUser(), span12: !hasCamera(), span8: hasCamera()}" style="margin-bottom: 10px">
 												<i class="icon-upload-alt icon-white"></i>
 												<span>{{ _('Upload') }}</span>
 												<input id="gcode_upload" type="file" name="file" class="fileinput-button" data-bind="enable: loginState.isUser()">
 											</span>
+											<a class="btn btn-primary span4" href="#" role="button" data-bind="visible:hasCamera(), css: {disabled: !$root.loginState.isUser()}, click: takePhoto" >
+												<i class="icon-camera icon-white"></i>
+												<span>{{ _('Photo') }}</span>
+											</a>
+												
 										</div>
 										<div id="gcode_upload_progress" class="progress" style="width: 100%;">
 											<div class="bar" style="width: 0%"></div>
@@ -715,6 +733,7 @@
         {#% include 'dialogs/settings.jinja2' %#}
         {% include 'dialogs/slicing.jinja2' %}
 		{% include 'dialogs/usersettings.jinja2' %}
+        {% include 'dialogs/take_photo.jinja2' %}
         <!-- End of dialogs -->
 
         <!-- Overlays -->
