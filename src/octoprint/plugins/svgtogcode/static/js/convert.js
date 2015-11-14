@@ -42,7 +42,7 @@ $(function(){
 		// preset values are a good start for wood engraving
 		self.images_placed = ko.observable(false);
 		self.show_image_parameters = ko.computed(function(){
-			return self.images_placed() || self.fill_areas();
+			return self.images_placed() || (self.fill_areas() && self.show_vector_parameters());
 		});
 		self.imgIntensityWhite = ko.observable(0);
 		self.imgIntensityBlack = ko.observable(500);
@@ -105,6 +105,13 @@ $(function(){
 			} else {
 				// just gcodes were placed. Start lasering right away.
 				self.convert();
+			}
+		};
+		
+		self.cancel_conversion = function(){
+			if(self.slicing_in_progress()){
+				console.log('cancel slicing', self.slicing_in_progress());
+				// TODO cancel slicing properly
 			}
 		};
 
@@ -236,10 +243,10 @@ $(function(){
 		};
 
 		self.convert = function() {
-			self.slicing_in_progress(true);
 			if(self.gcodeFilesToAppend.length === 1 && self.svg === undefined){
 				self.files.startGcodeWithSafetyWarning(self.gcodeFilesToAppend[0]);
 			} else {
+				self.slicing_in_progress(true);
 				self.workingArea.getCompositionSVG(self.fill_areas(), function(composition){
 					self.svg = composition;	
 					var filename = self.gcodeFilename() + self.settingsString() + '.gco';
@@ -302,29 +309,29 @@ $(function(){
 		};
 		self.onEventSlicingStarted = function(payload){
 			self.slicing_in_progress(true);
-			console.log("onSlicingDone" , payload);
 		};
 		self.onEventSlicingDone = function(payload){
 			// payload
-//			gcode: "angelina_20091211_0193_11more_i1000s300.gco"
+//			gcode: "ex_11more_i1000s300.gco"
 //			gcode_location: "local"
-//			stl: "local/angelina_jolie_20091211_0193_11more_i1000s300.svg"
+//			stl: "local/ex_11more_i1000s300.svg"
 //			time: 30.612739086151123
 			self.gcodeFilename(undefined);
 			self.svg = undefined;
 			$("#dialog_vector_graphics_conversion").modal("hide");
 			self.slicing_in_progress(false);
+			//console.log("onSlicingDone" , payload);
 		};
 		self.onEventSlicingCancelled = function(payload){
 			self.gcodeFilename(undefined);
 			self.svg = undefined;
 			self.slicing_in_progress(false);
 			$("#dialog_vector_graphics_conversion").modal("hide");
-			console.log("onSlicingCancelled" , payload);
+			//console.log("onSlicingCancelled" , payload);
 		};
 		self.onEventSlicingFailed = function(payload){
 			self.slicing_in_progress(false);
-			console.log("onSlicingFailed" , payload);
+			//console.log("onSlicingFailed" , payload);
 		};
 
 		self._configureIntensitySlider = function() {
