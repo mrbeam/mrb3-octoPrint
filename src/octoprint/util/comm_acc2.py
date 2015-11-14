@@ -82,6 +82,8 @@ class MachineCom(object):
 		self._actual_feedrate = None
 		self._intensity_factor = 1
 		self._actual_intensity = None
+		self._feedrate_dict = {}
+		self._intensity_dict = {}
 
 		# regular expressions
 		self._regex_command = re.compile("^\s*\$?([GM]\d+|[TH])")
@@ -332,11 +334,11 @@ class MachineCom(object):
 		if self._grbl_state == 'Queue':
 			if time.time() - self._pause_delay_time > 0.3:
 				if not self.isPaused():
-					self.setPause(True)
+					self.setPause(True, False)
 		elif self._grbl_state == 'Run' or self._grbl_state == 'Idle':
 			if time.time() - self._pause_delay_time > 0.3:
 				if self.isPaused():
-					self.setPause(False)
+					self.setPause(False, False)
 		self._update_grbl_pos(line)
 		#if self._metricf is not None:
 		#	self._metricf.write(line)
@@ -643,6 +645,7 @@ class MachineCom(object):
 		temp = value / 100.0
 		if temp > 0:
 			self._feedrate_factor = temp
+			self._feedrate_dict = {}
 			if self._actual_feedrate is not None:
 				temp = round(self._actual_feedrate * self._feedrate_factor)
 				# TODO replace with value from printer profile
@@ -654,6 +657,7 @@ class MachineCom(object):
 		temp = value / 100.0
 		if temp >= 0:
 			self._intensity_factor = temp
+			self._intensity_dict = {}
 			if self._actual_intensity is not None:
 				temp = round(self._actual_intensity * self._intensity_factor)
 				if temp > 1000:
@@ -665,13 +669,17 @@ class MachineCom(object):
 			obj = self._regex_feedrate.search(cmd)
 			if obj is not None:
 				feedrate_cmd = cmd[obj.start():obj.end()]
-				self._actual_feedrate = int(feedrate_cmd[1:])
-				new_feedrate = round(self._actual_feedrate * self._feedrate_factor)
-				# TODO replace with value from printer profile
-				if new_feedrate > 5000:
-					new_feedrate = 5000
-				elif new_feedrate < 30:
-					new_feedrate = 30
+				if feedrate_cmd in self._feedrate_dict:
+					new_feedrate = self._feedrate_dict[feedrate_cmd]
+				else:
+					self._actual_feedrate = int(feedrate_cmd[1:])
+					new_feedrate = round(self._actual_feedrate * self._feedrate_factor)
+					# TODO replace with value from printer profile
+					if new_feedrate > 5000:
+						new_feedrate = 5000
+					elif new_feedrate < 30:
+						new_feedrate = 30
+					self._feedrate_dict[feedrate_cmd] = new_feedrate
 			else:
 				return cmd
 			return cmd.replace(feedrate_cmd, 'F%d' % round(new_feedrate))
@@ -682,10 +690,14 @@ class MachineCom(object):
 			obj = self._regex_intensity.search(cmd)
 			if obj is not None:
 				intensity_cmd = cmd[obj.start():obj.end()]
-				self._actual_intensity = int(intensity_cmd[1:])
-				new_intensity = round(self._actual_intensity * self._intensity_factor)
-				if new_intensity > 1000:
-					new_intensity = 1000
+				if intensity_cmd in self._intensity_dict:
+					new_intensity = self._intensity_dict[intensity_cmd]
+				else:
+					self._actual_intensity = int(intensity_cmd[1:])
+					new_intensity = round(self._actual_intensity * self._intensity_factor)
+					if new_intensity > 1000:
+						new_intensity = 1000
+					self._intensity_dict[intensity_cmd] = new_intensity
 			else:
 				return cmd
 			return cmd.replace(intensity_cmd, 'S%d' % round(new_intensity))
@@ -768,6 +780,8 @@ class MachineCom(object):
 				self._log("available commands are:")
 				self._log("   /togglestatusreport")
 				self._log("   /setstatusfrequency <Inteval Sec>")
+				self._log("   /feedrate <%>")
+				self._log("   /intensity <%>")
 				self._log("   /disconnect")
 			return
 
@@ -846,7 +860,7 @@ class MachineCom(object):
 
 		eventManager().fire(Events.PRINT_CANCELLED, payload)
 
-	def setPause(self, pause):
+	def setPause(self, pause, send_cmd=True):
 		if not self._currentFile:
 			return
 
@@ -861,14 +875,16 @@ class MachineCom(object):
 				self._pauseWaitTimeLost = self._pauseWaitTimeLost + (time.time() - self._pauseWaitStartTime)
 				self._pauseWaitStartTime = None
 			self._pause_delay_time = time.time()
-			self._real_time_commands['cycle_start']=True
+			if send_cmd is True:
+				self._real_time_commands['cycle_start']=True
 			self._send_event.set()
 			eventManager().fire(Events.PRINT_RESUMED, payload)
 		elif pause and self.isPrinting():
 			if not self._pauseWaitStartTime:
 				self._pauseWaitStartTime = time.time()
 			self._pause_delay_time = time.time()
-			self._real_time_commands['feed_hold']=True
+			if send_cmd is True:
+				self._real_time_commands['feed_hold']=True
 			self._send_event.set()
 			eventManager().fire(Events.PRINT_PAUSED, payload)
 
