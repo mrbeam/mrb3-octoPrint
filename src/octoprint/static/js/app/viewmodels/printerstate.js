@@ -331,6 +331,13 @@ $(function() {
 
 		};
 		
+		self.onEventPrintDone = function(){
+			self.feedrateOverrideSlider.slider('setValue', 100);
+			self.intensityOverrideSlider.slider('setValue', 100);
+			self.intensityOverride(100);
+			self.feedrateOverride(100);
+		};
+		
 		self.onStartup = function() {
 			self._configureOverrideSliders();
 		};
