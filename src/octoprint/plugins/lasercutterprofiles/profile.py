@@ -32,8 +32,8 @@ class LaserCutterProfileManager(object):
 			width = 217,
 			depth = 298,
 			height = 0,
-			origin_offset_x = 1,
-			origin_offset_y = 1,
+			origin_offset_x = 1.1,
+			origin_offset_y = 1.1,
 		),
 		zAxis = False,
 		axes=dict(
