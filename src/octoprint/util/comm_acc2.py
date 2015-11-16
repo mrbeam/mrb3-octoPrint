@@ -377,6 +377,10 @@ class MachineCom(object):
 		self._send_event.clear(completely=True)
 		self._changeState(self.STATE_LOCKED)
 
+		# close and open serial port to reset arduino
+		self._serial.close()
+		self._openSerial()
+
 	def _handle_feedback_message(self, line):
 		if line[1:].startswith('Res'): # [Reset to continue]
 			pass
