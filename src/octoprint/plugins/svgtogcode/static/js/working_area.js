@@ -335,7 +335,7 @@ $(function(){
 			var tooHigh = svgBB.h > waBB.h;
 			var scale = 1;
 			if(tooWide || tooHigh){
-				scale = Math.min(waBB.w / svgBB.w, waBB.h / svgBB.h) - 0.01; // scale minimal smaller to avoid rounding errors
+				scale = Math.min(waBB.w / svgBB.w, waBB.h / svgBB.h) - 0.0001; // scale minimal smaller to avoid rounding errors
 			}
 
 			var dx = 0;
