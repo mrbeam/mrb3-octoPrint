@@ -398,8 +398,12 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 
 		var d = '';
 
-		var valid = function (val) {
+		var validRadius = function (val) {
 			return (isFinite(val) && (val >= 0));
+		};
+		
+		var validCoordinate = function (val) {
+			return (isFinite(val));
 		};
 
 		// Possibly the cubed root of 6, but 1.81 works best
@@ -451,14 +455,17 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 					h = parseFloat(old_element.attr('height'));
 
 				// Validity checks from http://www.w3.org/TR/SVG/shapes.html#RectElement:
+				// If 'x' and 'y' are not specified, then set both to 0. // CorelDraw is creating that sometimes
+				if (!validCoordinate(x) && !validCoordinate(y))
+					x = y = 0;
 				// If neither ‘rx’ nor ‘ry’ are properly specified, then set both rx and ry to 0. (This will result in square corners.)
-				if (!valid(rx) && !valid(ry)) {
+				if (!validRadius(rx) && !validRadius(ry)) {
 					rx = ry = 0;
 				// Otherwise, if a properly specified value is provided for ‘rx’, but not for ‘ry’, then set both rx and ry to the value of ‘rx’.
-				} else if (valid(rx) && !valid(ry)) {
+				} else if (validRadius(rx) && !validRadius(ry)) {
 					ry = rx;
 				// Otherwise, if a properly specified value is provided for ‘ry’, but not for ‘rx’, then set both rx and ry to the value of ‘ry’.
-				} else if (valid(ry) && !valid(rx)) {
+				} else if (validRadius(ry) && !validRadius(rx)) {
 					rx = ry;
 				} else { // cap values for rx/ry to half of w/h
 					rx = Math.min(rx, w/2);
