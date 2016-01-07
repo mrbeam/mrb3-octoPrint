@@ -419,7 +419,13 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 				if (tag === 'circle') {
 					rx = ry = +old_element.attr('r');
 				}
-
+				
+				// If 'x' and 'y' are not specified, then set both to 0. // CorelDraw is creating that sometimes
+				if (!validCoordinate(cx))
+					cx = 0;
+				if (!validCoordinate(cy))
+					cy = 0;
+				
 				d += _convertToString([
 					['M', (cx - rx), (cy)],
 					['C', (cx - rx), (cy - ry / num), (cx - rx / num), (cy - ry), (cx), (cy - ry)],
@@ -456,8 +462,10 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 
 				// Validity checks from http://www.w3.org/TR/SVG/shapes.html#RectElement:
 				// If 'x' and 'y' are not specified, then set both to 0. // CorelDraw is creating that sometimes
-				if (!validCoordinate(x) && !validCoordinate(y))
-					x = y = 0;
+				if (!validCoordinate(x))
+					x = 0;
+				if (!validCoordinate(y))
+					y = 0;
 				// If neither ‘rx’ nor ‘ry’ are properly specified, then set both rx and ry to 0. (This will result in square corners.)
 				if (!validRadius(rx) && !validRadius(ry)) {
 					rx = ry = 0;
