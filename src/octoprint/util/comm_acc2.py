@@ -82,8 +82,6 @@ class MachineCom(object):
 		self._actual_feedrate = None
 		self._intensity_factor = 1
 		self._actual_intensity = None
-		self._feedrate_dict = {}
-		self._intensity_dict = {}
 
 		# regular expressions
 		self._regex_command = re.compile("^\s*\$?([GM]\d+|[TH])")
@@ -649,19 +647,19 @@ class MachineCom(object):
 		temp = value / 100.0
 		if temp > 0:
 			self._feedrate_factor = temp
-			self._feedrate_dict = {}
 			if self._actual_feedrate is not None:
 				temp = round(self._actual_feedrate * self._feedrate_factor)
 				# TODO replace with value from printer profile
 				if temp > 5000:
 					temp = 5000
+				elif temp < 30:
+					temp = 30
 				self.sendCommand('F%d' % round(temp))
 
 	def _set_intensity_override(self, value):
 		temp = value / 100.0
 		if temp >= 0:
 			self._intensity_factor = temp
-			self._intensity_dict = {}
 			if self._actual_intensity is not None:
 				temp = round(self._actual_intensity * self._intensity_factor)
 				if temp > 1000:
@@ -674,16 +672,12 @@ class MachineCom(object):
 			if obj is not None:
 				feedrate_cmd = cmd[obj.start():obj.end()]
 				self._actual_feedrate = int(feedrate_cmd[1:])
-				if feedrate_cmd in self._feedrate_dict:
-					new_feedrate = self._feedrate_dict[feedrate_cmd]
-				else:
-					new_feedrate = round(self._actual_feedrate * self._feedrate_factor)
-					# TODO replace with value from printer profile
-					if new_feedrate > 5000:
-						new_feedrate = 5000
-					elif new_feedrate < 30:
-						new_feedrate = 30
-					self._feedrate_dict[feedrate_cmd] = new_feedrate
+				new_feedrate = round(self._actual_feedrate * self._feedrate_factor)
+				# TODO replace with value from printer profile
+				if new_feedrate > 5000:
+					new_feedrate = 5000
+				elif new_feedrate < 30:
+					new_feedrate = 30
 			else:
 				return cmd
 			return cmd.replace(feedrate_cmd, 'F%d' % round(new_feedrate))
@@ -695,13 +689,9 @@ class MachineCom(object):
 			if obj is not None:
 				intensity_cmd = cmd[obj.start():obj.end()]
 				self._actual_intensity = int(intensity_cmd[1:])
-				if intensity_cmd in self._intensity_dict:
-					new_intensity = self._intensity_dict[intensity_cmd]
-				else:
-					new_intensity = round(self._actual_intensity * self._intensity_factor)
-					if new_intensity > 1000:
-						new_intensity = 1000
-					self._intensity_dict[intensity_cmd] = new_intensity
+				new_intensity = round(self._actual_intensity * self._intensity_factor)
+				if new_intensity > 1000:
+					new_intensity = 1000
 			else:
 				return cmd
 			return cmd.replace(intensity_cmd, 'S%d' % round(new_intensity))
