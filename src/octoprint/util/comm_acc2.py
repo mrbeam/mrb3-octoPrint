@@ -211,9 +211,9 @@ class MachineCom(object):
 					self._errorValue = get_exception_string()
 					self.close(True)
 		else:
+			cmd, _, _  = self._process_command_phase("sending", cmd)
 			self._log("Send: %s" % cmd)
 			try:
-				self._cmd, _, _  = self._process_command_phase("sending", self._cmd)
 				self._serial.write(cmd)
 				self._process_command_phase("sent", cmd)
 			except serial.SerialException:
@@ -648,23 +648,23 @@ class MachineCom(object):
 		if temp > 0:
 			self._feedrate_factor = temp
 			if self._actual_feedrate is not None:
-				temp = round(self._actual_feedrate * self._feedrate_factor)
+				new_feedrate = round(self._actual_feedrate * self._feedrate_factor)
 				# TODO replace with value from printer profile
-				if temp > 5000:
-					temp = 5000
-				elif temp < 30:
-					temp = 30
-				self.sendCommand('F%d' % round(temp))
+				if new_feedrate > 5000:
+					new_feedrate = 5000
+				elif new_feedrate < 30:
+					new_feedrate = 30
+				self.sendCommand('F%d' % round(new_feedrate))
 
 	def _set_intensity_override(self, value):
 		temp = value / 100.0
 		if temp >= 0:
 			self._intensity_factor = temp
 			if self._actual_intensity is not None:
-				temp = round(self._actual_intensity * self._intensity_factor)
-				if temp > 1000:
-					temp = 1000
-				self.sendCommand('S%d' % round(temp))
+				new_intensity = round(self._actual_intensity * self._intensity_factor)
+				if new_intensity > 1000:
+					new_intensity = 1000
+				self.sendCommand('S%d' % round(new_intensity))
 
 	def _replace_feedrate(self, cmd):
 		if self._feedrate_factor != 1:
