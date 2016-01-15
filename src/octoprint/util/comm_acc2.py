@@ -213,9 +213,10 @@ class MachineCom(object):
 					self._errorValue = get_exception_string()
 					self.close(True)
 		else:
+			cmd, _, _  = self._process_command_phase("sending", cmd)
 			self._log("Send: %s" % cmd)
 			try:
-				self._cmd, _, _  = self._process_command_phase("sending", self._cmd)
+
 				self._serial.write(cmd)
 				self._process_command_phase("sent", cmd)
 			except serial.SerialException:
