@@ -673,10 +673,10 @@ class MachineCom(object):
 			obj = self._regex_feedrate.search(cmd)
 			if obj is not None:
 				feedrate_cmd = cmd[obj.start():obj.end()]
+				self._actual_feedrate = int(feedrate_cmd[1:])
 				if feedrate_cmd in self._feedrate_dict:
 					new_feedrate = self._feedrate_dict[feedrate_cmd]
 				else:
-					self._actual_feedrate = int(feedrate_cmd[1:])
 					new_feedrate = round(self._actual_feedrate * self._feedrate_factor)
 					# TODO replace with value from printer profile
 					if new_feedrate > 5000:
@@ -694,10 +694,10 @@ class MachineCom(object):
 			obj = self._regex_intensity.search(cmd)
 			if obj is not None:
 				intensity_cmd = cmd[obj.start():obj.end()]
+				self._actual_intensity = int(intensity_cmd[1:])
 				if intensity_cmd in self._intensity_dict:
 					new_intensity = self._intensity_dict[intensity_cmd]
 				else:
-					self._actual_intensity = int(intensity_cmd[1:])
 					new_intensity = round(self._actual_intensity * self._intensity_factor)
 					if new_intensity > 1000:
 						new_intensity = 1000
