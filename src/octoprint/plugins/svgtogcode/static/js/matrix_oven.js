@@ -53,10 +53,37 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			elem.type !== "line" &&
 			elem.type !== "polygon" &&
 			elem.type !== "polyline" &&
+			elem.type !== "image" &&
 			elem.type !== "path"){
 			
 //			if(elem.type !== 'g' && elem.type !== 'desc' && elem.type !== 'defs')
 //				console.log('skipping unsupported element ', elem.type);
+			return;
+		}
+
+		if (elem.type == 'image'){
+			// TODO ... 
+			var x = parseFloat(elem.attr('x')),
+				y = parseFloat(elem.attr('y')),
+				w = parseFloat(elem.attr('width')),
+				h = parseFloat(elem.attr('height'));
+
+			// Validity checks from http://www.w3.org/TR/SVG/shapes.html#RectElement:
+			// If 'x' and 'y' are not specified, then set both to 0. // CorelDraw is creating that sometimes
+			if (!isFinite(x))
+				console.log('No attribute "x" in image tag. Assuming 0.')
+				x = 0;
+			if (!isFinite(y))
+				console.log('No attribute "y" in image tag. Assuming 0.')
+				y = 0;
+			var transform = elem.transform();
+			var matrix = transform['totalMatrix'];
+			var transformedX = matrix.x(x, y);
+			var transformedY = matrix.y(x, y);
+			var transformedW = matrix.x(x+w, y+h) - transformedX;
+			var transformedH = matrix.y(x+w, y+h) - transformedY;
+			
+			elem.attr({x: transformedX, y: transformedY, width: transformedW, height: transformedH});
 			return;
 		}
 
