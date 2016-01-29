@@ -404,6 +404,11 @@ $(function() {
         self.onStartup = function () {
             self.requestData();
 			self._configureJogDistanceSlider();
+			$('#manual_position').keyup(function(e) {
+				if (e.which === 13){ // 13 == enter
+					self.manualPosition();
+				 }
+			});
         };
 
 		self.updateRotatorWidth = function() {
@@ -605,6 +610,24 @@ $(function() {
 
 		self.setCoordinateOrigin = function () {
 			self.sendCustomCommand({type: 'command', command: "G92 X0 Y0"});
+		};
+		
+		self.manualPosition = function(){
+					$('#manual_position').removeClass('warning');
+			var s = $('#manual_position').val();
+			var tmp = s.split(/[^0-9.,-\\+]+/);
+			if (tmp.length === 2) {
+				var x = parseFloat(tmp[0]);
+				var y = parseFloat(tmp[1]);
+				if(!isNaN(x) && !isNaN(y)) {
+					self.sendCustomCommand({type: 'command', command: "G0X"+x+"Y"+y});
+					$('#manual_position').val('');
+				} else {
+					$('#manual_position').addClass('warning');
+				}
+			} else {
+				$('#manual_position').addClass('warning');
+			}
 		};
 
 		self.jogDistanceInMM = ko.observable(undefined);

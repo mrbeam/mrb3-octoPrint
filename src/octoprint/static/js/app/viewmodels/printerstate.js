@@ -38,6 +38,7 @@ $(function() {
 		self.feedrateOverride = ko.observable(100);
 		self.intensityOverride.extend({ rateLimit: 500 });
 		self.feedrateOverride.extend({ rateLimit: 500 });
+		self.numberOfPasses = ko.observable(1);
 
         self.TITLE_PRINT_BUTTON_PAUSED = gettext("Restarts the print job from the beginning");
         self.TITLE_PRINT_BUTTON_UNPAUSED = gettext("Starts the print job");
@@ -286,12 +287,6 @@ $(function() {
 			self.currentPos({x: payload.wx, y: payload.wy});
 		};
 		
-		self.intensityOverride.subscribe(function(factor){
-			self._overrideCommand("/intensity "+factor);
-		});
-		self.feedrateOverride.subscribe(function(factor){
-			self._overrideCommand("/feedrate "+factor);
-		});
 		
 		self._overrideCommand = function(command, callback) {
             $.ajax({
@@ -314,9 +309,11 @@ $(function() {
 				min: 10,
 				max: 200,
 				value: 100,
-//				tooltip: 'hide'
-			}).on("slideStop", function(ev){
+				tooltip: 'hide'
+			}).on("slide", function(ev){
 				self.intensityOverride(ev.value);
+			}).on("slideStop", function(ev){
+				self._overrideCommand("/intensity "+self.intensityOverride());
 			});
 			
 			self.feedrateOverrideSlider = $("#feedrate_override_slider").slider({
@@ -324,12 +321,22 @@ $(function() {
 				min: 10,
 				max: 200,
 				value: 100,
-//				tooltip: 'hide'
-			}).on("slideStop", function(ev){
+				tooltip: 'hide'
+			}).on("slide", function(ev){
 				self.feedrateOverride(ev.value);
+			}).on("slideStop", function(ev){
+				self._overrideCommand("/feedrate "+self.feedrateOverride());
 			});
 
 		};
+		
+		self.increasePasses = function(){
+			self.numberOfPasses(self.numberOfPasses()+1);
+		}
+		self.decreasePasses = function(){
+			var passes = Math.max(self.numberOfPasses()-1, 1);
+			self.numberOfPasses(passes);
+		}
 		
 		self.onEventPrintDone = function(){
 			self.feedrateOverrideSlider.slider('setValue', 100);

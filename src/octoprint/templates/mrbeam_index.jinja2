@@ -123,6 +123,10 @@
 												<div class="distance">
 													<input type="text" id="jogDistance" />
 												</div>
+												<div class="input-append manual_position_input">
+													<input id="manual_position" placeholder="x.xx y.yy" onsubmit="manualPosition"/>
+													<button class="" data-bind="click: manualPosition">Go</button>
+												</div>
 											</div>
 										</div>
 									</div>
@@ -167,6 +171,19 @@
 													<div class="overrideSlider">
 														<input id="feedrate_override_slider" type="text" data-bind="sliderValue: feedrateOverride">
 														<span data-bind="text:feedrateOverride()">100</span>% Feedrate
+													</div>
+													<div class="repeatGcode">
+														<div class="btn-group">
+															<button type="button" class="btn btn-default btn-number" data-bind="enable: numberOfPasses() > 1, click:decreasePasses">
+																<span class="icon-minus"></span>
+															</button>
+															<input type="text" class="input-mini text-right" value="1" min="1" max="10" data-bind="value:numberOfPasses()">
+															<button type="button" class="btn btn-default btn-number" data-bind="click:increasePasses">
+																<span class="icon-plus"></span>
+															</button>
+														</div>
+														<span>Passes</span>
+														
 													</div>
 
 												</div>
