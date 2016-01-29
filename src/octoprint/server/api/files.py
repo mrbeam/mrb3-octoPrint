@@ -473,7 +473,7 @@ def gcodeConvertCommand():
 		import os
 		name, _ = os.path.splitext(data['gcode'])
 		
-		filename = target + "/" + name + ".svg"
+		filename = target + "/temp.svg"
 		class Wrapper(object):
 			def __init__(self, filename, content):
 				self.filename = filename
