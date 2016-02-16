@@ -345,7 +345,7 @@ $(function(){
 				dx = -svgBB.x + 0.01;
 				outside = true;
 			} else if(svgBB.x2 > waBB.x2){
-				dx = -svgBB.x2 + waBB.x2 - 0.01;
+				dx = -svgBB.x + 0.01;
 				outside = true;
 			}
 			if(svgBB.y < waBB.y){
