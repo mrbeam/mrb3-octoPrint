@@ -763,7 +763,7 @@ $(function(){
 					return !i.attr('xlink:href').startsWith('data:');
 				} else if(i.attr('href') != null) {
 					return !i.attr('href').startsWith('data:');
-				}
+				}});
 			if(linkedImages.length > 0){
 				var callbackCounter = linkedImages.length;
 				for (var i = 0; i < linkedImages.length; i++) {
