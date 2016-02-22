@@ -758,7 +758,12 @@ $(function(){
 		self._embedAllImages = function(svg, callback){
 			
 			var allImages = svg.selectAll('image');
-			var linkedImages = allImages.items.filter(function(i){ return !i.attr('href').startsWith('data:') });
+			var linkedImages = allImages.items.filter(function(i){
+				if(i.attr('xlink:href') != null) {
+					return !i.attr('xlink:href').startsWith('data:');
+				} else if(i.attr('href') != null) {
+					return !i.attr('href').startsWith('data:');
+				}
 			if(linkedImages.length > 0){
 				var callbackCounter = linkedImages.length;
 				for (var i = 0; i < linkedImages.length; i++) {
