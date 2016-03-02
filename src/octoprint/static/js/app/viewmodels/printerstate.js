@@ -332,10 +332,12 @@ $(function() {
 		
 		self.increasePasses = function(){
 			self.numberOfPasses(self.numberOfPasses()+1);
+            self._jobCommand("incpasses");
 		}
 		self.decreasePasses = function(){
 			var passes = Math.max(self.numberOfPasses()-1, 1);
 			self.numberOfPasses(passes);
+            self._jobCommand("degpasses");
 		}
 		
 		self.onEventPrintDone = function(){

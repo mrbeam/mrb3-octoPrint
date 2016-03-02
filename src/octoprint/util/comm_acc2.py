@@ -893,6 +893,12 @@ class MachineCom(object):
 			self._send_event.set()
 			eventManager().fire(Events.PRINT_PAUSED, payload)
 
+	def increasePasses(self):
+		self._log("increase Passes")
+
+	def degreasePasses(self):
+		self._log("degrease Passes")
+
 	def getStateString(self):
 		if self._state == self.STATE_NONE:
 			return "Offline"
