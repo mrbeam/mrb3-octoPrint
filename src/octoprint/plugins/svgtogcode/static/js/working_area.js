@@ -390,7 +390,7 @@ $(function(){
             });
 
 		};
-		
+
 		self.placeIMG = function (file) {
 			var url = self._getIMGserveUrl(file);
 			var img = new Image();
@@ -426,10 +426,16 @@ $(function(){
 		};
 
 		self.getUsefulDimensions = function(wpx, hpx){
-			var maxWidthMM = wpx * 0.25; // TODO parametrize
-			var aspectRatio = wpx / hpx;
-			var destWidthMM = Math.min(self.workingAreaWidthMM() - 2, maxWidthMM);
-			var destHeightMM = destWidthMM / aspectRatio;
+			var maxWidthMM   = wpx * 0.25; // TODO parametrize
+			var maxHeightMM  = hpx * 0.25; // TODO parametrize
+			var aspectRatio  = wpx / hpx;
+			var destWidthMM  = Math.min(self.workingAreaWidthMM() - 2, maxWidthMM);
+			var destHeightMM = Math.min(self.workingAreaHeightMM() - 2, maxHeightMM);
+			if ((destWidthMM / aspectRatio) > destHeightMM) {
+				destWidthMM = destHeightMM * aspectRatio;
+			} else {
+				destHeightMM = destWidthMM / aspectRatio;
+			}
 			var destWidthPT = self.mm2svgUnits(destWidthMM);
 			var destHeightPT = self.mm2svgUnits(destHeightMM);
 			return [destWidthPT, destHeightPT];
@@ -632,13 +638,13 @@ $(function(){
 
 			var userContent = snap.select("#userContent").clone();
 			compSvg.append(userContent);
-			
+
 			self.renderInfill(compSvg, fillAreas, wMM, hMM, 10, function(svgWithRenderedInfill){
 				callback( self._wrapInSvgAndScale(svgWithRenderedInfill));
 				$('#compSvg').remove();
 			});
 		};
-		
+
 		self._wrapInSvgAndScale = function(content){
 			var svgStr = content.innerSVG();
 			if(svgStr !== ''){
@@ -721,7 +727,7 @@ $(function(){
 		self.clear_gcode = function(){
 			snap.select('#gCodePreview').clear();
 		};
-		
+
 		self.onStartup = function(){
 			self.state.workingArea = self;
 			self.files.workingArea = self;
@@ -754,9 +760,9 @@ $(function(){
 				}
 			});
 		};
-		
+
 		self._embedAllImages = function(svg, callback){
-			
+
 			var allImages = svg.selectAll('image');
 			var linkedImages = allImages.items.filter(function(i){
 				if(i.attr('xlink:href') != null) {
@@ -795,7 +801,7 @@ $(function(){
 				var fillings = userContent.removeUnfilled(fillAreas);
 				for (var i = 0; i < fillings.length; i++) {
 					var item = fillings[i];
-					
+
 					if (item.type === 'image') {
 						// remove filter effects on images for proper rendering
 						var style = item.attr('style');
