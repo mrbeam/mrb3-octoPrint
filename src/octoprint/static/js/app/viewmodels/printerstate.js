@@ -216,7 +216,7 @@ $(function() {
 			$("#confirmation_dialog .confirmation_dialog_acknowledge").click(
 					function (e) {
 						if (typeof callback === 'function') {
-                            self.onEventPrintDone();
+                            self.resetOverrideSlider();
 							callback(e);
 							$("#confirmation_dialog").modal("hide");
 							$("#confirmation_dialog .confirmation_dialog_message").html('');
@@ -333,15 +333,19 @@ $(function() {
 		};
 
 		self.onEventPrintDone = function(){
-			self.feedrateOverrideSlider.slider('setValue', 100);
-			self.intensityOverrideSlider.slider('setValue', 100);
-			self.intensityOverride(100);
-			self.feedrateOverride(100);
+			self.resetOverrideSlider();
 		};
 
 		self.onStartup = function() {
 			self._configureOverrideSliders();
 		};
+
+        self.resetOverrideSlider = function() {
+            self.feedrateOverrideSlider.slider('setValue', 100);
+			self.intensityOverrideSlider.slider('setValue', 100);
+			self.intensityOverride(100);
+			self.feedrateOverride(100);
+        }
     }
 
     OCTOPRINT_VIEWMODELS.push([
