@@ -217,7 +217,8 @@ $(function() {
 			$("#confirmation_dialog .confirmation_dialog_acknowledge").click(
 					function (e) {
 						if (typeof callback === 'function') {
-                            self.onEventPrintDone();
+                            self.resetOverrideSlider();
+                            self.numberOfPasses(1);
 							callback(e);
 							$("#confirmation_dialog").modal("hide");
 							$("#confirmation_dialog .confirmation_dialog_message").html('');
