@@ -357,7 +357,7 @@ $(function() {
 			self.intensityOverrideSlider.slider('setValue', 100);
 			self.intensityOverride(100);
 			self.feedrateOverride(100);
-        }
+		};
     }
 
     OCTOPRINT_VIEWMODELS.push([
