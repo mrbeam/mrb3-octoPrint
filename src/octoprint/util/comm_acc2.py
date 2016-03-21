@@ -839,6 +839,7 @@ class MachineCom(object):
 		self._feedrate_factor  = 1
 		self._intensity_factor = 1
 		self._passes = 1
+		self._finished_passes = 0
 
 		try:
 			# ensure fan is on whatever gcode follows.
