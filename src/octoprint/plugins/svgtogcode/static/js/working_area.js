@@ -102,11 +102,11 @@ $(function(){
 			self.availableWidth($('#workingarea div.span8').innerWidth());
 		};
 
-		self.move_laser = function(el){
+		self.move_laser = function(data, evt){
 			self.abortFreeTransforms();
 			if(self.state.isOperational() && !self.state.isPrinting()){
-				var x = self.px2mm(event.offsetX);
-				var y = self.px2mm(event.toElement.ownerSVGElement.offsetHeight - event.offsetY); // hopefully this works across browsers
+				var x = self.px2mm(evt.offsetX);
+				var y = self.px2mm(evt.toElement.ownerSVGElement.getBoundingClientRect().height - evt.offsetY); // hopefully this works across browsers
 				x = Math.min(x, self.workingAreaWidthMM());
 				y = Math.min(y, self.workingAreaHeightMM());
 				$.ajax({
@@ -390,7 +390,7 @@ $(function(){
             });
 
 		};
-		
+
 		self.placeIMG = function (file) {
 			var url = self._getIMGserveUrl(file);
 			var img = new Image();
@@ -632,13 +632,13 @@ $(function(){
 
 			var userContent = snap.select("#userContent").clone();
 			compSvg.append(userContent);
-			
+
 			self.renderInfill(compSvg, fillAreas, wMM, hMM, 10, function(svgWithRenderedInfill){
 				callback( self._wrapInSvgAndScale(svgWithRenderedInfill));
 				$('#compSvg').remove();
 			});
 		};
-		
+
 		self._wrapInSvgAndScale = function(content){
 			var svgStr = content.innerSVG();
 			if(svgStr !== ''){
@@ -721,7 +721,7 @@ $(function(){
 		self.clear_gcode = function(){
 			snap.select('#gCodePreview').clear();
 		};
-		
+
 		self.onStartup = function(){
 			self.state.workingArea = self;
 			self.files.workingArea = self;
@@ -754,9 +754,9 @@ $(function(){
 				}
 			});
 		};
-		
+
 		self._embedAllImages = function(svg, callback){
-			
+
 			var allImages = svg.selectAll('image');
 			var linkedImages = allImages.items.filter(function(i){
 				if(i.attr('xlink:href') != null) {
@@ -795,7 +795,7 @@ $(function(){
 				var fillings = userContent.removeUnfilled(fillAreas);
 				for (var i = 0; i < fillings.length; i++) {
 					var item = fillings[i];
-					
+
 					if (item.type === 'image') {
 						// remove filter effects on images for proper rendering
 						var style = item.attr('style');
