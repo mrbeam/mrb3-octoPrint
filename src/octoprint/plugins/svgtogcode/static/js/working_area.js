@@ -102,11 +102,11 @@ $(function(){
 			self.availableWidth($('#workingarea div.span8').innerWidth());
 		};
 
-		self.move_laser = function(el){
+		self.move_laser = function(data, evt){
 			self.abortFreeTransforms();
 			if(self.state.isOperational() && !self.state.isPrinting()){
-				var x = self.px2mm(event.offsetX);
-				var y = self.px2mm(event.toElement.ownerSVGElement.offsetHeight - event.offsetY); // hopefully this works across browsers
+				var x = self.px2mm(evt.offsetX);
+				var y = self.px2mm(evt.target.ownerSVGElement.getBoundingClientRect().height - evt.offsetY); // hopefully this works across browsers
 				x = Math.min(x, self.workingAreaWidthMM());
 				y = Math.min(y, self.workingAreaHeightMM());
 				$.ajax({
