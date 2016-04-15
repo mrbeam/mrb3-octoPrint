@@ -106,7 +106,7 @@ $(function(){
 			self.abortFreeTransforms();
 			if(self.state.isOperational() && !self.state.isPrinting()){
 				var x = self.px2mm(evt.offsetX);
-				var y = self.px2mm(evt.toElement.ownerSVGElement.getBoundingClientRect().height - evt.offsetY); // hopefully this works across browsers
+				var y = self.px2mm(evt.target.ownerSVGElement.getBoundingClientRect().height - evt.offsetY); // hopefully this works across browsers
 				x = Math.min(x, self.workingAreaWidthMM());
 				y = Math.min(y, self.workingAreaHeightMM());
 				$.ajax({
