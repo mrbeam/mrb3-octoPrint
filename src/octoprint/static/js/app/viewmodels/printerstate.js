@@ -38,6 +38,7 @@ $(function() {
 		self.feedrateOverride = ko.observable(100);
 		self.intensityOverride.extend({ rateLimit: 500 });
 		self.feedrateOverride.extend({ rateLimit: 500 });
+		self.numberOfPasses = ko.observable(1);
 
         self.TITLE_PRINT_BUTTON_PAUSED = gettext("Restarts the print job from the beginning");
         self.TITLE_PRINT_BUTTON_UNPAUSED = gettext("Starts the print job");
@@ -216,6 +217,8 @@ $(function() {
 			$("#confirmation_dialog .confirmation_dialog_acknowledge").click(
 					function (e) {
 						if (typeof callback === 'function') {
+                            self.resetOverrideSlider();
+                            self.numberOfPasses(1);
 							callback(e);
 							$("#confirmation_dialog").modal("hide");
 							$("#confirmation_dialog .confirmation_dialog_message").html('');
@@ -285,14 +288,14 @@ $(function() {
 		self.onEventRealTimeState = function(payload){
 			self.currentPos({x: payload.wx, y: payload.wy});
 		};
-		
+
 		self.intensityOverride.subscribe(function(factor){
 			self._overrideCommand("/intensity "+factor);
 		});
 		self.feedrateOverride.subscribe(function(factor){
 			self._overrideCommand("/feedrate "+factor);
 		});
-		
+
 		self._overrideCommand = function(command, callback) {
             $.ajax({
                 url: API_BASEURL + "printer/command",
@@ -307,7 +310,7 @@ $(function() {
                 }
             });
         };
-		
+
 		self._configureOverrideSliders = function() {
 			self.intensityOverrideSlider = $("#intensity_override_slider").slider({
 				step: 1,
@@ -318,7 +321,7 @@ $(function() {
 			}).on("slideStop", function(ev){
 				self.intensityOverride(ev.value);
 			});
-			
+
 			self.feedrateOverrideSlider = $("#feedrate_override_slider").slider({
 				step: 1,
 				min: 10,
@@ -330,16 +333,30 @@ $(function() {
 			});
 
 		};
-		
+
+		self.increasePasses = function(){
+			self.numberOfPasses(self.numberOfPasses()+1);
+            self._jobCommand("incpasses");
+		}
+		self.decreasePasses = function(){
+			var passes = Math.max(self.numberOfPasses()-1, 1);
+			self.numberOfPasses(passes);
+            self._jobCommand("degpasses");
+		}
+
 		self.onEventPrintDone = function(){
-			self.feedrateOverrideSlider.slider('setValue', 100);
+			self.resetOverrideSlider();
+		};
+
+		self.onStartup = function() {
+			self._configureOverrideSliders();
+		};
+
+        self.resetOverrideSlider = function() {
+            self.feedrateOverrideSlider.slider('setValue', 100);
 			self.intensityOverrideSlider.slider('setValue', 100);
 			self.intensityOverride(100);
 			self.feedrateOverride(100);
-		};
-		
-		self.onStartup = function() {
-			self._configureOverrideSliders();
 		};
     }
 

@@ -433,6 +433,22 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 				payload["origin"] = FileDestinations.SDCARD
 			eventManager().fire(Events.PRINT_FAILED, payload)
 
+	def increase_passes(self):
+		"""
+		 increase the number of passes by one.
+		"""
+		if self._comm is None:
+			return
+		self._comm.increasePasses()
+
+	def degrease_passes(self):
+		"""
+		 degrease the number of passes by one.
+		"""
+		if self._comm is None:
+			return
+		self._comm.degreasePasses()
+
 	def get_state_string(self):
 		"""
 		 Returns a human readable string corresponding to the current communication state.

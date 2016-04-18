@@ -23,7 +23,9 @@ def controlJob():
 		"start": [],
 		"restart": [],
 		"pause": [],
-		"cancel": []
+		"cancel": [],
+		"incpasses": [],
+		"degpasses": []
 	}
 
 	command, data, response = get_json_command_from_request(request, valid_commands)
@@ -48,6 +50,15 @@ def controlJob():
 		if not activePrintjob:
 			return make_response("Printer is neither printing nor paused, 'cancel' command cannot be performed", 409)
 		printer.cancel_print()
+	elif command == "incpasses":
+		if not activePrintjob:
+			return make_response("Printer is neither printing nor paused, 'incpasses' command cannot be performed", 409)
+		printer.increase_passes()
+	elif command == "degpasses":
+		if not activePrintjob:
+			return make_response("Printer is neither printing nor paused, 'degpasses' command cannot be performed", 409)
+		printer.degrease_passes()
+
 	return NO_CONTENT
 
 
