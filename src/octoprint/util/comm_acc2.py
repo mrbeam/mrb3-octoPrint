@@ -147,7 +147,7 @@ class MachineCom(object):
 				elif line.startswith('['): # feedback message
 					self._handle_feedback_message(line)
 				elif line.startswith('Grb'): # Grbl startup message
-					self._handle_startup_message()
+					self._handle_startup_message(line)
 			except:
 				self._logger.exception("Something crashed inside the monitoring loop, please report this to Mr. Beam")
 				errorMsg = "See octoprint.log for details"
@@ -405,7 +405,7 @@ class MachineCom(object):
 		elif line[1:].startswith('Dis'): # [Disabled]
 			pass
 
-	def _handle_startup_message(self):
+	def _handle_startup_message(self, line):
 		if self.isOperational():
 			errorMsg = "Machine reset."
 			self._cmd = None
@@ -420,7 +420,14 @@ class MachineCom(object):
 			self._changeState(self.STATE_LOCKED)
 			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 		else:
-			self._onConnected(self.STATE_LOCKED)
+			versionMatch = re.search("Grbl (?P<grbl>.+?)(_(?P<git>[0-9a-f]{7})(?P<dirty>-dirty)?)? \[.+\]", line)
+			if versionMatch:
+				versionDict = versionMatch.groupdict()
+				self._writeGrblVersionToFile(versionDict)
+				if self._compareGrblVersion(versionDict) is False:
+					self._flashGrbl()
+				else:
+					self._onConnected(self.STATE_LOCKED)
 
 	def _update_grbl_pos(self, line):
 		# line example:
@@ -611,7 +618,7 @@ class MachineCom(object):
 		params = ["avrdude", "-patmega328p", "-carduino", "-b" + str(self._baudrate), "-P" + str(self._port), "-D", "-Uflash:w:" + pathToGrblHex]
 		rc = subprocesscall(params)
 
-		if rc is False:
+		if rc == 0:
 			self._log("successfully flashed new grbl version")
 			self._openSerial()
 			self._changeState(self.STATE_CONNECTING)
