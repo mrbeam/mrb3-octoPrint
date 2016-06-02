@@ -241,6 +241,13 @@ $(function(){
 				var doc_height = null;
 				var doc_viewbox = null;
 
+				// find clippath elements
+				var clipPathEl = f.selectAll('clipPath');
+				if(clipPathEl.length != 0){
+					console.warn("Warning: removed unsupported clipPath element in SVG");
+					clipPathEl.remove()
+				}
+
 				// iterate svg tag attributes
 				for(var i = 0; i < root_attrs.length; i++){
 					var attr = root_attrs[i];
