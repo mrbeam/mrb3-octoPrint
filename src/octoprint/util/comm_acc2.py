@@ -88,7 +88,7 @@ class MachineCom(object):
 		self._finished_passes = 0
 
 		# regular expressions
-		self._regex_command = re.compile("^\s*\$?([GM]\d+|[TH])")
+		self._regex_command = re.compile("^\s*\$?([GM]\d+|[THX])")
 		self._regex_feedrate = re.compile("F\d+", re.IGNORECASE)
 		self._regex_intensity = re.compile("S\d+", re.IGNORECASE)
 
@@ -753,6 +753,10 @@ class MachineCom(object):
 
 	def _gcode_H_sent(self, cmd, cmd_type=None):
 		self._changeState(self.STATE_HOMING)
+		return cmd
+
+	def _gcode_X_sent(self, cmd, cmd_type=None):
+		self._changeState(self.STATE_HOMING) # TODO: maybe change to seperate $X mode
 		return cmd
 
 	def _gcode_Hold_sent(self, cmd, cmd_type=None):
