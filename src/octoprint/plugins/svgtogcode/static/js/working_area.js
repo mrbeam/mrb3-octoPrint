@@ -236,7 +236,11 @@ $(function(){
 			var url = self._getSVGserveUrl(file);
 			callback = function (f) {
 				var newSvgAttrs = {};
-				var root_attrs = f.select('svg').node.attributes;
+				if(f.select('svg') == null){
+					root_attrs = f.node.attributes;
+				} else {
+					var root_attrs = f.select('svg').node.attributes;
+				}
 				var doc_width = null;
 				var doc_height = null;
 				var doc_viewbox = null;
