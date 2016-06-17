@@ -1,7 +1,7 @@
 //    Matrix Oven - a snapsvg.io plugin to apply & remove transformations from svg files.
 //    Copyright (C) 2015  Teja Philipp <osd@tejaphilipp.de>
-//    
-//    based on work by https://gist.github.com/timo22345/9413158 
+//
+//    based on work by https://gist.github.com/timo22345/9413158
 //    and https://github.com/duopixel/Method-Draw/blob/master/editor/src/svgcanvas.js
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -20,10 +20,10 @@
 
 
 Snap.plugin(function (Snap, Element, Paper, global) {
-	
+
 	/**
 	 * bakes transformations of the element and all sub-elements into coordinates
-	 * 
+	 *
 	 * @param {boolean} toCubics : use only cubic path segments
 	 * @param {integer} dec : number of digits after decimal separator. defaults to 5
 	 * @returns {undefined}
@@ -55,14 +55,14 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			elem.type !== "polyline" &&
 			elem.type !== "image" &&
 			elem.type !== "path"){
-			
+
 //			if(elem.type !== 'g' && elem.type !== 'desc' && elem.type !== 'defs')
 //				console.log('skipping unsupported element ', elem.type);
 			return;
 		}
 
 		if (elem.type == 'image'){
-			// TODO ... 
+			// TODO ...
 			var x = parseFloat(elem.attr('x')),
 				y = parseFloat(elem.attr('y')),
 				w = parseFloat(elem.attr('width')),
@@ -84,7 +84,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			var transformedY = matrix.y(x, y);
 			var transformedW = matrix.x(x+w, y+h) - transformedX;
 			var transformedH = matrix.y(x+w, y+h) - transformedY;
-			
+
 			elem.attr({x: transformedX, y: transformedY, width: transformedW, height: transformedH});
 			return;
 		}
@@ -101,7 +101,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		} else {
 			dec = false;
 		}
-		
+
 		function r(num) {
 			if (dec !== false) {
 				return Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
@@ -114,8 +114,8 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		var d = path_elem.attr('d');
 		d = (d || "").trim();
 		var arr_orig;
-		arr = Snap.parsePathString(d); 
-		if (!toCubics) {  
+		arr = Snap.parsePathString(d);
+		if (!toCubics) {
 			arr_orig = arr;
 			arr = Snap.path.toAbsolute(arr);
 		} else {
@@ -128,7 +128,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		var matrix = transform['totalMatrix'];
 
 		// apply the matrix transformation on the path segments
-		var j; 
+		var j;
 		var m = arr.length;
 		var letter = '';
 		var letter_orig = '';
@@ -136,8 +136,8 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		var y = 0;
 		var new_segments = [];
 		var pt = {x: 0, y: 0};
-		var pt_baked = {}; 
-		var subpath_start = {}; 
+		var pt_baked = {};
+		var subpath_start = {};
 		var prevX = 0;
 		var prevY = 0;
 		subpath_start.x = null;
@@ -155,7 +155,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 				pt.x = arr[i][6];
 				pt.y = arr[i][7];
 				new_segments[i] = _arc_transform(arr[i][1], arr[i][2], arr[i][3], arr[i][4], arr[i][5], pt, matrix);
-				
+
 			} else if (letter !== 'Z') {
 				// parse other segs than Z and A
 				for (j = 1; j < arr[i].length; j = j + 2) {
@@ -191,7 +191,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 				y = subpath_start.y;
 			}
 		}
-		
+
 		// Convert all that was relative back to relative
 		// This could be combined to above, but to make code more readable
 		// this is made separately.
@@ -261,7 +261,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		//console.log("baked matrix ", matrix, " of ", path_elem.attr('id'));
 
 	};
-	
+
 	/**
 	 * Helper to apply matrix transformations to arcs.
 	 * From flatten.js (https://gist.github.com/timo22345/9413158), modified a bit.
@@ -269,7 +269,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 	 * @param {type} a_rh : r1 of the ellipsis in degree
 	 * @param {type} a_rv : r2 of the ellipsis in degree
 	 * @param {type} a_offsetrot : x-axis rotation in degree
-	 * @param {type} large_arc_flag : 0 or 1 
+	 * @param {type} large_arc_flag : 0 or 1
 	 * @param {int} sweep_flag : 0 or 1
 	 * @param {object} endpoint with properties x and y
 	 * @param {type} matrix : transformation matrix
@@ -311,12 +311,12 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 
 		// convert implicit equation to angle and halfaxis:
 		// disabled intentionally
-		if (false && NEARZERO(B)) { // there is a bug in this optimization: does not work for path below 
-			a_offsetrot = 0;  
-//			 d="M0,350 l 50,-25 
-//           a25,25 -30 0,1 50,-25 l 50,-25 
-//           a25,50 -30 0,1 50,-25 l 50,-25 
-//           a25,75 -30 0,1 50,-25 l 50,-25 
+		if (false && NEARZERO(B)) { // there is a bug in this optimization: does not work for path below
+			a_offsetrot = 0;
+//			 d="M0,350 l 50,-25
+//           a25,25 -30 0,1 50,-25 l 50,-25
+//           a25,50 -30 0,1 50,-25 l 50,-25
+//           a25,75 -30 0,1 50,-25 l 50,-25
 //           a25,100 -30 0,1 50,-25 l 50,-25"
 //			with matrix transform="scale(0.5,2.0)"
 			A2 = A;
@@ -332,7 +332,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 
 				// Clamp (precision issues might need this.. not likely, but better save than sorry)
 				K = (K < 0) ? 0 : Math.sqrt(K);
-				
+
 				A2 = 0.5 * (A + C + K * ac);
 				C2 = 0.5 * (A + C - K * ac);
 				a_offsetrot = 0.5 * Math.atan2(B, ac);
@@ -353,7 +353,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			a_rh = A2;
 		}
 
-		// If the transformation matrix contain a mirror-component 
+		// If the transformation matrix contain a mirror-component
 		// winding order of the ellise needs to be changed.
 		if ((matrix.a * matrix.d) - (matrix.b * matrix.c) < 0){
 			sweep_flag = !sweep_flag ? 1 : 0;
@@ -376,30 +376,30 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 	var _convertToString = function (arr) {
 		return arr.join(',').replace(_p2s, '$1');
 	};
-	
+
 	/**
 	 * Replaces an element with a path of same shape.
 	 * Supports rect, ellipse, circle, line, polyline, polygon and of course path
-	 * The element will be replaced by the path with same id. 
-	 * 
+	 * The element will be replaced by the path with same id.
+	 *
 	 * @returns {path}
 	 */
 	Element.prototype.convertToPath = function(){
 		var old_element = this;
 		var path = old_element.toPath();
 		old_element.before(path);
-		old_element.remove(); 
+		old_element.remove();
 		return path;
 	};
 
 	/**
 	 * Creates a path in the same shape as the origin element
 	 * Supports rect, ellipse, circle, line, polyline, polygon and of course path
-	 * 
-	 * based on 
+	 *
+	 * based on
 	 * https://github.com/duopixel/Method-Draw/blob/master/editor/src/svgcanvas.js
 	 * Modifications: Timo (https://github.com/timo22345)
-	 * 
+	 *
 	 * @returns {path} path element
 	 */
 	Element.prototype.toPath = function () {
@@ -430,7 +430,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		var validRadius = function (val) {
 			return (isFinite(val) && (val >= 0));
 		};
-		
+
 		var validCoordinate = function (val) {
 			return (isFinite(val));
 		};
@@ -438,6 +438,19 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 		// Possibly the cubed root of 6, but 1.81 works best
 		var num = 1.81;
 		var tag = old_element.type;
+
+		var convertMMtoPixel = function (val) {
+			attrList = ['rx','ry','r','cx','cy','x1','x2','y1','y2','x','y','width','height'];
+			for(var attrIdx in attrList) {
+				if(val.attr(attrList[attrIdx]) != null && val.attr(attrList[attrIdx]).indexOf('mm') > -1) {
+					var tmp = parseFloat(val.attr(attrList[attrIdx])) * 3.5433;
+					val.attr(attrList[attrIdx], tmp);
+				}
+			}
+		}
+
+		convertMMtoPixel(old_element);
+
 		switch (tag) {
 			case 'ellipse':
 			case 'circle':
@@ -448,13 +461,13 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 				if (tag === 'circle') {
 					rx = ry = +old_element.attr('r');
 				}
-				
+
 				// If 'x' and 'y' are not specified, then set both to 0. // CorelDraw is creating that sometimes
 				if (!validCoordinate(cx))
 					cx = 0;
 				if (!validCoordinate(cy))
 					cy = 0;
-				
+
 				d += _convertToString([
 					['M', (cx - rx), (cy)],
 					['C', (cx - rx), (cy - ry / num), (cx - rx / num), (cy - ry), (cx), (cy - ry)],
@@ -481,7 +494,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 				d = 'M' + old_element.attr('points') + 'Z';
 				break;
 			case 'rect':
-				// TODO ... 
+				// TODO ...
 				var rx = parseFloat(old_element.attr('rx')),
 					ry = parseFloat(old_element.attr('ry')),
 					x = parseFloat(old_element.attr('x')),
