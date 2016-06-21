@@ -44,7 +44,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 				var child = children[i];
 				child.bake(toCubics, dec);
 			}
-			elem.attr({transform: ''});
+			if(child.type !== "#text") elem.attr({transform: ''});
 			return;
 		}
 		if (elem.type !== "circle" &&
