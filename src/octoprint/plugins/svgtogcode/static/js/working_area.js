@@ -253,6 +253,9 @@ $(function(){
 					clipPathEl.remove()
 				}
 
+				// find all elements with "display=none" and remove them
+				f.selectAll("[display=none]").remove()
+
 				// iterate svg tag attributes
 				for(var i = 0; i < root_attrs.length; i++){
 					var attr = root_attrs[i];
