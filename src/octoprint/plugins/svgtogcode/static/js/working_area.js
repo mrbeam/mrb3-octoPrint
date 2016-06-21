@@ -107,6 +107,7 @@ $(function(){
 		self.clear = function(){
 			snap.selectAll('#userContent>*').remove();
 			snap.selectAll('#placedGcodes>*').remove();
+			snap.selectAll('rect:not(#coordGrid)').remove();
 			self.placedDesigns([]);
 		};
 
