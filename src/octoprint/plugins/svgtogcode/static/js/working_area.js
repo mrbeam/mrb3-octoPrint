@@ -268,9 +268,19 @@ $(function(){
 					}
 				}
 
+				// find Illustrator comment and notify
+				f.node.childNodes.forEach(function(entry) {
+					if(entry.nodeType == 8) { // Nodetype 8 = comment
+						if(entry.textContent.indexOf('Illustrator') > -1) {
+							new PNotify({title: gettext("Illustrator SVG Detected"), text: "Looks like an Illustrator SVG! If the scale is not right, and you want to change the DPI, please go to the \'Settings\' menu and change the \'SVG dpi\' field under \'Plugins/Svg Conversion\' and add the file again.", type: "info", hide: false});
+						}
+					}
+				});
+
 				// scale matrix
 				var mat = self.getDocumentViewBoxMatrix(doc_width, doc_height, doc_viewbox);
-				var scaleMatrixStr = new Snap.Matrix(mat[0][0],mat[0][1],mat[1][0],mat[1][1],mat[0][2],mat[1][2]).toTransformString();
+				var dpiscale = 90 / self.settings.settings.plugins.svgtogcode.svgDPI();
+				var scaleMatrixStr = new Snap.Matrix(mat[0][0],mat[0][1],mat[1][0],mat[1][1],mat[0][2],mat[1][2]).scale(dpiscale).toTransformString();
 				newSvgAttrs['transform'] = scaleMatrixStr;
 
 				var newSvg = snap.group(f.selectAll("svg>*"));
