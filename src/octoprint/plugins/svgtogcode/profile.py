@@ -16,15 +16,16 @@ defaults = dict(
 	# general settings
 	svgDPI = 90,
 	pierce_time = 0,
-	
+
 	# vector settings
 	speed = 300,
 	intensity = 500,
 	fill_areas = False,
+	fill_text = False,
 	cross_fill = False,
 	fill_angle = 0,
 	fill_spacing = 0.25,
-	
+
 	# pixel settings
 	beam_diameter = 0.25,
 	intensity_white = 0,
@@ -251,8 +252,8 @@ class Profile(object):
 		}
 
 		return settings
-	
-	
+
+
 	def convert_to_engine2(self):
 
 		settings = {
@@ -268,6 +269,7 @@ class Profile(object):
 			"sharpening": self.get_float("img_sharpening"),
 			"dithering": self.get_boolean("img_dithering"),
 			"fill_areas": self.get_boolean("fill_areas"),
+			"fill_text": self.get_boolean("fill_text"),
 			"cross_fill": self.get_boolean("cross_fill"),
 			"fill_angle": self.get_float("fill_angle"),
 			"fill_spacing": self.get_float("fill_spacing"),

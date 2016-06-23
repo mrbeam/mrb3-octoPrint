@@ -41,9 +41,13 @@
 				<label class="control-label">{{ _('Filled areas') }}</label>
 				<div class="controls">
 					<label class="checkbox">
+						<input type="checkbox" data-bind="checked: fill_areas">{{ _('Engrave Infills') }}
+					</label>
+				</div>
+                <div class="controls">
+					<label class="checkbox">
                         {#TODO: CLEM make checkbox usable fill_text #}
                         <input type="checkbox" data-bind="checked: fill_text">{{ _('Engrave Text') }}
-						<input type="checkbox" data-bind="checked: fill_areas">{{ _('Engrave Infills') }}
 					</label>
 				</div>
             </div>

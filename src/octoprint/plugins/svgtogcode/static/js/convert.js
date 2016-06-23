@@ -36,13 +36,17 @@ $(function(){
 		self.maxSpeed = ko.observable(3000);
 		self.minSpeed = ko.observable(20);
 		self.fill_areas = ko.observable(false);
+		self.fill_text = ko.observable(false);
 		self.show_fill_areas_checkbox = ko.observable(false);
+		self.show_fill_text_checkbox = ko.observable(false);
 		
 		// image engraving stuff
 		// preset values are a good start for wood engraving
 		self.images_placed = ko.observable(false);
 		self.show_image_parameters = ko.computed(function(){
-			return self.images_placed() || (self.fill_areas() && self.show_vector_parameters());
+			return self.images_placed() 
+				|| (self.fill_areas() && self.show_vector_parameters())
+				|| self.fill_text();
 		});
 		self.imgIntensityWhite = ko.observable(0);
 		self.imgIntensityBlack = ko.observable(500);
@@ -257,6 +261,7 @@ $(function(){
 						"profile.speed": self.laserSpeed(),
 						"profile.intensity": self.laserIntensity(),
 						"profile.fill_areas": self.fill_areas(),
+						"profile.fill_text": self.fill_text(),
 						"profile.pierce_time": self.pierceTime(),
 						"profile.intensity_black" : self.imgIntensityBlack(),
 						"profile.intensity_white" : self.imgIntensityWhite(),
