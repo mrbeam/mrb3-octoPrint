@@ -74,9 +74,9 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			elem.type !== "line" &&
 			elem.type !== "polygon" &&
 			elem.type !== "polyline" &&
-			elem.type !== "path" &&
-			elem.type !== "text" &&
-			elem.type !== "#text"
+			elem.type !== "path" //&&
+			// elem.type !== "text" &&
+			// elem.type !== "#text"
 		){
 
 			return false;

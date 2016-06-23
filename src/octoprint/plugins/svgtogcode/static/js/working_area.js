@@ -833,7 +833,7 @@ $(function(){
 				for (var i = 0; i < fillings.length; i++) {
 					var item = fillings[i];
 
-					if (item.type === 'image') {
+					if (item.type === 'image' || item.type === "text" || item.type === "#text") {
 						// remove filter effects on images for proper rendering
 						var style = item.attr('style');
 						if (style !== null) {
