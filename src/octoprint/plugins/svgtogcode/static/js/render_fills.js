@@ -66,7 +66,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 	Element.prototype.is_filled = function(){
 		var elem = this;
 		
-		// TODO text support
+		// TODO text support --> check if working
 		// TODO opacity support
 		if (elem.type !== "circle" &&
 			elem.type !== "rect" &&
@@ -74,8 +74,10 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			elem.type !== "line" &&
 			elem.type !== "polygon" &&
 			elem.type !== "polyline" &&
-			elem.type !== "path" ){
-			
+			elem.type !== "path" &&
+			elem.type !== "text" &&
+			elem.type !== "#text")
+		{
 			return false;
 		}
 		
