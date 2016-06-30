@@ -711,6 +711,16 @@ $(function(){
 			return snap.selectAll("#userContent image");
 		};
 
+		self.hasTextItems = function () {
+			if(snap.selectAll("#userContent tspan").length > 0 ||
+				snap.selectAll("#userContent text").length > 0 ||
+				snap.selectAll("userContent #text").length > 0) {
+				return true
+			}else{
+				return false
+			}
+		};
+
 		self.getPlacedGcodes = ko.computed(function() {
 			var gcodeFiles = [];
 			ko.utils.arrayForEach(self.placedDesigns(), function(design) {

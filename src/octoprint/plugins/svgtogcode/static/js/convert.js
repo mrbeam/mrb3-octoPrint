@@ -36,17 +36,15 @@ $(function(){
 		self.maxSpeed = ko.observable(3000);
 		self.minSpeed = ko.observable(20);
 		self.fill_areas = ko.observable(false);
-		self.fill_text = ko.observable(false);
 		self.show_fill_areas_checkbox = ko.observable(false);
-		self.show_fill_text_checkbox = ko.observable(false);
 		
 		// image engraving stuff
 		// preset values are a good start for wood engraving
 		self.images_placed = ko.observable(false);
+		self.text_placed = ko.observable(false);
 		self.show_image_parameters = ko.computed(function(){
-			return self.images_placed() 
-				|| (self.fill_areas() && self.show_vector_parameters())
-				|| self.fill_text();
+			return (self.images_placed() || self.text_placed()
+				|| (self.fill_areas() && self.show_vector_parameters()));
 		});
 		self.imgIntensityWhite = ko.observable(0);
 		self.imgIntensityBlack = ko.observable(500);
@@ -89,6 +87,7 @@ $(function(){
 			self.show_vector_parameters(self.workingArea.getPlacedSvgs().length > 0);
 			self.show_fill_areas_checkbox(self.workingArea.hasFilledVectors())
 			self.images_placed(self.workingArea.getPlacedImages().length > 0);
+			self.text_placed(self.workingArea.hasTextItems());
 			//self.show_image_parameters(self.workingArea.getPlacedImages().length > 0);
 
 			if(self.show_vector_parameters() || self.show_image_parameters()){
@@ -261,7 +260,6 @@ $(function(){
 						"profile.speed": self.laserSpeed(),
 						"profile.intensity": self.laserIntensity(),
 						"profile.fill_areas": self.fill_areas(),
-						"profile.fill_text": self.fill_text(),
 						"profile.pierce_time": self.pierceTime(),
 						"profile.intensity_black" : self.imgIntensityBlack(),
 						"profile.intensity_white" : self.imgIntensityWhite(),
