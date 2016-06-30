@@ -274,10 +274,10 @@ $(function(){
 				newSvgAttrs['transform'] = scaleMatrixStr;
 
 				var newSvg = snap.group(f.selectAll("svg>*"));
-				// var hasText = newSvg.selectAll('text,tspan');
-				// if(hasText !== null && hasText.length > 0){
-				// 	self.svg_contains_text_warning(newSvg);
-				// }
+				var hasText = newSvg.selectAll('text,tspan');
+				if(hasText !== null && hasText.length > 0){
+					self.svg_contains_text_warning(newSvg);
+				}
 
 				newSvg.bake(); // remove transforms
 				newSvg.selectAll('path').attr({strokeWidth: '0.5'});
@@ -397,15 +397,14 @@ $(function(){
 		};
 
 		self.svg_contains_text_warning = function(svg){
-            // var error = "<p>" + gettext("The svg file contains text elements.<br/>Please convert them to paths.<br/>Otherwise they will be ignored.") + "</p>";
-            // //error += pnotifyAdditionalInfo("<pre>" + data.jqXHR.responseText + "</pre>");
-            // new PNotify({
-             //    title: "Text elements found",
-             //    text: error,
-             //    type: "warn",
-             //    hide: false
-            // });
-			// svg.selectAll('text,tspan').remove();
+            var error = "<p>" + gettext("The SVG file contains text elements.<br/>If you want to laser just their outlines,<br/>please convert them to paths.<br/>Otherwise they will be engraved with infill.") + "</p>";
+            //error += pnotifyAdditionalInfo("<pre>" + data.jqXHR.responseText + "</pre>");
+            new PNotify({
+                title: "Text elements found",
+                text: error,
+                type: "warn",
+                hide: false
+            });
 		};
 
 		self.svg_misfitting_warning = function(svg, misfitting){
