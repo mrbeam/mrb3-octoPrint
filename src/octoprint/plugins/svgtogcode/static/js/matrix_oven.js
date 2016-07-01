@@ -31,9 +31,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 	Element.prototype.bake = function (toCubics, dec) {
 		var elem = this;
 
-		console.log("ElemType: "+elem.type+" "+elem.id+" Children: "+elem.children().length);
 		if (!elem || !elem.paper || elem.type !== "text" || elem.type !== "#text" || elem.type !== "tspan"){
-			console.log("Skip not on paper!");
 			return;
 		} // don't handle unplaced elements. this causes double handling.
 
@@ -41,15 +39,13 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			toCubics = false;
 		if (typeof (dec) === 'undefined')
 			dec = 5;
-		//var children = elem.selectAll('*')
 		var children = elem.children();
 		if (children.length > 0) {
 			for (var i = 0; i < children.length; i++) {
 				var child = children[i];
-				console.log("ChildType "+i+": "+child.type+" "+child.id+" Children: "+child.children().length);
 				child.bake(toCubics, dec);
 			}
-			/*if(child.type !== "#text") */elem.attr({transform: ''});
+			elem.attr({transform: ''});
 			return;
 		}
 		if (elem.type !== "circle" &&
@@ -63,38 +59,9 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			elem.type !== "text" &&
 			elem.type !== "tspan" &&
 			elem.type !== "#text"){
-
-//			if(elem.type !== 'g' && elem.type !== 'desc' && elem.type !== 'defs')
-//				console.log('skipping unsupported element ', elem.type);
 			return;
 		}
-
-		// if (elem.type == "text" || elem.type == "#text"){
-		// 	var x = parseFloat(elem.attr('x')),
-		// 		y = parseFloat(elem.attr('y')),
-		// 		w = parseFloat(elem.attr('width')),
-		// 		h = parseFloat(elem.attr('height'));
-        //
-		// 	// Validity checks from http://www.w3.org/TR/SVG/shapes.html#RectElement:
-		// 	// If 'x' and 'y' are not specified, then set both to 0. // CorelDraw is creating that sometimes
-		// 	if (!isFinite(x)) {
-		// 		console.log('No attribute "x" in image tag. Assuming 0.')
-		// 		x = 0;
-		// 	}
-		// 	if (!isFinite(y)) {
-		// 		console.log('No attribute "y" in image tag. Assuming 0.')
-		// 		y = 0;
-		// 	}
-		// 	var transform = elem.transform();
-		// 	var matrix = transform['totalMatrix'];
-		// 	var transformedX = matrix.x(x, y);
-		// 	var transformedY = matrix.y(x, y);
-		// 	var transformedW = matrix.x(x+w, y+h) - transformedX;
-		// 	var transformedH = matrix.y(x+w, y+h) - transformedY;
-        //
-		// 	elem.attr({x: transformedX, y: transformedY, width: transformedW, height: transformedH});
-		// 	return;
-		// }
+		
 
 		if (elem.type == 'image' || elem.type == "text" || elem.type == "#text"){
 			// TODO ...
@@ -124,7 +91,6 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 			return;
 		}
 
-		//if(elem.type !== 'path') console.log("bake: converting " + elem.type + " to path");
 		var path_elem = elem.convertToPath();
 
 		if (!path_elem || path_elem.attr('d') === '' || path_elem.attr('d') === null)
