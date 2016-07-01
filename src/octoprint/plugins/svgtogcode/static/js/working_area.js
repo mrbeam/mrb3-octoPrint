@@ -410,7 +410,7 @@ $(function(){
 		};
 
 		self.svg_contains_text_warning = function(svg){
-            var error = "<p>" + gettext("The svg file contains text elements.<br/>Please convert them to paths.<br/>Otherwise they will be ignored.") + "</p>";
+            var error = "<p>" + gettext("The SVG file contains text elements.<br/>If you want to laser just their outlines,<br/>please convert them to paths.<br/>Otherwise they will be engraved with infill.") + "</p>";
             //error += pnotifyAdditionalInfo("<pre>" + data.jqXHR.responseText + "</pre>");
             new PNotify({
                 title: "Text elements found",
@@ -418,7 +418,6 @@ $(function(){
                 type: "warn",
                 hide: false
             });
-			svg.selectAll('text,tspan').remove();
 		};
 
 		self.svg_misfitting_warning = function(svg, misfitting){
@@ -724,6 +723,16 @@ $(function(){
 			return snap.selectAll("#userContent image");
 		};
 
+		self.hasTextItems = function () {
+			if(snap.selectAll("#userContent tspan").length > 0 ||
+				snap.selectAll("#userContent text").length > 0 ||
+				snap.selectAll("userContent #text").length > 0) {
+				return true
+			}else{
+				return false
+			}
+		};
+
 		self.getPlacedGcodes = ko.computed(function() {
 			var gcodeFiles = [];
 			ko.utils.arrayForEach(self.placedDesigns(), function(design) {
@@ -846,7 +855,7 @@ $(function(){
 				for (var i = 0; i < fillings.length; i++) {
 					var item = fillings[i];
 
-					if (item.type === 'image') {
+					if (item.type === 'image' || item.type === "text" || item.type === "#text") {
 						// remove filter effects on images for proper rendering
 						var style = item.attr('style');
 						if (style !== null) {

@@ -357,6 +357,8 @@ class SvgToGcodePlugin(octoprint.plugin.SlicerPlugin,
 			converter_path = '/home/teja/workspace/mrbeam-inkscape-ext'
 		elif("denkbrett" in hostname):
 			converter_path = '/home/flo/mrbeam/git/mrbeam-inkscape-ext'
+		elif ("clems-Air" in hostname):
+			converter_path = '/Users/clem/Dropbox/mrBeam/mrbeam-inkscape-ext'
 
 		import sys
 		sys.path.append(converter_path)
