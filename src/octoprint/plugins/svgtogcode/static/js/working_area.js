@@ -250,6 +250,7 @@ $(function(){
 				var clipPathEl = f.selectAll('clipPath');
 				if(clipPathEl.length != 0){
 					console.warn("Warning: removed unsupported clipPath element in SVG");
+					self.svg_contains_clipPath_warning();
 					clipPathEl.remove()
 				}
 
@@ -407,6 +408,18 @@ $(function(){
 				dx: dx,
 				dy: dy
 			};
+		};
+
+
+		self.svg_contains_clipPath_warning = function(){
+            var error = "<p>" + gettext("The SVG file contains clipPath elements.<br/>clipPath is not supported yet and has been removed from file.") + "</p>";
+            //error += pnotifyAdditionalInfo("<pre>" + data.jqXHR.responseText + "</pre>");
+            new PNotify({
+                title: "clipPath elements removed",
+                text: error,
+                type: "warn",
+                hide: false
+            });
 		};
 
 		self.svg_contains_text_warning = function(svg){
