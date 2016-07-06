@@ -276,7 +276,7 @@ $(function(){
 				f.node.childNodes.forEach(function(entry) {
 					if(entry.nodeType == 8) { // Nodetype 8 = comment
 						if(entry.textContent.indexOf('Illustrator') > -1) {
-							new PNotify({title: gettext("Illustrator SVG Detected"), text: "Looks like an Illustrator SVG! If the scale is not right, and you want to change the DPI, please go to the \'Settings\' menu and change the \'SVG dpi\' field under \'Plugins/Svg Conversion\' and add the file again.", type: "info", hide: false});
+							new PNotify({title: gettext("Illustrator SVG Detected"), text: "Illustrator SVG detected! To preserve coorect scale, please go to the \'Settings\' menu and change the \'SVG dpi\' field under \'Plugins/Svg Conversion\' according to your file. And add it again.", type: "info", hide: false});
 						}
 					}
 				});

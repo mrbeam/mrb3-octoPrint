@@ -124,7 +124,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
 
 		// get svg as dataUrl
 		var svgStr = elem.outerSVG();
-		var svgDataUri = 'data:image/svg+xml;base64,' + window.btoa(svgStr);
+		var svgDataUri = 'data:image/svg+xml;base64,' + window.btoa(unescape(encodeURIComponent(svgStr))); //deprecated unescape needed!
 		var source = new Image();
 		source.src = svgDataUri;
 
