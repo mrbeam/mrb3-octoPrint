@@ -97,7 +97,7 @@ def update_source(git_executable, folder, target, force=False):
 			raise RuntimeError("Could not update, \"git reset --hard\" failed with returncode %d: %s" % (returncode, stdout))
 
 	print(">>> Running: git pull")
-	returncode, stdout = _git(["pull"], folder, git_executable=git_executable)
+	returncode, stdout = _git(["pull", "origin", "stable-1.2.2"], folder, git_executable=git_executable)
 	if returncode != 0:
 		raise RuntimeError("Could not update, \"git pull\" failed with returncode %d: %s" % (returncode, stdout))
 	print(stdout)
