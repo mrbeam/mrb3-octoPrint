@@ -1,5 +1,9 @@
 # OctoPrint Changelog
 
+## 1.3.4.3
+
+Test version to test the update function in a production image.
+
 ## 1.3.4 (2017-06-01)
 
 ### Note for owners of Malyan M200/Monoprice Select Mini
