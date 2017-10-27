@@ -23,7 +23,7 @@ INSTALL_REQUIRES = [
 	                  # to some voodoo needed to get large streamed uploads and downloads
 	                  # to work that is probably not completely straightforward and therefore
 	                  # something for post-1.3.0-stable release
-	"sockjs-tornado>=1.0.2,<1.1",
+	"sockjs-tornado>=1.0.3,<1.1",
 	"PyYAML>=3.10,<3.11",
 	"Flask-Login>=0.2.2,<0.3",
 	"Flask-Principal>=0.3.5,<0.4",
@@ -48,7 +48,9 @@ INSTALL_REQUIRES = [
 	"future>=0.15,<0.16",
 	"scandir>=1.3,<1.4",
 	"websocket-client>=0.40,<0.41",
-	"python-dateutil>=2.6,<2.7"
+	"python-dateutil>=2.6,<2.7",
+	"wrapt>=1.10.10,<1.11",
+	"futures>=3.1.1,<3.2"
 ]
 
 if sys.platform == "darwin":
@@ -64,9 +66,10 @@ EXTRA_REQUIRES = dict(
 		"ddt",
 
 		# Documentation dependencies
-		"sphinx>=1.3,<1.4",
+		"sphinx>=1.6,<1.7",
 		"sphinxcontrib-httpdomain",
-		"sphinx_rtd_theme",
+		"sphinxcontrib-mermaid",
+		"sphinx_bootstrap_theme",
 
 		# PyPi upload related
 		"pypandoc"

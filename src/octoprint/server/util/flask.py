@@ -29,6 +29,8 @@ import octoprint.plugin
 
 from werkzeug.contrib.cache import BaseCache
 
+from past.builtins import basestring
+
 try:
 	from os import scandir, walk
 except ImportError:
@@ -453,9 +455,12 @@ class OctoPrintFlaskRequest(flask.Request):
 
 		We need this because cookies are not port-specific and we don't want to overwrite our
 		session and other cookies from one OctoPrint instance on our machine with those of another
-		one who happens to listen on the same address albeit a different port.
+		one who happens to listen on the same address albeit a different port or script root.
 		"""
-		return "_P" + self.server_port
+		result = "_P" + self.server_port
+		if self.script_root:
+			return result + "_R" + self.script_root.replace("/", "|")
+		return result
 
 
 class OctoPrintFlaskResponse(flask.Response):
@@ -484,8 +489,8 @@ def passive_login():
 
 	if user is not None and not user.is_anonymous():
 		flask.ext.principal.identity_changed.send(flask.current_app._get_current_object(), identity=flask.ext.principal.Identity(user.get_id()))
-		if hasattr(user, "get_session"):
-			flask.session["usersession.id"] = user.get_session()
+		if hasattr(user, "session"):
+			flask.session["usersession.id"] = user.session
 		flask.g.user = user
 		return flask.jsonify(user.asDict())
 	elif settings().getBoolean(["accessControl", "autologinLocal"]) \
@@ -503,7 +508,7 @@ def passive_login():
 				user = octoprint.server.userManager.findUser(autologinAs)
 				if user is not None:
 					user = octoprint.server.userManager.login_user(user)
-					flask.session["usersession.id"] = user.get_session()
+					flask.session["usersession.id"] = user.session
 					flask.g.user = user
 					flask.ext.login.login_user(user)
 					flask.ext.principal.identity_changed.send(flask.current_app._get_current_object(), identity=flask.ext.principal.Identity(user.get_id()))
