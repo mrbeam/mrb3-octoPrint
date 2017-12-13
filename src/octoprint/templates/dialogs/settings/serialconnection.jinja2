@@ -105,7 +105,7 @@
     <div class="control-group">
         <div class="controls">
             <label class="checkbox">
-                <input type="checkbox" data-bind="checked: serial_disconnectOnErrors" id="settings-disconnectOnErrors"> {{ _('Not only cancel ongoing prints but also disconnect on unhandled errors from the firmware.') }}</span>
+                <input type="checkbox" data-bind="checked: serial_disconnectOnErrors" id="settings-disconnectOnErrors"> {{ _('Not only cancel ongoing prints but also disconnect on unhandled errors from the firmware.') }}
             </label>
         </div>
     </div>
@@ -139,6 +139,13 @@
                 <div class="controls">
                     <input type="text" class="input-block-level" id="settings-checksumRequiringCommands" data-bind="value: serial_checksumRequiringCommands">
                     <span class="help-inline">{{ _('Use this to specify which commands <strong>always</strong> need to be sent with a checksum. Comma separated list.') }}</span>
+                </div>
+            </div>
+            <div class="control-group" title="{{ _('Commands to not completely auto uppercase in the terminal tab') }}">
+                <label class="control-label" for="settings-serialAutoUppercaseBlacklist">{{ _('Terminal Auto Uppercase Blacklist') }}</label>
+                <div class="controls">
+                    <input type="text" class="input-block-level" id="settings-serialAutoUppercaseBlacklist" data-bind="value: serial_autoUppercaseBlacklist">
+                    <span class="help-inline">{{ _('Use this to specify the commands that should not have their parameters automatically uppercased in the terminal tab. Just the G or M code, comma separated.') }}</span>
                 </div>
             </div>
             <div class="controls">

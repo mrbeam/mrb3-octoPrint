@@ -34,6 +34,9 @@ $(function() {
                     }
 
                     callViewModels(self.allViewModels, "onWizardShow");
+
+                    callViewModels(self.allViewModels, "onBeforeWizardTabChange", [OCTOPRINT_INITIAL_WIZARD, undefined]);
+                    callViewModels(self.allViewModels, "onAfterWizardTabChange", [OCTOPRINT_INITIAL_WIZARD]);
                 });
         };
 
@@ -217,9 +220,9 @@ $(function() {
         }
     }
 
-    OCTOPRINT_VIEWMODELS.push([
-        WizardViewModel,
-        ["loginStateViewModel", "settingsViewModel"],
-        "#wizard_dialog"
-    ]);
+    OCTOPRINT_VIEWMODELS.push({
+        construct: WizardViewModel,
+        dependencies: ["loginStateViewModel", "settingsViewModel"],
+        elements: ["#wizard_dialog"]
+    });
 });

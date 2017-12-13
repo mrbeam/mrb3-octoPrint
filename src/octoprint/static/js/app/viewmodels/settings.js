@@ -150,6 +150,7 @@ $(function() {
         self.feature_printCancelConfirmation = ko.observable(undefined);
         self.feature_blockWhileDwelling = ko.observable(undefined);
         self.feature_g90InfluencesExtruder = ko.observable(undefined);
+        self.feature_legacyPluginAssets = ko.observable(undefined);
 
         self.serial_port = ko.observable();
         self.serial_baudrate = ko.observable();
@@ -172,6 +173,7 @@ $(function() {
         self.serial_ignoreErrorsFromFirmware = ko.observable(undefined);
         self.serial_disconnectOnErrors = ko.observable(undefined);
         self.serial_triggerOkForM29 = ko.observable(undefined);
+        self.serial_autoUppercaseBlacklist = ko.observable(undefined);
         self.serial_supportResendsWithoutOk = ko.observable(undefined);
         self.serial_logPositionOnPause = ko.observable(undefined);
         self.serial_logPositionOnCancel = ko.observable(undefined);
@@ -218,6 +220,10 @@ $(function() {
         self.server_onlineCheck_host = ko.observable();
         self.server_onlineCheck_port = ko.observable();
 
+        self.server_pluginBlacklist_enabled = ko.observable();
+        self.server_pluginBlacklist_url = ko.observable();
+        self.server_pluginBlacklist_ttl = ko.observable();
+
         self.settings = undefined;
         self.lastReceivedSettings = undefined;
 
@@ -228,6 +234,15 @@ $(function() {
             self.webcam_ffmpegPathText("");
             self.webcam_ffmpegPathOk(false);
             self.webcam_ffmpegPathBroken(false);
+        };
+
+        self.server_onlineCheckText = ko.observable();
+        self.server_onlineCheckOk = ko.observable(false);
+        self.server_onlineCheckBroken = ko.observable(false);
+        self.server_onlineCheckReset = function() {
+            self.server_onlineCheckText("");
+            self.server_onlineCheckOk(false);
+            self.server_onlineCheckBroken(false);
         };
 
         self.addTemperatureProfile = function() {
@@ -356,8 +371,31 @@ $(function() {
                 });
         };
 
+        self.testOnlineConnectivityConfigBusy = ko.observable(false);
+        self.testOnlineConnectivityConfig = function() {
+            if (!self.server_onlineCheck_host()) return;
+            if (!self.server_onlineCheck_port()) return;
+            if (self.testOnlineConnectivityConfigBusy()) return;
+
+            self.testOnlineConnectivityConfigBusy(true);
+            OctoPrint.util.testServer(self.server_onlineCheck_host(), self.server_onlineCheck_port())
+                .done(function(response) {
+                    if (!response.result) {
+                        self.server_onlineCheckText(gettext("The server is not reachable"));
+                    } else {
+                        self.server_onlineCheckText(gettext("The server is reachable"));
+                    }
+                    self.server_onlineCheckOk(response.result);
+                    self.server_onlineCheckBroken(!response.result);
+                })
+                .always(function() {
+                    self.testOnlineConnectivityConfigBusy(false);
+                });
+        };
+
         self.onSettingsHidden = function() {
             self.webcam_ffmpegPathReset();
+            self.server_onlineCheckReset();
         };
 
         self.isDialogActive = function() {
@@ -473,6 +511,10 @@ $(function() {
                             self.requestData();
                         });
                 });
+        };
+
+        self.copyApiKey = function() {
+            copyToClipboard(self.api_key());
         };
 
         self.showTranslationManager = function() {
@@ -630,7 +672,8 @@ $(function() {
                     additionalPorts : function() { return commentableLinesToArray(self.serial_additionalPorts()) },
                     additionalBaudrates: function() { return _.map(splitTextToArray(self.serial_additionalBaudrates(), ",", true, function(item) { return !isNaN(parseInt(item)); }), function(item) { return parseInt(item); }) },
                     longRunningCommands: function() { return splitTextToArray(self.serial_longRunningCommands(), ",", true) },
-                    checksumRequiringCommands: function() { return splitTextToArray(self.serial_checksumRequiringCommands(), ",", true) }
+                    checksumRequiringCommands: function() { return splitTextToArray(self.serial_checksumRequiringCommands(), ",", true) },
+                    autoUppercaseBlacklist: function() { return splitTextToArray(self.serial_autoUppercaseBlacklist(), ",", true) }
                 },
                 scripts: {
                     gcode: function() {
@@ -741,7 +784,8 @@ $(function() {
                     additionalPorts : function(value) { self.serial_additionalPorts(value.join("\n"))},
                     additionalBaudrates: function(value) { self.serial_additionalBaudrates(value.join(", "))},
                     longRunningCommands: function(value) { self.serial_longRunningCommands(value.join(", "))},
-                    checksumRequiringCommands: function(value) { self.serial_checksumRequiringCommands(value.join(", "))}
+                    checksumRequiringCommands: function(value) { self.serial_checksumRequiringCommands(value.join(", "))},
+                    autoUppercaseBlacklist: function(value) { self.serial_autoUppercaseBlacklist(value.join(", "))}
                 },
                 terminalFilters: function(value) { self.terminalFilters($.extend(true, [], value)) },
                 temperature: {
@@ -905,9 +949,9 @@ $(function() {
         }
     }
 
-    OCTOPRINT_VIEWMODELS.push([
-        SettingsViewModel,
-        ["loginStateViewModel", "usersViewModel", "printerProfilesViewModel", "aboutViewModel"],
-        ["#settings_dialog", "#navbar_settings"]
-    ]);
+    OCTOPRINT_VIEWMODELS.push({
+        construct: SettingsViewModel,
+        dependencies: ["loginStateViewModel", "usersViewModel", "printerProfilesViewModel", "aboutViewModel"],
+        elements: ["#settings_dialog", "#navbar_settings"]
+    });
 });

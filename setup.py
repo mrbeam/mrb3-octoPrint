@@ -38,9 +38,9 @@ INSTALL_REQUIRES = [
 	"pylru>=1.0.9,<1.1",
 	"rsa>=3.2,<3.3",
 	"pkginfo>=1.2.1,<1.3",
-	"requests>=2.7,<2.8",
+	"requests>=2.18.4,<3",
 	"semantic_version>=2.4.2,<2.5",
-	"psutil>=3.2.1,<3.3",
+	"psutil>=5.4.1,<6",
 	"Click>=6.2,<6.3",
 	"awesome-slugify>=1.6.5,<1.7",
 	"feedparser>=5.2.1,<5.3",
@@ -50,7 +50,9 @@ INSTALL_REQUIRES = [
 	"websocket-client>=0.40,<0.41",
 	"python-dateutil>=2.6,<2.7",
 	"wrapt>=1.10.10,<1.11",
-	"futures>=3.1.1,<3.2"
+	"futures>=3.1.1,<3.2",
+	"emoji>=0.4.5,<0.5",
+	"monotonic>=1.3,<1.4"
 ]
 
 if sys.platform == "darwin":
@@ -61,15 +63,15 @@ EXTRA_REQUIRES = dict(
 	# Dependencies for developing OctoPrint
 	develop=[
 		# Testing dependencies
-		"mock>=1.0.1,<1.1",
+		"mock>=2.0.0,<3",
 		"nose>=1.3.0,<1.4",
 		"ddt",
 
 		# Documentation dependencies
 		"sphinx>=1.6,<1.7",
 		"sphinxcontrib-httpdomain",
-		"sphinxcontrib-mermaid",
-		"sphinx_bootstrap_theme",
+		"sphinxcontrib-mermaid>=0.3",
+		"sphinx_rtd_theme",
 
 		# PyPi upload related
 		"pypandoc"
@@ -77,7 +79,7 @@ EXTRA_REQUIRES = dict(
 
 	# Dependencies for developing OctoPrint plugins
 	plugins=[
-		"cookiecutter>=1.4,<1.5"
+		"cookiecutter>=1.4,<1.7"
 	]
 )
 

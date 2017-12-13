@@ -105,12 +105,12 @@ $(function() {
             var userAgent = (navigator && navigator.userAgent || "").toLowerCase();
             var vendor = (navigator && navigator.vendor || "").toLowerCase();
 
-            exports.browser.opera = userAgent.match(/opera|opr/) != null;
-            exports.browser.chrome = !exports.browser.opera && /google inc/.test(vendor) && userAgent.match(/chrome|crios/) != null;
-            exports.browser.firefox = userAgent.match(/firefox|fxios/) != null;
-            exports.browser.ie = userAgent.match(/msie|trident/) != null;
-            exports.browser.edge = userAgent.match(/edge/) != null;
-            exports.browser.safari = !exports.browser.chrome && !exports.browser.edge && !exports.browser.opera && userAgent.match(/safari/) != null;
+            exports.browser.opera = userAgent.match(/opera|opr/) !== null;
+            exports.browser.chrome = !exports.browser.opera && /google inc/.test(vendor) && userAgent.match(/chrome|crios/) !== null;
+            exports.browser.firefox = userAgent.match(/firefox|fxios/) !== null;
+            exports.browser.ie = userAgent.match(/msie|trident/) !== null;
+            exports.browser.edge = userAgent.match(/edge/) !== null;
+            exports.browser.safari = !exports.browser.chrome && !exports.browser.edge && !exports.browser.opera && userAgent.match(/safari/) !== null;
 
             exports.browser.mobile = $.browser.mobile;
             exports.browser.desktop = !exports.browser.mobile;
@@ -125,15 +125,14 @@ $(function() {
             return exports;
         })();
 
-        log.debug("Browser enviroment:", OctoPrint.coreui.browser);
+        log.debug("Browser environment:", OctoPrint.coreui.browser);
 
         //~~ AJAX setup
 
         // work around a stupid iOS6 bug where ajax requests get cached and only work once, as described at
         // http://stackoverflow.com/questions/12506897/is-safari-on-ios-6-caching-ajax-results
         $.ajaxPrefilter(function(options, originalOptions, jqXHR) {
-            if (options.type != "GET") {
-                var headers;
+            if (options.type !== "GET") {
                 if (options.hasOwnProperty("headers")) {
                     options.headers["Cache-Control"] = "no-cache";
                 } else {
@@ -180,7 +179,7 @@ $(function() {
             gettext("Printing"),
             gettext("Paused"),
             gettext("Closed"),
-            gettext("Transfering file to SD")
+            gettext("Transferring file to SD")
         ];
 
         //~~ Initialize PNotify
@@ -191,13 +190,15 @@ $(function() {
         PNotify.prototype.options.stack.firstpos2 = 20;
         PNotify.prototype.options.stack.spacing1 = 20;
         PNotify.prototype.options.stack.spacing2 = 20;
+        PNotify.prototype.options.delay = 5000;
+        PNotify.prototype.options.animate_speed = "fast";
 
         PNotify.singleButtonNotify = function(options) {
             if (!options.confirm || !options.confirm.buttons || !options.confirm.buttons.length) {
                 return new PNotify(options);
             }
 
-            var autoDisplay = options.auto_display != false;
+            var autoDisplay = options.auto_display !== false;
 
             var params = $.extend(true, {}, options);
             params.auto_display = false;
@@ -320,11 +321,14 @@ $(function() {
                 // no alternative names? empty array
                 viewModel.additionalNames = viewModel.additionalNames || [];
 
-                // make sure all value's are in an array
-                viewModel.dependencies = (_.isArray(viewModel.dependencies)) ? viewModel.dependencies : [viewModel.dependencies];
-                viewModel.elements = (_.isArray(viewModel.elements)) ? viewModel.elements : [viewModel.elements];
-                viewModel.optional = (_.isArray(viewModel.optional)) ? viewModel.optional : [viewModel.optional];
-                viewModel.additionalNames = (_.isArray(viewModel.additionalNames)) ? viewModel.additionalNames : [viewModel.additionalNames];
+                // make sure all value's are set and in an array
+                _.each(["dependencies", "elements", "optional", "additionalNames"], function(key) {
+                    if (viewModel[key] === undefined) {
+                        viewModel[key] = [];
+                    } else {
+                        viewModel[key] = (_.isArray(viewModel[key])) ? viewModel[key] : [viewModel[key]];
+                    }
+                });
 
                 // make sure that we don't have two view models going by the same name
                 if (_.has(viewModelMap, viewModel.name)) {
@@ -332,7 +336,13 @@ $(function() {
                     continue;
                 }
 
-                var viewModelInstance = _createViewModelInstance(viewModel, viewModelMap, optionalDependencyPass);
+                var viewModelInstance;
+                try {
+                    viewModelInstance = _createViewModelInstance(viewModel, viewModelMap, optionalDependencyPass);
+                } catch (exc) {
+                    log.error("Error instantiating", viewModel.name, ":", (exc.stack || exc));
+                    continue;
+                }
 
                 // our view model couldn't yet be instantiated, so postpone it for a bit
                 if (viewModelInstance === undefined) {
@@ -340,7 +350,7 @@ $(function() {
                     continue;
                 }
 
-                // we could resolve the depdendencies and the view model is not defined yet => add it, it's now fully processed
+                // we could resolve the dependencies and the view model is not defined yet => add it, it's now fully processed
                 var viewModelBindTargets = viewModel.elements;
 
                 if (additionalBindings.hasOwnProperty(viewModel.name)) {
@@ -442,7 +452,7 @@ $(function() {
                             "z-index": 9999
                         }).off('click')
                         .on('click', function (e) {
-                            if (e.target.tagName.toLowerCase() == "input")
+                            if (e.target.tagName.toLowerCase() === "input")
                                 return;
 
                             $(this).hide();
@@ -475,7 +485,7 @@ $(function() {
 
         $.fn.lazyload = function() {
             return this.each(function() {
-                if (this.tagName.toLowerCase() != "img") return;
+                if (this.tagName.toLowerCase() !== "img") return;
 
                 var src = this.getAttribute("data-src");
                 if (src) {
@@ -495,7 +505,11 @@ $(function() {
             callViewModels(allViewModels, "onTabChange", [current, previous]);
         };
 
-        var tabs = $('#tabs a[data-toggle="tab"]');
+        var onAfterTabChange = function(current, previous) {
+            callViewModels(allViewModels, "onAfterTabChange", [current, previous]);
+        };
+
+        var tabs = $('#tabs').find('a[data-toggle="tab"]');
         tabs.on('show', function (e) {
             var current = e.target.hash;
             var previous = e.relatedTarget.hash;
@@ -505,10 +519,26 @@ $(function() {
         tabs.on('shown', function (e) {
             var current = e.target.hash;
             var previous = e.relatedTarget.hash;
-            callViewModels(allViewModels, "onAfterTabChange", [current, previous]);
+            onAfterTabChange(current, previous);
+
+            // make sure we also update the hash but stick to the current scroll position
+            var scrollmem = $('body').scrollTop() || $('html').scrollTop();
+            window.location.hash = current;
+            $('html,body').scrollTop(scrollmem);
         });
 
         onTabChange(OCTOPRINT_INITIAL_TAB);
+        onAfterTabChange(OCTOPRINT_INITIAL_TAB, undefined);
+
+        var changeTab = function() {
+            var hashtag = window.location.hash;
+            if (!hashtag) return;
+
+            var tab = $('#tabs').find('a[href="' + hashtag + '"]');
+            if (tab) {
+                tab.tab("show");
+            }
+        };
 
         // Fix input element click problems on dropdowns
         $(".dropdown input, .dropdown label").click(function(e) {
@@ -536,75 +566,92 @@ $(function() {
         var bindViewModels = function() {
             log.info("Going to bind " + allViewModelData.length + " view models...");
             _.each(allViewModelData, function(viewModelData) {
-                if (!Array.isArray(viewModelData) || viewModelData.length != 2) {
-                    return;
-                }
+                try {
+                    if (!Array.isArray(viewModelData) || viewModelData.length !== 2) {
+                        log.error("View model data for", viewModel.constructor.name, "has wrong format, expected 2-tuple (viewModel, targets), got:", viewModelData);
+                        return;
+                    }
 
-                var viewModel = viewModelData[0];
-                var targets = viewModelData[1];
+                    var viewModel = viewModelData[0];
+                    var targets = viewModelData[1];
 
-                if (targets === undefined) {
-                    return;
-                }
+                    if (targets === undefined) {
+                        log.error("No binding targets defined for view model", viewMode.constructor.name);
+                        return;
+                    }
 
-                if (!_.isArray(targets)) {
-                    targets = [targets];
-                }
-
-                if (viewModel.hasOwnProperty("onBeforeBinding")) {
-                    viewModel.onBeforeBinding();
-                }
-
-                if (targets != undefined) {
                     if (!_.isArray(targets)) {
                         targets = [targets];
                     }
 
-                    viewModel._bindings = [];
+                    try {
+                        callViewModel(viewModel, "onBeforeBinding", undefined, true);
+                    } catch (exc) {
+                        log.error("Error calling onBeforeBinding on view model", viewModel.constructor.name, ":", (exc.stack || exc));
+                        return;
+                    }
 
-                    _.each(targets, function(target) {
-                        if (target == undefined) {
-                            return;
+                    if (targets !== undefined) {
+                        if (!_.isArray(targets)) {
+                            targets = [targets];
                         }
 
-                        var object;
-                        if (!(target instanceof jQuery)) {
-                            object = $(target);
-                        } else {
-                            object = target;
-                        }
+                        viewModel._bindings = [];
 
-                        if (object == undefined || !object.length) {
-                            log.info("Did not bind view model", viewModel.constructor.name, "to target", target, "since it does not exist");
-                            return;
-                        }
-
-                        var element = object.get(0);
-                        if (element == undefined) {
-                            log.info("Did not bind view model", viewModel.constructor.name, "to target", target, "since it does not exist");
-                            return;
-                        }
-
-                        try {
-                            ko.applyBindings(viewModel, element);
-                            viewModel._bindings.push(target);
-
-                            if (viewModel.hasOwnProperty("onBoundTo")) {
-                                viewModel.onBoundTo(target, element);
+                        _.each(targets, function (target) {
+                            if (target === undefined) {
+                                log.error("Undefined target for view model", viewModel.constructor.name);
+                                return;
                             }
 
-                            log.debug("View model", viewModel.constructor.name, "bound to", target);
-                        } catch (exc) {
-                            log.error("Could not bind view model", viewModel.constructor.name, "to target", target, ":", (exc.stack || exc));
-                        }
-                    });
-                }
+                            var object;
+                            if (!(target instanceof jQuery)) {
+                                try {
+                                    object = $(target);
+                                } catch (exc) {
+                                    log.error("Error while attempting to jquery-fy target", target, "of view model", viewModel.constructor.name, ":", (exc.stack || exc));
+                                    return;
+                                }
+                            } else {
+                                object = target;
+                            }
 
-                viewModel._unbound = viewModel._bindings !== undefined && viewModel._bindings.length === 0;
-                viewModel._bound = viewModel._bindings.length > 0;
+                            if (object === undefined || !object.length) {
+                                log.info("Did not bind view model", viewModel.constructor.name, "to target", target, "since it does not exist");
+                                return;
+                            }
 
-                if (viewModel.hasOwnProperty("onAfterBinding")) {
-                    viewModel.onAfterBinding();
+                            var element = object.get(0);
+                            if (element === undefined) {
+                                log.info("Did not bind view model", viewModel.constructor.name, "to target", target, "since it does not exist");
+                                return;
+                            }
+
+                            try {
+                                ko.applyBindings(viewModel, element);
+                                viewModel._bindings.push(target);
+
+                                callViewModel(viewModel, "onBoundTo", [target, element], true);
+
+                                log.debug("View model", viewModel.constructor.name, "bound to", target);
+                            } catch (exc) {
+                                log.error("Could not bind view model", viewModel.constructor.name, "to target", target, ":", (exc.stack || exc));
+                            }
+                        });
+                    }
+
+                    viewModel._unbound = viewModel._bindings === undefined || viewModel._bindings.length === 0;
+                    viewModel._bound = viewModel._bindings && viewModel._bindings.length > 0;
+
+                    callViewModel(viewModel, "onAfterBinding");
+                } catch (exc) {
+                    var name;
+                    try {
+                        name = viewModel.constructor.name;
+                    } catch (exc) {
+                        name = "n/a";
+                    }
+                    log.error("Error while processing view model", name, "for binding:", (exc.stack || exc));
                 }
             });
 
@@ -620,6 +667,14 @@ $(function() {
                 log.debug("Browser tab is now " + (status ? "visible" : "hidden"));
                 callViewModels(allViewModels, "onBrowserTabVisibilityChange", [status]);
             });
+
+            $(window).on("hashchange", function() {
+                changeTab();
+            });
+
+            if (window.location.hash !== "") {
+                changeTab();
+            }
 
             log.info("Application startup complete");
         };
@@ -672,7 +727,7 @@ $(function() {
          * onServerConnect below takes care of the passive login. Only once that's completed it tells
          * our DataUpdater that it's ok to trigger any callbacks in view models. On the initial
          * server connect (during first initialization) we also trigger the settings fetch and
-         * binding proceedure once that's done, but only then.
+         * binding procedure once that's done, but only then.
          *
          * Or, as a fancy diagram: https://gist.githubusercontent.com/foosel/0cdc3a03cf5311804271f12e87293c0c/raw/abc84fdc3b13030d70961539d9c132ae39c32085/octoprint_web_startup.txt
          */
@@ -686,7 +741,7 @@ $(function() {
                     // passive login request.
                     //
                     // This is to ensure that we have no concurrent requests triggered by socket events
-                    // overriding each other's session during app intialization
+                    // overriding each other's session during app initialization
                     dataUpdater.initialized();
                 });
         };

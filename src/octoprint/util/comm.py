@@ -441,6 +441,8 @@ class MachineCom(object):
 		self._gcodescript_hooks = self._pluginManager.get_hooks("octoprint.comm.protocol.scripts")
 		self._serial_factory_hooks = self._pluginManager.get_hooks("octoprint.comm.transport.serial.factory")
 
+		self._temperature_hooks = self._pluginManager.get_hooks("octoprint.comm.protocol.temperatures.received")
+
 		# SD status data
 		self._sdEnabled = settings().getBoolean(["feature", "sdSupport"])
 		self._sdAvailable = False
@@ -578,7 +580,7 @@ class MachineCom(object):
 		if state == self.STATE_CLOSED_WITH_ERROR:
 			return "Offline: %s" % (self.getErrorString())
 		if state == self.STATE_TRANSFERING_FILE:
-			return "Transfering file to SD"
+			return "Transferring file to SD"
 		return "Unknown State (%d)" % (self._state)
 
 	def getErrorString(self):
@@ -875,20 +877,56 @@ class MachineCom(object):
 			self._changeState(self.STATE_ERROR)
 			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
-	def startFileTransfer(self, filename, localFilename, remoteFilename):
+	def startFileTransfer(self, filename, localFilename, remoteFilename, special=False):
 		if not self.isOperational() or self.isBusy():
-			logging.info("Printer is not operational or busy")
+			self._logger.info("Printer is not operational or busy")
 			return
 
 		with self._jobLock:
 			self.resetLineNumbers()
 
-			self._currentFile = StreamingGcodeFileInformation(filename, localFilename, remoteFilename)
+			if special:
+				self._currentFile = SpecialStreamingGcodeFileInformation(filename, localFilename, remoteFilename)
+			else:
+				self._currentFile = StreamingGcodeFileInformation(filename, localFilename, remoteFilename)
 			self._currentFile.start()
 
 			self.sendCommand("M28 %s" % remoteFilename)
 			eventManager().fire(Events.TRANSFER_STARTED, {"local": localFilename, "remote": remoteFilename})
 			self._callback.on_comm_file_transfer_started(remoteFilename, self._currentFile.getFilesize())
+
+	def cancelFileTransfer(self):
+		if not self.isOperational() or not self.isStreaming():
+			self._logger.info("Printer is not operational or not streaming")
+			return
+
+		self._finishFileTransfer(failed=True)
+
+	def _finishFileTransfer(self, failed=False):
+		with self._jobLock:
+			remote = self._currentFile.getRemoteFilename()
+
+			self._sendCommand("M29")
+			if failed:
+				self.deleteSdFile(remote)
+
+			payload = {
+				"local": self._currentFile.getLocalFilename(),
+				"remote": remote,
+				"time": self.getPrintTime()
+			}
+
+			self._currentFile = None
+			self._changeState(self.STATE_OPERATIONAL)
+
+			if failed:
+				self._callback.on_comm_file_transfer_failed(remote)
+				eventManager().fire(Events.TRANSFER_FAILED, payload)
+			else:
+				self._callback.on_comm_file_transfer_done(remote)
+				eventManager().fire(Events.TRANSFER_DONE, payload)
+
+			self.refreshSdFiles()
 
 	def selectFile(self, filename, sd):
 		if self.isBusy():
@@ -919,12 +957,17 @@ class MachineCom(object):
 		self._recordFilePosition()
 		self._callback.on_comm_print_job_cancelled()
 
-	def cancelPrint(self, firmware_error=None):
-		if not self.isOperational() or self.isStreaming():
+	def cancelPrint(self, firmware_error=None, disable_log_position=False):
+		if not self.isOperational():
 			return
 
 		if not self.isBusy() or self._currentFile is None:
 			# we aren't even printing, nothing to cancel...
+			return
+
+		if self.isStreaming():
+			# we are streaming, we handle cancelling that differently...
+			self.cancelFileTransfer()
 			return
 
 		def _on_M400_sent():
@@ -947,7 +990,7 @@ class MachineCom(object):
 					except:
 						pass
 
-			if self._log_position_on_cancel:
+			if self._log_position_on_cancel and not disable_log_position:
 				self.sendCommand("M400", on_sent=_on_M400_sent)
 			else:
 				self._cancel_preparation_done()
@@ -1089,15 +1132,28 @@ class MachineCom(object):
 
 	def _processTemperatures(self, line):
 		current_tool = self._currentTool if self._currentTool is not None else 0
+		current_tool_key = "T%d" % current_tool
 		maxToolNum, parsedTemps = parse_temperature_line(line, current_tool)
 
-		if "T0" in parsedTemps.keys():
+		for name, hook in self._temperature_hooks.items():
+			try:
+				parsedTemps = hook(self, parsedTemps)
+				if parsedTemps is None or not parsedTemps:
+					return
+			except:
+				self._logger.exception("Error while processing temperatures in {}, skipping".format(name))
+
+		if current_tool_key in parsedTemps.keys():
+			shared_nozzle = self._printerProfileManager.get_current_or_default()["extruder"]["sharedNozzle"]
 			for n in range(maxToolNum + 1):
 				tool = "T%d" % n
-				if not tool in parsedTemps.keys():
-					continue
-
-				actual, target = parsedTemps[tool]
+				if not tool in parsedTemps:
+					if shared_nozzle:
+						actual, target = parsedTemps[current_tool_key]
+					else:
+						continue
+				else:
+					actual, target = parsedTemps[tool]
 				self.last_temperature.set_tool(n, actual=actual, target=target)
 
 		# bed temperature
@@ -1190,7 +1246,7 @@ class MachineCom(object):
 					return stripped_line, stripped_line.lower()
 
 				##~~ Error handling
-				line = self._handleErrors(line)
+				line = self._handle_errors(line)
 				line, lower_line = convert_line(line)
 
 				##~~ SD file list
@@ -1333,7 +1389,7 @@ class MachineCom(object):
 						# reliable firmware name (NAME + VER) out of the Malyan M115 response.
 						name = data.get("NAME")
 						ver = data.get("VER")
-						if "malyan" in name.lower() and ver:
+						if name and "malyan" in name.lower() and ver:
 							firmware_name = name.strip() + " " + ver.strip()
 
 					if not self._firmware_info_received and firmware_name:
@@ -1524,11 +1580,23 @@ class MachineCom(object):
 				                     self.STATE_PAUSED,
 				                     self.STATE_TRANSFERING_FILE):
 					if line == "start": # exact match, to be on the safe side
-						message = "Printer sent 'start' while already operational. External reset? " \
-						          "Resetting line numbers to be on the safe side"
-						self._log(message)
-						self._logger.warn(message)
-						self.resetLineNumbers()
+						if self._state in (self.STATE_OPERATIONAL,):
+							message = "Printer sent 'start' while already operational. External reset? " \
+							          "Resetting line numbers to be on the safe side"
+							self._log(message)
+							self._logger.warn(message)
+							self._onExternalReset()
+
+						else:
+							verb = "streaming to SD" if self.isStreaming() else "printing"
+							message = "Printer sent 'start' while {}. External reset? " \
+							          "Aborting job since printer lost state.".format(verb)
+							self._log(message)
+							self._logger.warn(message)
+							self.cancelPrint(disable_log_position=True)
+							self._onExternalReset()
+
+						eventManager().fire(Events.PRINTER_RESET)
 
 			except:
 				self._logger.exception("Something crashed inside the serial connection loop, please report this in OctoPrint's bug tracker:")
@@ -1740,6 +1808,12 @@ class MachineCom(object):
 		eventManager().fire(Events.CONNECTED, payload)
 		self.sendGcodeScript("afterPrinterConnected", replacements=dict(event=payload))
 
+	def _onExternalReset(self):
+		self.resetLineNumbers()
+
+		if self._temperature_autoreporting:
+			self._set_autoreport_temperature()
+
 	def _getTemperatureTimerInterval(self):
 		busy_default = 4.0
 		target_default = 2.0
@@ -1803,7 +1877,7 @@ class MachineCom(object):
 		elif len(potentials) > 1:
 			programmer = stk500v2.Stk500v2()
 
-			for p in serialList():
+			for p in potentials:
 				serial_obj = None
 
 				try:
@@ -1879,36 +1953,55 @@ class MachineCom(object):
 
 		return False
 
-	def _handleErrors(self, line):
+	_recoverable_communication_errors    = ("no line number with checksum",)
+	_resend_request_communication_errors = ("line number", # since this error class get's checked after recoverable
+	                                                       # communication errors, we can use this broad term here
+	                                        "checksum",    # since this error class get's checked after recoverable
+	                                                       # communication errors, we can use this broad term here
+	                                        "format error",
+	                                        "expected line")
+	_sd_card_errors                      = ("volume.init",
+	                                        "openroot",
+	                                        "workdir",
+	                                        "error writing to file",
+	                                        "cannot open",
+	                                        "open failed",
+	                                        "cannot enter")
+	def _handle_errors(self, line):
 		if line is None:
 			return
 
 		lower_line = line.lower()
 
-		# No matter the state, if we see an error, goto the error state and store the error for reference.
 		if lower_line.startswith('error:') or line.startswith('!!'):
-			#Oh YEAH, consistency.
-			# Marlin reports an MIN/MAX temp error as "Error:x\n: Extruder switched off. MAXTEMP triggered !\n"
-			#	But a bed temp error is reported as "Error: Temperature heated bed switched off. MAXTEMP triggered !!"
-			#	So we can have an extra newline in the most common case. Awesome work people.
 			if regex_minMaxError.match(line):
+				# special delivery for firmware that goes "Error:x\n: Extruder switched off. MAXTEMP triggered !\n"
 				line = line.rstrip() + self._readline()
 
-			if 'line number' in lower_line or 'checksum' in lower_line or 'format error' in lower_line or 'expected line' in lower_line:
-				#Skip the communication errors, as those get corrected.
+			if any(map(lambda x: x in lower_line, self._recoverable_communication_errors)):
+				# manually trigger an ack for comm errors the printer doesn't send a resend request for but
+				# from which we can recover from by just pushing on (because that then WILL trigger a fitting
+				# resend request)
+				self._handle_ok()
+
+			elif any(map(lambda x: x in lower_line, self._resend_request_communication_errors)):
+				# skip comm errors that the printer sends a resend request for anyhow
 				self._lastCommError = line[6:] if lower_line.startswith("error:") else line[2:]
+
+			elif any(map(lambda x: x in lower_line, self._sd_card_errors)):
+				# skip errors with the SD card
 				pass
-			elif 'volume.init' in lower_line or "openroot" in lower_line or 'workdir' in lower_line\
-					or "error writing to file" in lower_line or "cannot open" in lower_line\
-					or "cannot enter" in lower_line:
-				#Also skip errors with the SD card
-				pass
+
 			elif 'unknown command' in lower_line:
-				#Ignore unkown command errors, it could be a typo or some missing feature
+				# ignore unknown command errors, it could be a typo or some missing feature
 				pass
+
 			elif not self.isError():
+				# handle everything else
 				error_text = line[6:] if lower_line.startswith("error:") else line[2:]
-				self._to_logfile_with_terminal("Received an error from the printer's firmware: {}".format(error_text), level=logging.WARN)
+				self._to_logfile_with_terminal("Received an error from the printer's firmware: {}".format(error_text),
+				                               level=logging.WARN)
+
 				if not self._ignore_errors:
 					if self._disconnect_on_errors:
 						self._errorValue = error_text
@@ -1920,6 +2013,8 @@ class MachineCom(object):
 				else:
 					self._log("WARNING! Received an error from the printer's firmware, ignoring that as configured but you might want to investigate what happened here! Error: {}".format(error_text))
 					self._clear_to_send.set()
+
+		# finally return the line
 		return line
 
 	def _readline(self):
@@ -1964,20 +2059,7 @@ class MachineCom(object):
 		line = self._currentFile.getNext()
 		if line is None:
 			if self.isStreaming():
-				self._sendCommand("M29")
-
-				remote = self._currentFile.getRemoteFilename()
-				payload = {
-					"local": self._currentFile.getLocalFilename(),
-					"remote": remote,
-					"time": self.getPrintTime()
-				}
-
-				self._currentFile = None
-				self._changeState(self.STATE_OPERATIONAL)
-				self._callback.on_comm_file_transfer_done(remote)
-				eventManager().fire(Events.TRANSFER_DONE, payload)
-				self.refreshSdFiles()
+				self._finishFileTransfer()
 			else:
 				self._callback.on_comm_print_job_done()
 				self._changeState(self.STATE_OPERATIONAL)
@@ -2019,7 +2101,8 @@ class MachineCom(object):
 				# an active (prior) resend request.
 				#
 				# We will ignore this resend request and just continue normally.
-				self._logger.debug("Ignoring resend request for line %d == current line, we haven't sent that yet so the printer got N-1 twice from us, probably due to a timeout" % lineToResend)
+				self._logger.info("Ignoring resend request for line %d == current line, we haven't sent that yet so "
+				                   "the printer got N-1 twice from us, probably due to a timeout" % lineToResend)
 				return False
 
 			lastCommError = self._lastCommError
@@ -2031,7 +2114,8 @@ class MachineCom(object):
 					and ("line number" in lastCommError.lower() or "expected line" in lastCommError.lower()) \
 					and lineToResend == self._lastResendNumber \
 					and self._resendDelta is not None and self._currentResendCount < self._resendDelta:
-				self._logger.debug("Ignoring resend request for line %d, that still originates from lines we sent before we got the first resend request" % lineToResend)
+				self._logger.info("Ignoring resend request for line %d, that still originates from lines we sent "
+				                   "before we got the first resend request" % lineToResend)
 				self._currentResendCount += 1
 				return True
 
@@ -2039,7 +2123,8 @@ class MachineCom(object):
 			# need to do this now. If the same line number has been requested we
 			# already saw and resent, we'll ignore it up to <counter> times.
 			if self._resendSwallowRepetitions and lineToResend == self._lastResendNumber and self._resendSwallowRepetitionsCounter > 0:
-				self._logger.debug("Ignoring resend request for line %d, that is probably a repetition sent by the firmware to ensure it arrives, not a real request" % lineToResend)
+				self._logger.info("Ignoring resend request for line %d, that is probably a repetition sent by the "
+				                   "firmware to ensure it arrives, not a real request" % lineToResend)
 				self._resendSwallowRepetitionsCounter -= 1
 				return True
 
@@ -2276,7 +2361,7 @@ class MachineCom(object):
 						# now comes the part where we increase line numbers and send stuff - no turning back now
 						command_requiring_checksum = gcode is not None and gcode in self._checksum_requiring_commands
 						command_allowing_checksum = gcode is not None or self._sendChecksumWithUnknownCommands
-						checksum_enabled = not self._neverSendChecksum and (self.isPrinting() or
+						checksum_enabled = not self._neverSendChecksum and ((self.isPrinting() and self._currentFile and self._currentFile.checksum) or
 						                                                    self._alwaysSendChecksum or
 						                                                    not self._firmware_info_received)
 
@@ -2392,8 +2477,8 @@ class MachineCom(object):
 	def _do_send_with_checksum(self, command, linenumber):
 		command_to_send = "N" + str(linenumber) + " " + command
 		checksum = 0
-		for c in command_to_send:
-			checksum ^= ord(c)
+		for c in bytearray(command_to_send):
+			checksum ^= c
 		command_to_send = command_to_send + "*" + str(checksum)
 		self._do_send_without_checksum(command_to_send)
 
@@ -2553,7 +2638,7 @@ class MachineCom(object):
 		if not match and support_r:
 			match = regexes_parameters["floatR"].search(cmd)
 
-		if match:
+		if match and self.last_temperature.tools.get(toolNum) is not None:
 			try:
 				target = float(match.group("value"))
 				self.last_temperature.set_tool(toolNum, target=target)
@@ -2726,6 +2811,9 @@ class MachineComPrintCallback(object):
 	def on_comm_file_transfer_done(self, filename):
 		pass
 
+	def on_comm_file_transfer_failed(self, filename):
+		pass
+
 	def on_comm_force_disconnect(self):
 		pass
 
@@ -2741,6 +2829,8 @@ class PrintingFileInformation(object):
 	Allows to reset the current file position to 0 and to calculate the current progress as a floating point
 	value between 0 and 1.
 	"""
+
+	checksum = True
 
 	def __init__(self, filename):
 		self._logger = logging.getLogger(__name__)
@@ -2795,6 +2885,8 @@ class PrintingSdFileInformation(PrintingFileInformation):
 	"""
 	Encapsulates information regarding an ongoing print from SD.
 	"""
+
+	checksum = False
 
 	def __init__(self, filename, size):
 		PrintingFileInformation.__init__(self, filename)
@@ -2940,6 +3032,23 @@ class StreamingGcodeFileInformation(PrintingGcodeFileInformation):
 		             time_per_line=duration * 1000.0 / float(self._read_lines),
 		             duration=duration)
 		self._logger.info("Finished in {duration:.3f} s. Approx. transfer rate of {rate:.3f} lines/s or {time_per_line:.3f} ms per line".format(**stats))
+
+
+class SpecialStreamingGcodeFileInformation(StreamingGcodeFileInformation):
+	"""
+	For streaming files to the printer that aren't GCODE.
+
+	Difference to regular StreamingGcodeFileInformation: no checksum requirement, only rudimentary line processing
+	(stripping of whitespace from the end and ignoring of empty lines)
+	"""
+
+	checksum = False
+
+	def _process(self, line, offsets, current_tool):
+		line = line.rstrip()
+		if not len(line):
+			return None
+		return line
 
 
 class SendQueue(PrependableQueue):

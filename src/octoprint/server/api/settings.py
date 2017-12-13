@@ -130,7 +130,8 @@ def getSettings():
 			"firmwareDetection": s.getBoolean(["feature", "firmwareDetection"]),
 			"printCancelConfirmation": s.getBoolean(["feature", "printCancelConfirmation"]),
 			"blockWhileDwelling": s.getBoolean(["feature", "blockWhileDwelling"]),
-			"g90InfluencesExtruder": s.getBoolean(["feature", "g90InfluencesExtruder"])
+			"g90InfluencesExtruder": s.getBoolean(["feature", "g90InfluencesExtruder"]),
+			"legacyPluginAssets": s.getBoolean(["feature", "legacyPluginAssets"])
 		},
 		"serial": {
 			"port": connectionOptions["portPreference"],
@@ -154,6 +155,7 @@ def getSettings():
 			"ignoreErrorsFromFirmware": s.getBoolean(["serial", "ignoreErrorsFromFirmware"]),
 			"disconnectOnErrors": s.getBoolean(["serial", "disconnectOnErrors"]),
 			"triggerOkForM29": s.getBoolean(["serial", "triggerOkForM29"]),
+			"autoUppercaseBlacklist": s.get(["serial", "autoUppercaseBlacklist"]),
 			"logPositionOnPause": s.getBoolean(["serial", "logPositionOnPause"]),
 			"logPositionOnCancel": s.getBoolean(["serial", "logPositionOnCancel"]),
 			"supportResendsWithoutOk": s.getBoolean(["serial", "supportResendsWithoutOk"]),
@@ -208,6 +210,11 @@ def getSettings():
 				"interval": int(s.getInt(["server", "onlineCheck", "interval"]) / 60),
 				"host": s.get(["server", "onlineCheck", "host"]),
 				"port": s.getInt(["server", "onlineCheck", "port"])
+			},
+			"pluginBlacklist": {
+				"enabled": s.getBoolean(["server", "pluginBlacklist", "enabled"]),
+				"url": s.get(["server", "pluginBlacklist", "url"]),
+				"ttl": int(s.getInt(["server", "pluginBlacklist", "ttl"]) / 60)
 			}
 		}
 	}
@@ -352,6 +359,7 @@ def _saveSettings(data):
 		if "printCancelConfirmation" in data["feature"]: s.setBoolean(["feature", "printCancelConfirmation"], data["feature"]["printCancelConfirmation"])
 		if "blockWhileDwelling" in data["feature"]: s.setBoolean(["feature", "blockWhileDwelling"], data["feature"]["blockWhileDwelling"])
 		if "g90InfluencesExtruder" in data["feature"]: s.setBoolean(["feature", "g90InfluencesExtruder"], data["feature"]["g90InfluencesExtruder"])
+		if "legacyPluginAssets" in data["feature"]: s.setBoolean(["feature", "legacyPluginAssets"], data["feature"]["legacyPluginAssets"])
 
 	if "serial" in data.keys():
 		if "autoconnect" in data["serial"]: s.setBoolean(["serial", "autoconnect"], data["serial"]["autoconnect"])
@@ -372,6 +380,7 @@ def _saveSettings(data):
 		if "ignoreErrorsFromFirmware" in data["serial"]: s.setBoolean(["serial", "ignoreErrorsFromFirmware"], data["serial"]["ignoreErrorsFromFirmware"])
 		if "disconnectOnErrors" in data["serial"]: s.setBoolean(["serial", "disconnectOnErrors"], data["serial"]["disconnectOnErrors"])
 		if "triggerOkForM29" in data["serial"]: s.setBoolean(["serial", "triggerOkForM29"], data["serial"]["triggerOkForM29"])
+		if "autoUppercaseBlacklist" in data["serial"] and isinstance(data["serial"]["autoUppercaseBlacklist"], (list, tuple)): s.set(["serial", "autoUppercaseBlacklist"], data["serial"]["autoUppercaseBlacklist"])
 		if "supportResendsWithoutOk" in data["serial"]: s.setBoolean(["serial", "supportResendsWithoutOk"], data["serial"]["supportResendsWithoutOk"])
 		if "logPositionOnPause" in data["serial"]: s.setBoolean(["serial", "logPositionOnPause"], data["serial"]["logPositionOnPause"])
 		if "logPositionOnCancel" in data["serial"]: s.setBoolean(["serial", "logPositionOnCancel"], data["serial"]["logPositionOnCancel"])
@@ -435,6 +444,15 @@ def _saveSettings(data):
 					pass
 			if "host" in data["server"]["onlineCheck"]: s.set(["server", "onlineCheck", "host"], data["server"]["onlineCheck"]["host"])
 			if "port" in data["server"]["onlineCheck"]: s.setInt(["server", "onlineCheck", "port"], data["server"]["onlineCheck"]["port"])
+		if "pluginBlacklist" in data["server"]:
+			if "enabled" in data["server"]["pluginBlacklist"]: s.setBoolean(["server", "pluginBlacklist", "enabled"], data["server"]["pluginBlacklist"]["enabled"])
+			if "url" in data["server"]["pluginBlacklist"]: s.set(["server", "pluginBlacklist", "url"], data["server"]["pluginBlacklist"]["url"])
+			if "ttl" in data["server"]["pluginBlacklist"]:
+				try:
+					ttl = int(data["server"]["pluginBlacklist"]["ttl"])
+					s.setInt(["server", "pluginBlacklist", "ttl"], ttl * 60)
+				except ValueError:
+					pass
 
 	if "plugins" in data:
 		for plugin in octoprint.plugin.plugin_manager().get_implementations(octoprint.plugin.SettingsPlugin):

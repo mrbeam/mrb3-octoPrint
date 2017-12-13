@@ -41,7 +41,7 @@ $(function() {
             });
 
             entry.offset.subscribe(function(newValue) {
-                if (self.changingOffset.item !== undefined && self.changingOffset.item.key() == entry.key()) {
+                if (self.changingOffset.item !== undefined && self.changingOffset.item.key() === entry.key()) {
                     // if our we currently have the offset dialog open for this entry and the offset changed
                     // meanwhile, update the displayed value in the dialog
                     self.changingOffset.offset(newValue);
@@ -115,7 +115,7 @@ $(function() {
                     tools[extruder]["name"](gettext("Tool") + " " + extruder);
                     tools[extruder]["key"]("tool" + extruder);
                 }
-            } else if (numExtruders == 1 || sharedNozzle) {
+            } else if (numExtruders === 1 || sharedNozzle) {
                 // only one extruder, no need to add numbers
                 color = graphColors[0];
                 heaterOptions["tool0"] = {name: "T", color: color};
@@ -142,7 +142,7 @@ $(function() {
             if (!self._printerProfileInitialized) {
                 self._triggerBacklog();
             }
-            self.updatePlot(false);
+            self.updatePlot();
         };
         self.settingsViewModel.printerProfiles.currentProfileData.subscribe(function() {
             self._printerProfileUpdated();
@@ -200,7 +200,7 @@ $(function() {
         };
 
         self._processTemperatureUpdateData = function(serverTime, data) {
-            if (data.length == 0)
+            if (data.length === 0)
                 return;
 
             var lastData = data[data.length - 1];
@@ -210,23 +210,29 @@ $(function() {
                 if (lastData.hasOwnProperty("tool" + i)) {
                     tools[i]["actual"](lastData["tool" + i].actual);
                     tools[i]["target"](lastData["tool" + i].target);
+                } else {
+                    tools[i]["actual"](0);
+                    tools[i]["target"](0);
                 }
             }
 
             if (lastData.hasOwnProperty("bed")) {
                 self.bedTemp["actual"](lastData.bed.actual);
                 self.bedTemp["target"](lastData.bed.target);
+            } else {
+                self.bedTemp["actual"](0);
+                self.bedTemp["target"](0);
             }
 
             if (!CONFIG_TEMPERATURE_GRAPH) return;
 
             self.temperatures = self._processTemperatureData(serverTime, data, self.temperatures);
-            self.updatePlot(false);
+            self.updatePlot();
         };
 
         self._processTemperatureHistoryData = function(serverTime, data) {
             self.temperatures = self._processTemperatureData(serverTime, data);
-            self.updatePlot(false);
+            self.updatePlot();
         };
 
         self._processOffsetData = function(data) {
@@ -234,11 +240,15 @@ $(function() {
             for (var i = 0; i < tools.length; i++) {
                 if (data.hasOwnProperty("tool" + i)) {
                     tools[i]["offset"](data["tool" + i]);
+                } else {
+                    tools[i]["offset"](0);
                 }
             }
 
             if (data.hasOwnProperty("bed")) {
                 self.bedTemp["offset"](data["bed"]);
+            } else {
+                self.bedTemp["offset"](0);
             }
         };
 
@@ -271,7 +281,7 @@ $(function() {
             });
 
             var temperature_cutoff = self.temperature_cutoff();
-            if (temperature_cutoff != undefined) {
+            if (temperature_cutoff !== undefined) {
                 var filterOld = function(item) {
                     return item[0] >= clientTime - temperature_cutoff * 60 * 1000;
                 };
@@ -285,100 +295,123 @@ $(function() {
             return result;
         };
 
-        self.updatePlot = function(force) {
-            force = force == undefined ? true : force;
-
+        self.updatePlot = function() {
             var graph = $("#temperature-graph");
-            if (graph.length) {
-                var data = [];
-                var heaterOptions = self.heaterOptions();
-                if (!heaterOptions) return;
+            if (!graph.length) return; // no graph
+            if (!self.plot) return; // plot not yet initialized
 
-                var maxTemps = [310/1.1];
+            var plotInfo = self._getPlotInfo();
+            if (plotInfo === undefined) return;
 
-                var showFahrenheit = self._shallShowFahrenheit();
+            var newMax = Math.max(Math.max.apply(null, plotInfo.max) * 1.1, 310);
+            if (newMax !== self.plot.getAxes().yaxis.max) {
+                // re-init (because flot apparently has NO way to change the max value of an axes :/)
+                self._initializePlot(true, plotInfo);
+            } else {
+                // update the data
+                self.plot.setData(plotInfo.data);
+                self.plot.setupGrid();
+                self.updateLegend(self._replaceLegendLabel);
+                self.plot.draw();
+            }
+        };
 
-                _.each(_.keys(heaterOptions), function(type) {
-                    if (type == "bed" && !self.hasBed()) {
-                        return;
+        self._initializePlot = function(force, plotInfo) {
+            var graph = $("#temperature-graph");
+            if (!graph.length) return; // no graph
+            if (self.plot && !force) return; // already initialized
+
+            plotInfo = plotInfo || self._getPlotInfo();
+            if (plotInfo === undefined) return;
+
+            // we don't have a plot yet, we need to set stuff up
+            var options = {
+                yaxis: {
+                    min: 0,
+                    max: Math.max(Math.max.apply(null, plotInfo.max) * 1.1, 310),
+                    ticks: 10
+                },
+                xaxis: {
+                    mode: "time",
+                    minTickSize: [2, "minute"],
+                    tickFormatter: function(val, axis) {
+                        if (val === undefined || val === 0)
+                            return ""; // we don't want to display the minutes since the epoch if not connected yet ;)
+
+                        // current time in milliseconds in UTC
+                        var timestampUtc = Date.now();
+
+                        // calculate difference in milliseconds
+                        var diff = timestampUtc - val;
+
+                        // convert to minutes
+                        var diffInMins = Math.round(diff / (60 * 1000));
+                        if (diffInMins === 0) {
+                            return gettext("just now");
+                        } else if (diffInMins < 0) {
+                            // we can't look into the future
+                            return "";
+                        } else {
+                            return "- " + diffInMins + " " + gettext("min");
+                        }
                     }
+                },
+                legend: {
+                    position: "sw",
+                    noColumns: 2,
+                    backgroundOpacity: 0
+                }
+            };
 
-                    var actuals = [];
-                    var targets = [];
+            if (!OctoPrint.coreui.browser.mobile) {
+                options["crosshair"] = { mode: "x" };
+                options["grid"] = { hoverable: true, autoHighlight: false };
+            }
 
-                    if (self.temperatures[type]) {
-                        actuals = self.temperatures[type].actual;
-                        targets = self.temperatures[type].target;
-                    }
+            self.plot = $.plot(graph, plotInfo.data, options);
+        };
 
-                    var actualTemp = actuals && actuals.length ? formatTemperature(actuals[actuals.length - 1][1], showFahrenheit) : "-";
-                    var targetTemp = targets && targets.length ? formatTemperature(targets[targets.length - 1][1], showFahrenheit) : "-";
+        self._getPlotInfo = function() {
+            var data = [];
+            var heaterOptions = self.heaterOptions();
+            if (!heaterOptions) return undefined;
 
-                    data.push({
-                        label: gettext("Actual") + " " + heaterOptions[type].name + ": " + actualTemp,
-                        color: heaterOptions[type].color,
-                        data: actuals
-                    });
-                    data.push({
-                        label: gettext("Target") + " " + heaterOptions[type].name + ": " + targetTemp,
-                        color: pusher.color(heaterOptions[type].color).tint(0.5).html(),
-                        data: targets
-                    });
+            var maxTemps = [310/1.1];
+            var now = Date.now();
 
-                    maxTemps.push(self.getMaxTemp(actuals, targets));
+            var showFahrenheit = self._shallShowFahrenheit();
+
+            _.each(_.keys(heaterOptions), function(type) {
+                if (type === "bed" && !self.hasBed()) {
+                    return;
+                }
+
+                var actuals = [];
+                var targets = [];
+
+                if (self.temperatures[type]) {
+                    actuals = self.temperatures[type].actual;
+                    targets = self.temperatures[type].target;
+                }
+
+                var actualTemp = actuals && actuals.length ? formatTemperature(actuals[actuals.length - 1][1], showFahrenheit) : "-";
+                var targetTemp = targets && targets.length ? formatTemperature(targets[targets.length - 1][1], showFahrenheit) : "-";
+
+                data.push({
+                    label: gettext("Actual") + " " + heaterOptions[type].name + ": " + actualTemp,
+                    color: heaterOptions[type].color,
+                    data: actuals.length ? actuals : [[now, undefined]]
+                });
+                data.push({
+                    label: gettext("Target") + " " + heaterOptions[type].name + ": " + targetTemp,
+                    color: pusher.color(heaterOptions[type].color).tint(0.5).html(),
+                    data: targets.length ? targets : [[now, undefined]]
                 });
 
-                if (!self.plot || force) {
-                    // we don't have a plot yet, we need to set stuff up
-                    var options = {
-                        yaxis: {
-                            min: 0,
-                            max: Math.max(Math.max.apply(null, maxTemps) * 1.1, 310),
-                            ticks: 10
-                        },
-                        xaxis: {
-                            mode: "time",
-                            minTickSize: [2, "minute"],
-                            tickFormatter: function(val, axis) {
-                                if (val == undefined || val == 0)
-                                    return ""; // we don't want to display the minutes since the epoch if not connected yet ;)
+                maxTemps.push(self.getMaxTemp(actuals, targets));
+            });
 
-                                // current time in milliseconds in UTC
-                                var timestampUtc = Date.now();
-
-                                // calculate difference in milliseconds
-                                var diff = timestampUtc - val;
-
-                                // convert to minutes
-                                var diffInMins = Math.round(diff / (60 * 1000));
-                                if (diffInMins == 0)
-                                    return gettext("just now");
-                                else
-                                    return "- " + diffInMins + " " + gettext("min");
-                            }
-                        },
-                        legend: {
-                            position: "sw",
-                            noColumns: 2,
-                            backgroundOpacity: 0
-                        }
-                    };
-
-                    if (!OctoPrint.coreui.browser.mobile) {
-                        options["crosshair"] = { mode: "x" };
-                        options["grid"] = { hoverable: true, autoHighlight: false };
-                    }
-
-                    self.plot = $.plot(graph, data, options);
-
-                } else {
-                    // graph already active, let's just update the data
-                    self.plot.setData(data);
-                    self.plot.getAxes().yaxis.max = Math.max(Math.max.apply(null, maxTemps) * 1.1, 310);
-                    self.updateLegend(self._replaceLegendLabel);
-                    self.plot.draw();
-                }
-            }
+            return {max: maxTemps, data: data};
         };
 
         self.updateLegend = function(replaceLegendLabel) {
@@ -438,7 +471,6 @@ $(function() {
         };
 
         self.getMaxTemp = function(actuals, targets) {
-            var pair;
             var maxTemp = 0;
             actuals.forEach(function(pair) {
                 if (pair[1] > maxTemp){
@@ -455,7 +487,7 @@ $(function() {
 
         self.incrementTarget = function(item) {
             var value = item.newTarget();
-            if (value === undefined || (typeof(value) == "string" && value.trim() == "")) {
+            if (value === undefined || (typeof(value) === "string" && value.trim() === "")) {
                 value = item.target();
             }
             try {
@@ -470,7 +502,7 @@ $(function() {
 
         self.decrementTarget = function(item) {
             var value = item.newTarget();
-            if (value === undefined || (typeof(value) == "string" && value.trim() == "")) {
+            if (value === undefined || (typeof(value) === "string" && value.trim() === "")) {
                 value = item.target();
             }
             try {
@@ -512,7 +544,7 @@ $(function() {
             if (form !== undefined) {
                 $(form).find("input").blur();
             }
-            if (value === undefined || (typeof(value) == "string" && value.trim() == "")) return OctoPrintClient.createRejectedDeferred();
+            if (value === undefined || (typeof(value) === "string" && value.trim() === "")) return OctoPrintClient.createRejectedDeferred();
 
             self.clearAutosendTarget(item);
             return self.setTargetToValue(item, value);
@@ -522,7 +554,7 @@ $(function() {
             if (!profile) return OctoPrintClient.createRejectedDeferred();
 
             self.clearAutosendTarget(item);
-            return self.setTargetToValue(item, (item.key() == "bed" ? profile.bed : profile.extruder));
+            return self.setTargetToValue(item, (item.key() === "bed" ? profile.bed : profile.extruder));
         };
 
         self.setTargetToZero = function(item) {
@@ -546,7 +578,7 @@ $(function() {
                 item.newTarget("");
             };
 
-            if (item.key() == "bed") {
+            if (item.key() === "bed") {
                 return self._setBedTemperature(value)
                     .done(onSuccess);
             } else {
@@ -567,7 +599,7 @@ $(function() {
 
         self.incrementChangeOffset = function() {
             var value = self.changingOffset.newOffset();
-            if (value === undefined || (typeof(value) == "string" && value.trim() == "")) value = self.changingOffset.offset();
+            if (value === undefined || (typeof(value) === "string" && value.trim() === "")) value = self.changingOffset.offset();
             try {
                 value = parseInt(value);
                 if (value >= 50) return;
@@ -579,7 +611,7 @@ $(function() {
 
         self.decrementChangeOffset = function() {
             var value = self.changingOffset.newOffset();
-            if (value === undefined || (typeof(value) == "string" && value.trim() == "")) value = self.changingOffset.offset();
+            if (value === undefined || (typeof(value) === "string" && value.trim() === "")) value = self.changingOffset.offset();
             try {
                 value = parseInt(value);
                 if (value <= -50) return;
@@ -611,7 +643,7 @@ $(function() {
 
         self.setOffset = function(item) {
             var value = item.newOffset();
-            if (value === undefined || (typeof(value) == "string" && value.trim() == "")) return OctoPrintClient.createRejectedDeferred();
+            if (value === undefined || (typeof(value) === "string" && value.trim() === "")) return OctoPrintClient.createRejectedDeferred();
             return self.setOffsetToValue(item, value);
         };
 
@@ -633,7 +665,7 @@ $(function() {
                 item.newOffset("");
             };
 
-            if (item.key() == "bed") {
+            if (item.key() === "bed") {
                 return self._setBedOffset(value)
                     .done(onSuccess);
             } else {
@@ -679,35 +711,44 @@ $(function() {
         };
 
         self.handleEnter = function(event, type, item) {
-            if (event.keyCode == 13) {
-                if (type == "target") {
+            if (event.keyCode === 13) {
+                if (type === "target") {
                     self.setTarget(item)
                         .done(function() {
                             event.target.blur();
                         });
-                } else if (type == "offset") {
+                } else if (type === "offset") {
                     self.confirmChangeOffset();
                 }
             }
         };
 
         self.handleFocus = function(event, type, item) {
-            if (type == "target") {
+            if (type === "target") {
                 var value = item.newTarget();
-                if (value === undefined || (typeof(value) == "string" && value.trim() == "")) {
+                if (value === undefined || (typeof(value) === "string" && value.trim() === "")) {
                     item.newTarget(item.target());
                 }
-                event.target.select();
-            } else if (type == "offset") {
-                event.target.select();
+                window.setTimeout(function() {
+                    event.target.select();
+                }, 0);
+            } else if (type === "offset") {
+                window.setTimeout(function() {
+                    event.target.select();
+                }, 0);
             }
         };
 
         self.onAfterTabChange = function(current, previous) {
-            if (current != "#temp") {
+            if (current !== "#temp") {
                 return;
             }
-            self.updatePlot(false);
+
+            if (!self.plot) {
+                self._initializePlot();
+            } else {
+                self.updatePlot();
+            }
         };
 
         self.onStartup = function() {
@@ -732,9 +773,9 @@ $(function() {
 
     }
 
-    OCTOPRINT_VIEWMODELS.push([
-        TemperatureViewModel,
-        ["loginStateViewModel", "settingsViewModel"],
-        ["#temp", "#change_offset_dialog"]
-    ]);
+    OCTOPRINT_VIEWMODELS.push({
+        construct: TemperatureViewModel,
+        dependencies: ["loginStateViewModel", "settingsViewModel"],
+        elements: ["#temp", "#change_offset_dialog"]
+    });
 });

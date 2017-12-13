@@ -71,6 +71,7 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 		self._sdStreaming = False
 		self._sdFilelistAvailable = threading.Event()
 		self._streamingFinishedCallback = None
+		self._streamingFailedCallback = None
 
 		self._selectedFileMutex = threading.RLock()
 		self._selectedFile = None
@@ -116,7 +117,8 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 				}
 			},
 			progress={"completion": None, "filepos": None, "printTime": None, "printTimeLeft": None},
-			current_z=None
+			current_z=None,
+			offsets=dict()
 		)
 
 		eventManager().subscribe(Events.METADATA_ANALYSIS_FINISHED, self._on_event_MetadataAnalysisFinished)
@@ -207,6 +209,9 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 
 		from octoprint.logging.handlers import SerialLogHandler
 		SerialLogHandler.on_open_connection()
+		if not logging.getLogger("SERIAL").isEnabledFor(logging.DEBUG):
+			# if serial.log is not enabled, log a line to explain that to reduce "serial.log is empty" in tickets...
+			logging.getLogger("SERIAL").info("serial.log is currently not enabled, you can enable it via Settings > Serial Connection > Log communication to serial.log")
 
 		self._comm = comm.MachineCom(port, baudrate, callbackObject=self, printerProfileManager=self._printerProfileManager)
 
@@ -362,7 +367,7 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 			return
 
 		self._comm.setTemperatureOffset(offsets)
-		self._stateMonitor.set_temp_offsets(offsets)
+		self._setOffsets(self._comm.getOffsets())
 
 	def _convert_rate_value(self, factor, min=0, max=200):
 		if not isinstance(factor, (int, float, long)):
@@ -579,22 +584,27 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 			return []
 		return map(lambda x: (x[0][1:], x[1]), self._comm.getSdFiles())
 
-	def add_sd_file(self, filename, absolutePath, streamingFinishedCallback):
+	def add_sd_file(self, filename, absolutePath, on_success=None, on_failure=None):
 		if not self._comm or self._comm.isBusy() or not self._comm.isSdReady():
 			self._logger.error("No connection to printer or printer is busy")
 			return
 
-		self._streamingFinishedCallback = streamingFinishedCallback
+		self._streamingFinishedCallback = on_success
+		self._streamingFailedCallback = on_failure
 
 		self.refresh_sd_files(blocking=True)
 		existingSdFiles = map(lambda x: x[0], self._comm.getSdFiles())
 
-		remoteName = util.get_dos_filename(filename,
-		                                   existing_filenames=existingSdFiles,
-		                                   extension="gco",
-		                                   whitelisted_extensions=["gco", "g"])
+		if valid_file_type(filename, "gcode"):
+			remoteName = util.get_dos_filename(filename,
+			                                   existing_filenames=existingSdFiles,
+			                                   extension="gco",
+			                                   whitelisted_extensions=["gco", "g"])
+		else:
+			# probably something else added through a plugin, use it's basename as-is
+			remoteName = os.path.basename(filename)
 		self._timeEstimationData = TimeEstimationHelper()
-		self._comm.startFileTransfer(absolutePath, filename, "/" + remoteName)
+		self._comm.startFileTransfer(absolutePath, filename, "/" + remoteName, special=not valid_file_type(filename, "gcode"))
 
 		return remoteName
 
@@ -627,6 +637,9 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 			self._sdFilelistAvailable.wait(10000)
 
 	#~~ state monitoring
+
+	def _setOffsets(self, offsets):
+		self._stateMonitor.set_temp_offsets(offsets)
 
 	def _setCurrentZ(self, currentZ):
 		self._currentZ = currentZ
@@ -823,27 +836,30 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 
 		return printTimeLeft, printTimeLeftOrigin
 
-	def _addTemperatureData(self, temp, bedTemp):
+	def _addTemperatureData(self, tools=None, bed=None):
+		if tools is None:
+			tools = dict()
+
 		currentTimeUtc = int(time.time())
 
 		data = {
 			"time": currentTimeUtc
 		}
-		for tool in temp.keys():
+		for tool in tools.keys():
 			data["tool%d" % tool] = {
-				"actual": temp[tool][0],
-				"target": temp[tool][1]
+				"actual": tools[tool][0],
+				"target": tools[tool][1]
 			}
-		if bedTemp is not None and isinstance(bedTemp, tuple):
+		if bed is not None and isinstance(bed, tuple):
 			data["bed"] = {
-				"actual": bedTemp[0],
-				"target": bedTemp[1]
+				"actual": bed[0],
+				"target": bed[1]
 			}
 
 		self._temps.append(data)
 
-		self._temp = temp
-		self._bedTemp = bedTemp
+		self._temp = tools
+		self._bedTemp = bed
 
 		self._stateMonitor.add_temperature(data)
 
@@ -885,6 +901,7 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 					"file": {
 						"name": None,
 						"path": None,
+						"display": None,
 						"origin": None,
 						"size": None,
 						"date": None
@@ -901,6 +918,7 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 			averagePrintTime = None
 			date = None
 			filament = None
+			display_name = name_in_storage
 			if path_on_disk:
 				# Use a string for mtime because it could be float and the
 				# javascript needs to exact match
@@ -912,6 +930,8 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 				except:
 					fileData = None
 				if fileData is not None:
+					if "display" in fileData:
+						display_name = fileData["display"]
 					if "analysis" in fileData:
 						if estimatedPrintTime is None and "estimatedPrintTime" in fileData["analysis"]:
 							estimatedPrintTime = fileData["analysis"]["estimatedPrintTime"]
@@ -936,6 +956,7 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 				"file": {
 					"name": name_in_storage,
 					"path": path_in_storage,
+					"display": display_name,
 					"origin": FileDestinations.SDCARD if sd else FileDestinations.LOCAL,
 					"size": filesize,
 					"date": date
@@ -956,7 +977,7 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 			})
 			callback.on_printer_send_initial_data(data)
 		except:
-			self._logger.exception("Error while trying to send inital state update")
+			self._logger.exception("Error while trying to send initial state update")
 
 	def _getStateFlags(self):
 		return {
@@ -978,7 +999,7 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 		self._addLog(to_unicode(message, "utf-8", errors="replace"))
 
 	def on_comm_temperature_update(self, temp, bedTemp):
-		self._addTemperatureData(copy.deepcopy(temp), copy.deepcopy(bedTemp))
+		self._addTemperatureData(tools=copy.deepcopy(temp), bed=copy.deepcopy(bedTemp))
 
 	def on_comm_position_update(self, position, reason=None):
 		payload = dict(reason=reason)
@@ -1022,6 +1043,8 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 			self._updateProgressData()
 			self._setCurrentZ(None)
 			self._setJobData(None, None, None)
+			self._setOffsets(None)
+			self._addTemperatureData()
 			self._printerProfileManager.deselect()
 			eventManager().fire(Events.DISCONNECTED)
 
@@ -1171,18 +1194,25 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 		self._updateProgressData(completion=0.0, filepos=0, printTime=0)
 		self._stateMonitor.set_state({"text": self.get_state_string(), "flags": self._getStateFlags()})
 
-	def on_comm_file_transfer_done(self, filename):
+	def on_comm_file_transfer_done(self, filename, failed=False):
 		self._sdStreaming = False
 
-		if self._streamingFinishedCallback is not None:
-			# in case of SD files, both filename and absolutePath are the same, so we set the (remote) filename for
-			# both parameters
-			self._streamingFinishedCallback(filename, filename, FileDestinations.SDCARD)
+		# in case of SD files, both filename and absolutePath are the same, so we set the (remote) filename for
+		# both parameters
+		if failed:
+			if self._streamingFailedCallback is not None:
+				self._streamingFailedCallback(filename, filename, FileDestinations.SDCARD)
+		else:
+			if self._streamingFinishedCallback is not None:
+				self._streamingFinishedCallback(filename, filename, FileDestinations.SDCARD)
 
 		self._setCurrentZ(None)
 		self._setJobData(None, None, None)
 		self._updateProgressData()
 		self._stateMonitor.set_state({"text": self.get_state_string(), "flags": self._getStateFlags()})
+
+	def on_comm_file_transfer_failed(self, filename):
+		self.on_comm_file_transfer_done(filename, failed=True)
 
 	def on_comm_force_disconnect(self):
 		self.disconnect()
@@ -1249,7 +1279,7 @@ class StateMonitor(object):
 		self._state = None
 		self._job_data = None
 		self._current_z = None
-		self._offsets = {}
+		self._offsets = dict()
 		self._progress = None
 
 		self._progress_dirty = False
@@ -1268,11 +1298,12 @@ class StateMonitor(object):
 			return self._on_get_progress()
 		return self._progress
 
-	def reset(self, state=None, job_data=None, progress=None, current_z=None):
+	def reset(self, state=None, job_data=None, progress=None, current_z=None, offsets=None):
 		self.set_state(state)
 		self.set_job_data(job_data)
 		self.set_progress(progress)
 		self.set_current_z(current_z)
+		self.set_temp_offsets(offsets)
 
 	def add_temperature(self, temperature):
 		self._on_add_temperature(temperature)
@@ -1311,6 +1342,8 @@ class StateMonitor(object):
 			self._change_event.set()
 
 	def set_temp_offsets(self, offsets):
+		if offsets is None:
+			offsets = dict()
 		self._offsets = offsets
 		self._change_event.set()
 

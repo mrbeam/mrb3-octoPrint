@@ -207,6 +207,85 @@ $(function() {
 
     }
 
+    function CoreWizardPluginBlacklistViewModel(parameters) {
+        var self = this;
+
+        self.settingsViewModel = parameters[0];
+
+        self.setup = ko.observable(false);
+
+        self.decision = ko.observable();
+        self.required = false;
+        self.active = false;
+
+        self.enablePluginBlacklist = function() {
+            self.settingsViewModel.server_pluginBlacklist_enabled(true);
+            self.decision(true);
+            self._sendData();
+        };
+
+        self.disablePluginBlacklist = function() {
+            self.settingsViewModel.server_pluginBlacklist_enabled(false);
+            self.decision(false);
+            self._sendData();
+        };
+
+        self.onBeforeWizardTabChange = function(next, current) {
+            if (!self.required) return true;
+
+            if (!current || !_.startsWith(current, "wizard_plugin_corewizard_pluginblacklist_") || self.setup()) {
+                return true;
+            }
+
+            self._showDecisionNeededDialog();
+            return false;
+        };
+
+        self.onBeforeWizardFinish = function() {
+            if (!self.required) return true;
+
+            if (self.setup()) {
+                return true;
+            }
+
+            self._showDecisionNeededDialog();
+            return false;
+        };
+
+        self.onWizardPreventSettingsRefreshDialog = function() {
+            return self.active;
+        };
+
+        self.onWizardDetails = function(response) {
+            self.required = response && response.corewizard && response.corewizard.details && response.corewizard.details.pluginblacklist && response.corewizard.details.pluginblacklist.required;
+        };
+
+        self._showDecisionNeededDialog = function() {
+            showMessageDialog({
+                title: gettext("Please set up the plugin blacklist processing"),
+                message: gettext("You haven't yet decided on whether to enable or disable the plugin blacklist processing. You need to either enable or disable it before continuing.")
+            });
+        };
+
+        self._sendData = function() {
+            var data = {
+                server: {
+                    pluginBlacklist: {
+                        enabled: self.settingsViewModel.server_pluginBlacklist_enabled()
+                    }
+                }
+            };
+
+            self.active = true;
+            self.settingsViewModel.saveData(data)
+                .done(function() {
+                    self.setup(true);
+                    self.active = false;
+                });
+        };
+
+    }
+
     function CoreWizardPrinterProfileViewModel(parameters) {
         var self = this;
 
@@ -242,25 +321,29 @@ $(function() {
         };
     }
 
-    OCTOPRINT_VIEWMODELS.push([
-        CoreWizardAclViewModel,
-        ["loginStateViewModel"],
-        "#wizard_plugin_corewizard_acl"
-    ], [
-        CoreWizardWebcamViewModel,
-        ["settingsViewModel"],
-        "#wizard_plugin_corewizard_webcam"
-    ], [
-        CoreWizardServerCommandsViewModel,
-        ["settingsViewModel"],
-        "#wizard_plugin_corewizard_servercommands"
-    ], [
-        CoreWizardOnlineCheckViewModel,
-        ["settingsViewModel"],
-        "#wizard_plugin_corewizard_onlinecheck"
-    ], [
-        CoreWizardPrinterProfileViewModel,
-        ["printerProfilesViewModel"],
-        "#wizard_plugin_corewizard_printerprofile"
-    ]);
+    OCTOPRINT_VIEWMODELS.push({
+        construct: CoreWizardAclViewModel,
+        dependencies: ["loginStateViewModel"],
+        elements: ["#wizard_plugin_corewizard_acl"]
+    }, {
+        construct: CoreWizardWebcamViewModel,
+        dependencies: ["settingsViewModel"],
+        elements: ["#wizard_plugin_corewizard_webcam"]
+    }, {
+        construct: CoreWizardServerCommandsViewModel,
+        dependencies: ["settingsViewModel"],
+        elements: ["#wizard_plugin_corewizard_servercommands"]
+    }, {
+        construct: CoreWizardOnlineCheckViewModel,
+        dependencies: ["settingsViewModel"],
+        elements: ["#wizard_plugin_corewizard_onlinecheck"]
+    }, {
+        construct: CoreWizardPluginBlacklistViewModel,
+        dependencies: ["settingsViewModel"],
+        elements: ["#wizard_plugin_corewizard_pluginblacklist"]
+    }, {
+        construct: CoreWizardPrinterProfileViewModel,
+        dependencies: ["printerProfilesViewModel"],
+        elements: ["#wizard_plugin_corewizard_printerprofile"]
+    });
 });

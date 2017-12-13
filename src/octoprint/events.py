@@ -40,6 +40,7 @@ class Events(object):
 
 	# State changes
 	PRINTER_STATE_CHANGED = "PrinterStateChanged"
+	PRINTER_RESET = "PrinterReset"
 
 	# connect/disconnect by client
 	CLIENT_OPENED = "ClientOpened"
@@ -62,6 +63,7 @@ class Events(object):
 	# SD Upload
 	TRANSFER_STARTED = "TransferStarted"
 	TRANSFER_DONE = "TransferDone"
+	TRANSFER_FAILED = "TransferFailed"
 
 	# print job
 	PRINT_STARTED = "PrintStarted"

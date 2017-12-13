@@ -33,7 +33,9 @@ import uuid
 import copy
 import time
 
+# noinspection PyCompatibility
 from builtins import bytes
+# noinspection PyCompatibility
 from past.builtins import basestring
 
 try:
@@ -111,6 +113,7 @@ default_settings = {
 		"disconnectOnErrors": True,
 		"ignoreErrorsFromFirmware": False,
 		"logResends": True,
+		"autoUppercaseBlacklist": ["M117"],
 		"supportResendsWithoutOk": False,
 		"logPositionOnPause": True,
 		"logPositionOnCancel": True,
@@ -153,6 +156,11 @@ default_settings = {
 			"interval": 15 * 60, # 15 min
 			"host": "8.8.8.8",
 			"port": 53
+		},
+		"pluginBlacklist": {
+			"enabled": None,
+			"url": "https://plugins.octoprint.org/blacklist.json",
+			"ttl": 15 * 60 # 15 min
 		},
 		"diskspace": {
 			"warning": 500 * 1024 * 1024, # 500 MB
@@ -217,7 +225,8 @@ default_settings = {
 		"firmwareDetection": True,
 		"printCancelConfirmation": True,
 		"blockWhileDwelling": False,
-		"g90InfluencesExtruder": False
+		"g90InfluencesExtruder": False,
+		"legacyPluginAssets": False # TODO remove again in 1.3.8
 	},
 	"folder": {
 		"uploads": None,
@@ -268,7 +277,7 @@ default_settings = {
 				],
 				"usersettings": ["access", "interface"],
 				"wizard": ["access"],
-				"about": ["about", "supporters", "authors", "changelog", "license", "thirdparty", "plugin_pluginmanager"],
+				"about": ["about", "plugin_octopi_support", "supporters", "authors", "changelog", "license", "thirdparty", "plugin_pluginmanager"],
 				"generic": []
 			},
 			"disabled": {
@@ -360,12 +369,10 @@ default_settings = {
 			"smoothieTemperatureReporting": False,
 			"extendedSdFileList": False,
 			"throttle": 0.01,
-			"waitOnLongMoves": False,
-			"rxBuffer": 64,
-			"txBuffer": 40,
-			"commandBuffer": 4,
 			"sendWait": True,
 			"waitInterval": 1.0,
+			"rxBuffer": 64,
+			"commandBuffer": 4,
 			"supportM112": True,
 			"echoOnM117": True,
 			"brokenM29": True,
@@ -374,12 +381,23 @@ default_settings = {
 			"sharedNozzle": False,
 			"sendBusy": False,
 			"simulateReset": True,
+			"resetLines": ['start', 'Marlin: Virtual Marlin!', '\x80', 'SD card ok'],
 			"preparedOks": [],
 			"okFormatString": "ok",
 			"m115FormatString": "FIRMWARE_NAME: {firmware_name} PROTOCOL_VERSION:1.0",
 			"m115ReportCapabilities": False,
 			"capabilities": {
 				"AUTOREPORT_TEMP": True
+			},
+			"ambientTemperature": 21.3,
+			"errors": {
+				"checksum_mismatch": "Checksum mismatch",
+				"checksum_missing": "Missing checksum",
+				"lineno_mismatch": "expected line {} got {}",
+				"lineno_missing": "No Line Number with checksum, Last Line: {}",
+				"maxtemp": "MAXTEMP triggered!",
+				"mintemp": "MINTEMP triggered!",
+				"command_unknown": "Unknown command {}"
 			}
 		}
 	}
@@ -795,7 +813,7 @@ class Settings(object):
 	def last_modified(self):
 		"""
 		Returns:
-		    int: The last modification time of the configuration file.
+		    (int) The last modification time of the configuration file.
 		"""
 		stat = os.stat(self._configfile)
 		return stat.st_mtime
@@ -1110,7 +1128,7 @@ class Settings(object):
 		                     reboot="systemRestartCommand",
 		                     restart="serverRestartCommand")
 
-		if "system" in config and "actions" in config["system"]:
+		if "system" in config and "actions" in config["system"] and isinstance(config["system"]["actions"], (list, tuple)):
 			actions = config["system"]["actions"]
 			to_delete = []
 			for index, spec in enumerate(actions):
