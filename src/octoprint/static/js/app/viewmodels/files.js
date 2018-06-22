@@ -295,9 +295,10 @@ $(function() {
                 if (entryElement) {
                     // scroll to uploaded element
                     var entryOffset = entryElement.offsetTop;
-                    self.listElement.slimScroll({
-                        scrollTo: entryOffset + "px"
-                    });
+                    // disabled as it resizes the div.
+			//self.listElement.slimScroll({
+                    	//    scrollTo: entryOffset + "px"
+                    	//});
 
                     // highlight uploaded element
                     var element = $(entryElement);
