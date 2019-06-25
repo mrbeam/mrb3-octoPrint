@@ -58,7 +58,7 @@ msgstr ""
 "Project-Id-Version: OctoPrint\n"
 "Report-Msgid-Bugs-To: i18n@octoprint.org\n"
 "POT-Creation-Date: 2019-05-13 13:45+0200\n"
-"PO-Revision-Date: 2019-06-14 15:43+0200\n"
+"PO-Revision-Date: 2019-06-25 12:56+0200\n"
 "Last-Translator: dpmiguel <dpmiguel@gmail.com>\n"
 "Language-Team: Spanish (http://www.transifex.com/octoprint/octoprint/language/es/)\n"
 "MIME-Version: 1.0\n"
@@ -612,7 +612,7 @@ msgstr "Cámara y Timelapses"
 #: src/octoprint/plugins/corewizard/templates/corewizard_acl_wizard.jinja2:1
 #: src/octoprint/server/views.py:601
 msgid "Access Control"
-msgstr "Control de acceso"
+msgstr "Control de Acceso"
 
 #: src/octoprint/plugins/corewizard/subwizards.py:112
 msgid "Online connectivity check"
@@ -1155,7 +1155,7 @@ msgstr "Nombre de usuario o contraseña incorrectos "
 
 #: src/octoprint/plugins/forcelogin/templates/forcelogin_index.jinja2:22
 msgid "Server is currently offline."
-msgstr "El servidor esta desconectado"
+msgstr "El servidor está desconectado."
 
 #: src/octoprint/plugins/forcelogin/templates/forcelogin_index.jinja2:22
 msgid "Reconnect..."
@@ -1909,7 +1909,7 @@ msgstr "La version del entorno de Python actual no soporta las actualizaciones d
 
 #: src/octoprint/plugins/softwareupdate/static/js/softwareupdate.js:253
 msgid "Those components marked with <i class=\"fa fa-check\"></i> can be updated directly."
-msgstr "Aquellos componentes marcados con <i class=\"fa fa-check\"></i> puede actualizarse directamente."
+msgstr "Aquellos componentes marcados con <i class=\"fa fa-check\"></i> pueden actualizarse directamente."
 
 #: src/octoprint/plugins/softwareupdate/static/js/softwareupdate.js:257
 msgid "To have updates applied, get in touch with an administrator of this OctoPrint instance."
@@ -1929,7 +1929,7 @@ msgstr "Actualizar ahora"
 
 #: src/octoprint/plugins/softwareupdate/static/js/softwareupdate.js:321
 msgid "Everything is up-to-date"
-msgstr "Esta todo actualizado"
+msgstr "Todo está actualizado"
 
 #: src/octoprint/plugins/softwareupdate/static/js/softwareupdate.js:345
 msgid "No internet connection"
@@ -2528,15 +2528,15 @@ msgstr "<strong>Está a punto de reiniciar el sistema en modo seguro.</strong></
 #: src/octoprint/static/js/app/helpers.js:628
 #: src/octoprint/templates/overlays/offline.jinja2:6
 msgid "Server is offline"
-msgstr "El servidor esta fuera de linea"
+msgstr "El servidor está fuera de línea"
 
 #: src/octoprint/static/js/app/dataupdater.js:91
 msgid "The server appears to be offline, at least I'm not getting any response from it. I'll try to reconnect automatically <strong>over the next couple of minutes</strong>, however you are welcome to try a manual reconnect anytime using the button below."
-msgstr "El servidor parece estar fuera de linea, o al menos no estoy recibiendo repuestas de el. Intentare conectarme automáticamente <strong> en unos minutos </strong>, sin embargo, usted esta bienvenido a conectarse manualmente en cualquier momento utilizando el botón de abajo."
+msgstr "El servidor parece estar fuera de línea, o al menos no estoy recibiendo repuestas de él. Intentaré conectarme automáticamente <strong> en unos minutos </strong>, sin embargo, puedes intentar conectarte manualmente en cualquier momento utilizando el botón de abajo."
 
 #: src/octoprint/static/js/app/dataupdater.js:110
 msgid "The server appears to be offline, at least I'm not getting any response from it. I <strong>could not reconnect automatically</strong>, but you may try a manual reconnect using the button below."
-msgstr "El servidor parece estar fuera de linea, o al menos no estoy recibiendo respuestas de el. <strong> No pude conectarme automáticamente </strong> pero puede intentar conectarse de forma manual usando el botón de abajo."
+msgstr "El servidor parece estar fuera de línea, o al menos no estoy recibiendo respuestas de él. <strong> No he podido conectarme automáticamente </strong> pero puedes intentar conectarte manualmente usando el botón de abajo."
 
 #: src/octoprint/static/js/app/dataupdater.js:159
 msgid "Unknown"
@@ -2730,7 +2730,7 @@ msgstr "Progreso"
 
 #: src/octoprint/static/js/app/main.js:202
 msgid "Offline"
-msgstr "Fuera de linea"
+msgstr "Fuera de línea"
 
 #: src/octoprint/static/js/app/main.js:203
 msgid "Opening serial port"
@@ -3446,7 +3446,7 @@ msgstr "Objetivo"
 #: src/octoprint/static/js/app/viewmodels/terminal.js:104
 #, python-format
 msgid "showing %(displayed)d lines (%(filtered)d of %(total)d total lines filtered, buffer full)"
-msgstr "smstrando %(displayed)d lineas (%(filtered)d de %(total)d lineas filtradas; buffer lleno)"
+msgstr "smstrando %(displayed)d líneas (%(filtered)d de %(total)d líneas filtradas; buffer lleno)"
 
 #: src/octoprint/static/js/app/viewmodels/terminal.js:106
 #, python-format
@@ -3701,7 +3701,7 @@ msgstr "Sugerencia: Golpear <kbd>Intro</kbd> en el campo de entrada también env
 
 #: src/octoprint/templates/dialogs/wizard.jinja2:3
 msgid "Setup Wizard"
-msgstr "Configuración des asistente"
+msgstr "Asistente de configuración"
 
 #: src/octoprint/templates/dialogs/wizard.jinja2:41
 msgid ""
@@ -3769,7 +3769,7 @@ msgstr "Repetir contraseña"
 #: src/octoprint/templates/dialogs/settings/accesscontrol.jinja2:152
 #: src/octoprint/templates/snippets/settings/printerprofiles/profileEditor.jinja2:37
 msgid "Abort"
-msgstr "Abortar"
+msgstr "Cancelar"
 
 #: src/octoprint/templates/dialogs/settings/accesscontrol.jinja2:81
 #: src/octoprint/templates/dialogs/settings/accesscontrol.jinja2:110
@@ -4582,11 +4582,11 @@ msgstr "Expresión regular"
 
 #: src/octoprint/templates/dialogs/usersettings/access.jinja2:5
 msgid "If you do not wish to change your password, just leave the following fields empty."
-msgstr "Si no desea cambiar la contraseña, deje los siguientes campos vacíos."
+msgstr "Si no quieres cambiar la contraseña, deja los siguientes campos vacíos."
 
 #: src/octoprint/templates/dialogs/usersettings/access.jinja2:32
 msgid "Please note that changes to the API key are applied immediately, without having to \"Confirm\" first."
-msgstr "Tenga en cuenta que los cambios en la clave de API se aplican inmediatamente, sin tener que \"Confirmar\" primero."
+msgstr "Ten en cuenta que los cambios en la clave de API se aplican inmediatamente, sin tener que \"Confirmar\" primero."
 
 #: src/octoprint/templates/dialogs/usersettings/interface.jinja2:3
 msgid "Language"
@@ -4668,7 +4668,7 @@ msgstr ""
 
 #: src/octoprint/templates/dialogs/wizard/firstrun_start.jinja2:1
 msgid "Hello!"
-msgstr "Hola!"
+msgstr "¡Hola!"
 
 #: src/octoprint/templates/dialogs/wizard/firstrun_start.jinja2:3
 msgid ""
@@ -4805,7 +4805,7 @@ msgstr "Crear Carpeta..."
 
 #: src/octoprint/templates/sidebar/files.jinja2:89
 msgid "Hint: You can also drag and drop files on this page to upload them."
-msgstr "Sugerencia: también puede arrastrar y soltar archivos en esta página para subirlos."
+msgstr "Sugerencia: También puedes arrastrar y soltar archivos en la página para subirlos."
 
 #: src/octoprint/templates/sidebar/files_header.jinja2:2
 msgid "File list settings"
