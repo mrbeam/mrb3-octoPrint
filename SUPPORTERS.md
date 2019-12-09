@@ -1,61 +1,62 @@
 # Supporters 
 
 Development of this version of OctoPrint wouldn't have been possible without
-[financial support by the community](http://octoprint.org/support-octoprint/) -
+[the financial support by the community](https://octoprint.org/support-octoprint/) -
 thanks to everyone who contributed!
 
 ## Patreon Patrons
 
-  * 3D Moniak
-  * Aleph Objects, Inc.
+  * Andre Bubel
   * Andrew Moorby
+  * ANTONIO AUGUSTO DE LIMA PONTES
   * Arnljot Arntsen
-  * BEEVERYCREATIVE
   * Boris Hussein
   * Brad Jackson
-  * Brian E. Tyler
   * Christian Petropolis
+  * Christian Wolf
   * COLLE+McVOY
-  * CreativeTools
   * D Brian Kimmel
   * DeltaMaker 3D Printers
+  * Dorian Gray
   * E3D BigBox
+  * Eric Betts
   * Ernesto Martinez
-  * F. Kunsmann
-  * Frank Sander
-  * Gary Deen
-  * Gary N McKinney
+  * Franziska Kunsmann
+  * GadgetAngel
   * George Robles
-  * günter weber
-  * James Seigel
-  * Jason Lawrence
-  * Jeff Moe
-  * Josh Daniels
+  * jean-claude migneault
+  * Jeff Renfer
+  * Jeremiah Avery
+  * John Robinson (JRo)
+  * Joshua Wills
+  * Justin Kaufman
   * Kaile Riser
   * Kale Stedman
   * Kazuhiro Ogura
+  * Kyle Menigoz
+  * LA 3D Printer Repair
+  * Lee Dohm
+  * LulzBot®
   * Makespace Madrid
-  * Marcus Ackermann
   * Mark Walker
+  * Martin Majewski
   * Michael Aumock
   * Miles Flavel
-  * mitchell hirsch
-  * Mohammed khorakiwala
-  * Noe Ruiz
+  * Mosaic Manufacturing
+  * OMER MEHMET SUTAS
+  * Patrick Glyré
   * Patrick McGinnis
-  * Peter Schmehl
-  * PRINT3Dforum.com
+  * Prof Yuh Wen Chen
   * Randy C. Will
-  * Roger Strolz
-  * Roy Cortes
+  * Ranjib Dey
+  * Robert Gusek
   * Samer Najia
+  * Shawn Lewis
   * Simon Hallam
   * Stefan Krister
-  * Stephane Schittly
   * Sven Mueller
-  * Symbiotic Devices
-  * Thomas Hatley
-  * Timeshell.ca
   * Trent Shumay
+  * Ulrich Kempken
+  * Vladislav Kuzemchik
 
-and 1062 more wonderful people pledging on the [Patreon campaign](https://patreon.com/foosel)!
+and 1653 more wonderful people pledging on the [Patreon campaign](https://patreon.com/foosel) or via [Github Sponsors](https://github.com/users/foosel/sponsorship)!
