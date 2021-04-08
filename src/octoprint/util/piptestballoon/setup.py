@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+import io
 import os
 import sys
 
@@ -25,12 +26,17 @@ def produce_output(stream):
 	cmd.finalize_options()
 
 	install_dir = cmd.install_lib
-	virtual_env = hasattr(sys, "real_prefix")
+	virtual_env = hasattr(sys, "real_prefix") or (
+		hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix
+	)
 	writable = os.access(install_dir, os.W_OK)
 
-	print("PIP_INSTALL_DIR={}".format(install_dir), file=stream)
-	print("PIP_VIRTUAL_ENV={}".format(virtual_env), file=stream)
-	print("PIP_WRITABLE={}".format(writable), file=stream)
+	lines = ["PIP_INSTALL_DIR={}".format(install_dir),
+	         "PIP_VIRTUAL_ENV={}".format(virtual_env),
+	         "PIP_WRITABLE={}".format(writable)]
+
+	for line in lines:
+		print(line, file=stream)
 	stream.flush()
 
 
@@ -38,7 +44,7 @@ path = os.environ.get("TESTBALLOON_OUTPUT", None)
 if path is not None:
 	# environment variable set, write to a log
 	path = os.path.abspath(path)
-	with open(path, mode="w+b") as output:
+	with io.open(path, mode="wt+", encoding='utf-8') as output:
 		produce_output(output)
 else:
 	# write to stdout
