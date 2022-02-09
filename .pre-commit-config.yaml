@@ -11,15 +11,32 @@ repos:
       - id: check-toml
       - id: check-merge-conflict
       - id: fix-encoding-pragma
+        args: ["--remove"]
+        exclude: "setup.py|versioneer.py|src/octoprint_setuptools/__init__.py"
   - repo: https://github.com/asottile/pyupgrade
     rev: v2.10.0
     hooks:
       - id: pyupgrade
+        exclude: "setup.py|versioneer.py|src/octoprint_setuptools/__init__.py"
   - repo: https://github.com/OctoPrint/codemods
-    rev: devel
+    rev: "0.6.2"
     hooks:
-      - id: codemod_not_in
-        args: ["--ignore", "src/octoprint/vendor"]
+      - id: codemod_batch
+        args:
+          [
+            "--check",
+            "not_in",
+            "--check",
+            "detect_past_builtins_imports",
+            "--ignore",
+            "src/octoprint/vendor",
+            "--ignore",
+            "setup.py",
+            "--ignore",
+            "versioneer.py",
+            "--ignore",
+            "src/octoprint_setuptools/__init__.py",
+          ]
   - repo: https://github.com/pre-commit/mirrors-isort
     rev: v5.5.4
     hooks:
