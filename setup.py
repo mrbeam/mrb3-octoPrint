@@ -33,7 +33,7 @@ INSTALL_REQUIRES = [
 	"pyserial>=2.7,<2.8",
 	"netaddr>=0.7.17,<0.8",
 	"watchdog>=0.8.3,<0.9",
-	"sarge==0.1.4",
+	"sarge>=0.1.4,<0.2",
 	"netifaces>=0.10,<0.11",
 	"pylru>=1.0.9,<1.1",
 	"rsa>=3.2,<3.3",
@@ -52,8 +52,7 @@ INSTALL_REQUIRES = [
 	"wrapt>=1.10.10,<1.11",
 	"futures>=3.1.1,<3.2",
 	"emoji>=0.4.5,<0.5",
-	"monotonic>=1.3,<1.4",
-	"regex<2022.1.18", # dependency of awesome-slugify, newer versions require Python 3
+	"monotonic>=1.3,<1.4"
 ]
 
 if sys.platform == "darwin":
