@@ -1,4 +1,7 @@
-<form class="form-horizontal">
+<h3>{{ _("Server") }}</h3>
+<form class="form-horizontal" onsubmit="return false;">
+    {% include "snippets/settings/server/serverAllowFraming.jinja2" %}
+
     <h3>{{ _('Commands') }}</h3>
 
     {% include "snippets/settings/server/serverCommandServerRestart.jinja2" %}
@@ -14,4 +17,8 @@
 
     {% include "snippets/settings/server/serverPluginBlacklistDescription.jinja2" %}
     {% include "snippets/settings/server/serverPluginBlacklist.jinja2" %}
+
+    <h3>{{ _('Debug options') }}</h3>
+
+    {% include "snippets/settings/server/serverPluginTimings.jinja2" %}
 </form>

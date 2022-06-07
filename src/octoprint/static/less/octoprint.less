@@ -22,7 +22,8 @@ body {
     border-top-color: @caret-color;
   }
 
-  &:hover .caret, &:focus .caret {
+  &:hover .caret,
+  &:focus .caret {
     border-bottom-color: @caret-hover-color;
     border-top-color: @caret-hover-color;
   }
@@ -74,7 +75,6 @@ body {
   #gradient > .vertical(@top, @bottom);
 }
 
-
 .navbar-inner-color (@base, @gradientalpha: 100%, @image: false) {
   @top: lighten(@base, 25%);
   @bottom: darken(@base, 15%);
@@ -85,7 +85,8 @@ body {
 
   .navbar-background-color(fade(@top, @gradientalpha), fade(@bottom, @gradientalpha), @image);
 
-  .brand, .nav>li>a {
+  .brand,
+  .nav > li > a {
     .navbar-inner-text(@base, @text-color);
   }
 
@@ -94,11 +95,13 @@ body {
   }
 
   .nav {
-    >li.dropdown.open>.dropdown-toggle, >li.dropdown.active>.dropdown-toggle, >li.dropdown.open.active>.dropdown-toggle {
+    > li.dropdown.open > .dropdown-toggle,
+    > li.dropdown.active > .dropdown-toggle,
+    > li.dropdown.open.active > .dropdown-toggle {
       // invert for dropdown
       .navbar-background-color(fade(@bottom, @gradientalpha), fade(@top, @gradientalpha), @image);
     }
-    >li>a:hover {
+    > li > a:hover {
       // darken for hover
       @darkenedTop: darken(@top, 5%);
       @darkenedBottom: darken(@bottom, 5%);
@@ -108,7 +111,7 @@ body {
 }
 
 #navbar .navbar-inner {
-  @base: #F2F2F2;
+  @base: #f2f2f2;
   .navbar-inner-color(@base);
 
   &.transparent {
@@ -124,7 +127,7 @@ body {
     }
   }
   &.orange {
-    @base: #F27728;
+    @base: #f27728;
     .navbar-inner-color(@base);
 
     &.transparent {
@@ -132,7 +135,7 @@ body {
     }
   }
   &.yellow {
-    @base: #F2DE28;
+    @base: #f2de28;
     .navbar-inner-color(@base);
 
     &.transparent {
@@ -140,7 +143,7 @@ body {
     }
   }
   &.green {
-    @base: #77FF28;
+    @base: #77ff28;
     .navbar-inner-color(@base);
 
     &.transparent {
@@ -156,7 +159,7 @@ body {
     }
   }
   &.violet {
-    @base: #7728FF;
+    @base: #7728ff;
     .navbar-inner-color(@base);
 
     &.transparent {
@@ -218,9 +221,9 @@ body {
 
   .tab-content {
     padding: 9px 15px;
-    border-left: 1px solid #DDD;
-    border-right: 1px solid #DDD;
-    border-bottom: 1px solid #DDD;
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
 
     @radius: 4px;
     .border-bottom-right-radius(@radius);
@@ -240,7 +243,7 @@ body {
     line-height: 40px;
     color: #333;
     border: 0;
-    border-bottom: 1px solid #E5E5E5;
+    border-bottom: 1px solid #e5e5e5;
     font-weight: normal;
   }
 
@@ -250,7 +253,7 @@ body {
     .accordion-heading-button {
       float: right;
 
-      a {
+      > a {
         display: inline-block;
         padding: 8px 15px;
         font-size: 14px;
@@ -295,7 +298,8 @@ table {
     word-break: break-all;
   }
 
-  th, td {
+  th,
+  td {
     overflow: hidden;
 
     // gcode files
@@ -344,7 +348,7 @@ table {
 
     &.timelapse_files_action,
     &.timelapse_unrendered_action {
-      width: 45px;
+      width: 60px;
       .actioncol;
     }
 
@@ -352,37 +356,77 @@ table {
     &.settings_users_name {
       text-overflow: ellipsis;
       text-align: left;
+      width: 100px;
     }
 
-    &.settings_users_active, &.settings_users_admin {
+    &.settings_users_active {
       text-align: center;
       width: 55px;
     }
 
-    &.settings_users_actions {
+    table.settings_users_details_table {
+      font-size: 0.8em;
+      margin-bottom: 0;
+
+      .settings_users_details_key {
+        width: 100px;
+      }
+
+      th,
+      td {
+        border: 0;
+        padding: 0;
+      }
+    }
+
+    &.settings_groups_default {
+      text-align: center;
+      width: 20px;
+    }
+
+    &.settings_groups_name {
+      width: 180px;
+    }
+
+    table.settings_groups_details_table {
+      font-size: 0.8em;
+      margin-bottom: 0;
+
+      .settings_groups_details_key {
+        width: 100px;
+      }
+
+      th,
+      td {
+        border: 0;
+        padding: 0;
+      }
+    }
+
+    &.settings_users_actions,
+    &.settings_groups_actions {
       width: 60px;
       .actioncol;
     }
 
-    // log files
-    &.settings_logs_name {
-      text-overflow: ellipsis;
-      text-align: left;
+    &.settings_accesscontrol_permissions_list_checkbox {
+      width: 20px;
     }
 
-    &.settings_logs_size {
-      text-align: right;
-      width: 70px;
+    &.settings_accesscontrol_groups_list_checkbox {
+      width: 20px;
     }
 
-    &.settings_logs_date {
-      text-align: left;
-      width: 130px;
+    &.settings_accesscontrol_subgroups_list_checkbox {
+      width: 20px;
     }
 
-    &.settings_logs_action {
-      width: 70px;
-      .actioncol;
+    #settings-usersDialogAddUser,
+    #settings-usersDialogEditUser {
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
+      margin-top: 0 !important;
     }
 
     // Printer profiles
@@ -403,7 +447,6 @@ table {
   }
 }
 
-
 /** Temperature tab */
 
 #temperature-graph {
@@ -417,7 +460,10 @@ table {
   width: 100%;
   margin-top: 20px;
 
-  th, td {
+  th,
+  td {
+    line-height: 25px;
+
     &.temperature_tool,
     &.temperature_actual,
     &.temperature_target,
@@ -459,12 +505,21 @@ table {
 
 /** Various */
 
-.tab-content, .tab-pane {
+.tab-content,
+.tab-pane {
   overflow: visible;
 }
 
-#temp_newTemp, #temp_newBedTemp, #speed_innerWall, #speed_outerWall, #speed_fill, #speed_support,
-#webcam_timelapse_interval, #webcam_timelapse_postRoll, #webcam_timelapse_fps, #webcam_timelapse_retractionZHop {
+#temp_newTemp,
+#temp_newBedTemp,
+#speed_innerWall,
+#speed_outerWall,
+#speed_fill,
+#speed_support,
+#webcam_timelapse_interval,
+#webcam_timelapse_postRoll,
+#webcam_timelapse_fps,
+#webcam_timelapse_retractionZHop {
   text-align: right;
 }
 
@@ -474,7 +529,9 @@ ul.dropdown-menu li a {
 
 /** Connection settings */
 
-#connection_ports, #connection_baudrates, #connection_printers {
+#connection_ports,
+#connection_baudrates,
+#connection_printers {
   width: 100%;
 }
 
@@ -506,8 +563,8 @@ ul.dropdown-menu li a {
   width: 100%;
   height: 100%;
   background-color: #000000;
-  filter:alpha(opacity=50);
-  -moz-opacity:0.5;
+  filter: alpha(opacity=50);
+  -moz-opacity: 0.5;
   -khtml-opacity: 0.5;
   opacity: 0.5;
 }
@@ -645,12 +702,17 @@ ul.dropdown-menu li a {
     }
   }
 
-
   img {
     width: 100%;
     height: 100%;
     object-fit: contain;
   }
+}
+// Predict height of webcam test container for modal positioning
+// height is 3/4 the fixed modal width, for 4:3 webcam stream.
+// Yes it's hardcoded, but so is the modal width.
+#webcamTestContainer {
+  min-height: 384px;
 }
 
 /** State sidebar panel */
@@ -666,10 +728,14 @@ ul.dropdown-menu li a {
 #files {
   .gcode_files {
     @padding: 5px;
-    @scrollBar: 10px;
     @line-height: 20px;
 
-    padding-right: @scrollBar + 2px;
+    .scroll-wrapper {
+      overflow-x: hidden;
+      overflow-y: scroll;
+      height: 306px;
+      padding-right: 2px;
+    }
 
     .entry {
       padding: @padding;
@@ -684,11 +750,22 @@ ul.dropdown-menu li a {
       .title {
         text-overflow: ellipsis;
         word-break: break-all;
+        margin-right: 30px;
       }
 
-      .internal, .uploaded, .size, .additionalInfo {
+      .toggleAdditionalData {
+      }
+
+      .internal,
+      .uploaded,
+      .size,
+      .additionalInfo {
         font-size: 85%;
         color: #999;
+      }
+
+      .uploaded *[title] {
+        cursor: help;
       }
 
       .internal {
@@ -744,8 +821,6 @@ ul.dropdown-menu li a {
 /** Control tab */
 
 #control {
-  overflow: hidden;
-
   .jog-panel {
     float: left;
     margin-right: 19px;
@@ -756,11 +831,11 @@ ul.dropdown-menu li a {
   }
 
   .jog-panel {
-    >div {
+    > div {
       text-align: center;
     }
 
-    >div.distance {
+    > div.distance {
       text-align: left;
     }
 
@@ -774,7 +849,7 @@ ul.dropdown-menu li a {
     height: 30px;
     margin-right: 10px;
     margin-bottom: 10px;
-    padding-left: 8px;
+    padding: 0;
   }
 
   .control-box {
@@ -811,7 +886,7 @@ ul.dropdown-menu li a {
   }
 
   .custom_section_vertical > .custom_control {
-      display:block;
+    display: block;
   }
 
   .custom_control {
@@ -821,52 +896,21 @@ ul.dropdown-menu li a {
       margin-bottom: 2px;
     }
   }
-}
 
-/** GCODE viewer */
+  .pulsate_text_opacity {
+    animation: pulsate_input 1s ease-out;
+    animation-iteration-count: infinite;
+  }
 
-#gcode {
-  .progress {
-    width: 588px;
-
-    .bar {
-      .transition(width 0s linear);
+  @keyframes pulsate_input {
+    0% {
+      color: @gray;
     }
-  }
-
-  .canvas_container {
-    position: relative;
-    &:hover, &:active {
-      outline: 0;
+    50% {
+      color: fade(@gray, 20%);
     }
-  }
-
-  .layer-buttons {
-    padding-top: 5px;
-    padding-bottom: 7px;
-  }
-
-  #gcode_layer_slider {
-    position: absolute;
-    right: 0;
-    top: 0;
-    height: 568px;
-    float: right;
-
-    .slider-handle {
-      width: 14px;
-      height: 14px;
-      margin-left: -3px;
-      margin-top: -7px;
-    }
-  }
-
-  #gcode_command_slider {
-    .slider-handle {
-      width: 14px;
-      height: 14px;
-      margin-left: -7px;
-      margin-top: -3px;
+    100% {
+      color: @gray;
     }
   }
 }
@@ -875,7 +919,8 @@ ul.dropdown-menu li a {
 
 #term {
   .terminal {
-    #terminal-output, #terminal-output-lowfi {
+    #terminal-output,
+    #terminal-output-lowfi {
       min-height: 340px;
       margin-bottom: 5px;
     }
@@ -885,7 +930,8 @@ ul.dropdown-menu li a {
 }
 
 #settings_dialog {
-  .aboutlink {
+  .aboutlink,
+  .systeminfolink {
     float: left;
   }
 }
@@ -909,6 +955,13 @@ ul.dropdown-menu li a {
   }
 }
 
+#settings_appearance_managelanguagesdialog_list {
+  width: auto;
+  height: 300px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  padding-right: 2px;
+}
 
 #settings_appearance_managelanguagesdialog_emptylist {
   overflow: hidden;
@@ -920,6 +973,24 @@ ul.dropdown-menu li a {
   div {
     display: table-cell;
     vertical-align: middle;
+  }
+}
+
+#about_sponsors {
+  @sponsorCols: 3;
+  ul {
+    columns: @sponsorCols;
+    -webkit-columns: @sponsorCols;
+    -moz-columns: @sponsorCols;
+  }
+}
+
+#about_authors {
+  @authorCols: 3;
+  ul {
+    columns: @authorCols;
+    -webkit-columns: @authorCols;
+    -moz-columns: @authorCols;
   }
 }
 
@@ -940,16 +1011,19 @@ ul.dropdown-menu li a {
         color: #555;
       }
     }
-
   }
 
   #footer_version,
-  #footer_link {
+  #footer_links {
     max-width: 50%;
   }
 }
 
 /** Notifications */
+
+.ui-pnotify {
+  position: fixed;
+}
 
 .ui-pnotify .alert a {
   color: #c09853;
@@ -1009,15 +1083,15 @@ textarea.block {
 }
 
 @keyframes pulsate {
-    0% {
-        opacity: 0.5;
-    }
-    50% {
-        opacity: 1.0;
-    }
-    100% {
-        opacity: 0.5;
-    }
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
 }
 
 #drop_overlay {
@@ -1040,8 +1114,8 @@ textarea.block {
     width: 100%;
     height: 100%;
     background-color: #000000;
-    filter:alpha(opacity=50);
-    -moz-opacity:0.5;
+    filter: alpha(opacity=50);
+    -moz-opacity: 0.5;
     -khtml-opacity: 0.5;
     opacity: 0.5;
   }
@@ -1058,7 +1132,8 @@ textarea.block {
     @dropzone_height: 100%;
     @border_color: #cccccc;
 
-    #drop, #drop_background {
+    #drop,
+    #drop_background {
       position: absolute;
       top: 0;
       left: 0;
@@ -1066,7 +1141,8 @@ textarea.block {
       width: 100%;
     }
 
-    #drop_locally, #drop_locally_background {
+    #drop_locally,
+    #drop_locally_background {
       position: absolute;
       top: 0;
       left: 50%;
@@ -1075,7 +1151,8 @@ textarea.block {
       border-right: 2px dashed @border_color;
     }
 
-    #drop_sd, #drop_sd_background {
+    #drop_sd,
+    #drop_sd_background {
       position: absolute;
       top: 0;
       left: 50%;
@@ -1103,10 +1180,10 @@ textarea.block {
         width: 100%;
         bottom: 5%;
 
-        filter:alpha(opacity=100);
-        -moz-opacity:1.0;
-        -khtml-opacity: 1.0;
-        opacity: 1.0;
+        filter: alpha(opacity=100);
+        -moz-opacity: 1;
+        -khtml-opacity: 1;
+        opacity: 1;
       }
     }
 
@@ -1115,18 +1192,17 @@ textarea.block {
       height: @dropzone_height;
 
       background-color: #000000;
-      filter:alpha(opacity=25);
-      -moz-opacity:0.25;
+      filter: alpha(opacity=25);
+      -moz-opacity: 0.25;
       -khtml-opacity: 0.25;
       opacity: 0.25;
 
       &.hover {
         background-color: #000000;
-        filter:alpha(opacity=50);
-        -moz-opacity:0.5;
+        filter: alpha(opacity=50);
+        -moz-opacity: 0.5;
         -khtml-opacity: 0.5;
         opacity: 0.5;
-
       }
 
       &.fade {
@@ -1139,13 +1215,6 @@ textarea.block {
       }
     }
   }
-}
-
-.icon-sd-black-14 {
-  background: url("../img/icon-sd-black-14.png") 0 3px no-repeat;
-  width: 11px;
-  height: 17px;
-  display: inline-block !important;
 }
 
 .center {
@@ -1184,7 +1253,8 @@ textarea.block {
   text-decoration: underline;
 }
 
-.btn-mini .caret, .btn-small .caret {
+.btn-mini .caret,
+.btn-small .caret {
   margin-top: 8px;
 }
 
@@ -1210,7 +1280,7 @@ textarea.block {
     background-color: @wellBackground;
     border: 1px solid darken(@wellBackground, 7%);
     .border-radius(@baseBorderRadius);
-    .box-shadow(inset 0 1px 1px rgba(0,0,0,.05));
+    .box-shadow(inset 0 1px 1px rgba(0,0,0,0.05));
   }
 
   &.slider-disabled .slider-track {
@@ -1268,8 +1338,29 @@ textarea.block {
 //
 // Better use something else if you have the option, that thing is really
 // weird.
-_::-webkit-full-page-media, _:future, :root .full-sized-box {
+_::-webkit-full-page-media,
+_:future,
+:root .full-sized-box {
   position: static;
+}
+
+// Speaking of Safari... it also wants to be special and doesn't consider scrollbars
+// being visible that important and I'm frankly at a loss of words about that
+
+.safari {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    border-radius: 10px;
+    -webkit-border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    background: rgba(100, 100, 100, 0.8);
+  }
 }
 
 .scrollable {
@@ -1284,7 +1375,8 @@ _::-webkit-full-page-media, _:future, :root .full-sized-box {
   }
 }
 
-.input-append, .input-prepend {
+.input-append,
+.input-prepend {
   .add-on {
     &.add-on-limited {
       overflow-x: hidden;
@@ -1356,68 +1448,100 @@ _::-webkit-full-page-media, _:future, :root .full-sized-box {
   cursor: default;
 }
 
-input[type=number] {
+input[type="number"] {
   text-align: right;
 }
 
 input[type="number"].input-nospin::-webkit-outer-spin-button,
 input[type="number"].input-nospin::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+  -webkit-appearance: none;
+  margin: 0;
 }
 input[type="number"].input-nospin {
-    -moz-appearance: textfield;
+  -moz-appearance: textfield;
 }
 
-// Progress bars with text
-//
-// .progress-text-front will also need to have the full width of the enclosing
-// progress wrapper applied (e.g. via copyWidth knockout binding)
+.dropdown-menu {
+  li {
+    a.disabled,
+    a.disabled:visited,
+    a.disabled:active,
+    a.disabled:hover {
+      background-color: transparent;
+      background-image: none;
+      color: #aaa;
+      cursor: default;
+    }
+  }
+}
 
-.progress-text,
+textarea.monospace {
+  font-family: monospace;
+}
+
+// Progress bars with text centered
+
 .progress-text-centered {
   position: relative;
-
-  .progress-text-front,
-  .progress-text-back {
-    white-space: nowrap;
-  }
-
-  .progress-text-front {
-    box-sizing: border-box;
-    padding: 0 10px;
-    width: 100%;
-    display: block;
-  }
-
-  .progress-text-back {
-    position: absolute;
-    font-size: 12px;
-    line-height: 20px;
-    display: block;
-    box-sizing: border-box;
-    text-align: center;
-    padding: 0 10px;
-  }
-
   .bar {
+    z-index: 1;
     position: absolute;
     overflow: hidden;
   }
-}
-
-.progress-text-centered {
-  .progress-text-front {
+  .progress-text-front,
+  .progress-text-back {
     position: absolute;
+    top: 0;
+    z-index: 2;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 10px;
     font-size: 12px;
     line-height: 20px;
-    display: block;
-    text-align: center;
+  }
+  .progress-text-front {
     color: #fff;
   }
+}
 
-  .progress-text-back {
-    width: 100%;
+// search boxes with clear button
+
+.search-query-with-clear {
+  position: relative;
+
+  .search-clear {
+    display: inline-block;
+    color: #ccc;
+    position: absolute;
+    right: 28px;
+    height: 20px;
+    padding: 4px 0;
+    cursor: pointer;
+
+    visibility: hidden;
+  }
+
+  &.active-clear {
+    .search-query {
+      padding-right: 28px;
+      width: 192px;
+    }
+
+    .search-clear {
+      visibility: visible;
+    }
+  }
+
+  input::-ms-clear {
+    display: none;
+  }
+
+  input[type="search"]::-webkit-search-decoration,
+  input[type="search"]::-webkit-search-cancel-button,
+  input[type="search"]::-webkit-search-results-button,
+  input[type="search"]::-webkit-search-results-decoration {
+    -webkit-appearance: none;
   }
 }
 
@@ -1445,4 +1569,108 @@ input[type="number"].input-nospin {
   button {
     margin-top: 20px;
   }
+}
+
+// loading overlay
+#page-container-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff;
+  z-index: 12301;
+
+  .wrapper {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    .outer {
+      display: table;
+      width: 100%;
+      height: 100%;
+
+      .inner {
+        display: table-cell;
+        vertical-align: middle;
+
+        .content {
+          text-align: center;
+        }
+      }
+    }
+  }
+}
+
+// noscript
+#page-container-noscript {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff;
+  z-index: 12310;
+
+  .wrapper {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    .outer {
+      display: table;
+      width: 100%;
+      height: 100%;
+
+      .inner {
+        display: table-cell;
+        vertical-align: middle;
+
+        .content {
+          text-align: center;
+        }
+      }
+    }
+  }
+}
+
+/* Custom animations for the dialogs
+ * These animations override the default bootstrap 2 slow Javascript based animations.
+ * Usage: Add the class `fade-in` to any modal instead of the `fade` class
+ */
+@animationDuration: 0.3s;
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes backgroundFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.7;
+  }
+}
+
+.fade-in {
+  animation-name: fadeIn;
+  animation-duration: @animationDuration;
+}
+
+.modal-backdrop:not(.fade) {
+  // Slightly fade in the backdrop when BS2 animation is disabled
+  // Breaks completely disabling animations, but the backdrop is generated by BS2
+  animation-name: backgroundFadeIn;
+  animation-duration: @animationDuration;
 }

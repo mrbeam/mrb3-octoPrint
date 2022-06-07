@@ -56,9 +56,9 @@ Example:
            // more of your view model's implementation
        }
 
-       // we don't explicitely declare a name property here
+       // we don't explicitly declare a name property here
        // our view model will be registered under "myCustomViewModel" (implicit
-       // name derived from contructor name) and "yourCustomViewModel" (explicitely
+       // name derived from constructor name) and "yourCustomViewModel" (explicitly
        // provided as additional name)
        OCTOPRINT_VIEWMODELS.push({
            construct: MyCustomViewModel,
@@ -125,7 +125,7 @@ gcodeFilesViewModel
 logViewModel
    View model for the logfile settings dialog.
 loginStateViewModel
-   View model for the current loginstate of the user, very interesting for plugins that need to
+   View model for the current login state of the user, very interesting for plugins that need to
    evaluate the current login state or information about the current user, e.g. associated roles.
 navigationViewModel
    View model for the navigation bar.
@@ -168,7 +168,7 @@ OctoPrint's web application will call several callbacks on all registered view m
 Those are listed below:
 
 onStartup()
-   Called when the first initialization has been done: All view models are constructed and hence their dependencies
+   Called when the first initialization has been done. All view models are constructed and hence their dependencies
    resolved, no bindings have been done yet.
 
 onBeforeBinding()
@@ -210,7 +210,7 @@ onDataUpdaterPluginMessage(plugin, message)
    Called when a plugin message is pushed from the server with the identifier of the calling plugin as first
    and the actual message as the second parameter. Note that the latter might be a full fledged object, depending
    on the plugin sending the message. You can use this method to asynchronously push data from your plugin's server
-   component to it's frontend component.
+   component to its frontend component.
 
 onUserLoggedIn(user)
    Called when a user gets logged into the web app, either passively (upon initial load of the page due to a valid
@@ -219,6 +219,17 @@ onUserLoggedIn(user)
 
 onUserLoggedOut()
    Called when a user gets logged out of the web app.
+
+onUserPermissionsChanged(user)
+   Called when a change in the permissions of the current user is detected. The user data of the just logged in user
+   will be provided as only parameter. Note that this may also be triggered for not logged in guests if the guest
+   group is modified. In this case ``user`` will be undefined.
+
+onBeforePrintStart(callback)
+   Called before a print is started either by clicking the "Print" button in the state panel or the select & print icon
+   in the file list. The callback to actually proceed with starting the print is provided as the only parameter. By returning
+   ``false`` from this, plugins may prevent a print from actually starting, optionally starting it at a later date by
+   calling ``callback`` themselves. This can be used for example to implement an additional confirmation dialog.
 
 onTabChange(next, current)
    Called before the main tab view switches to a new tab, so `before` the new tab becomes visible. Called with the
@@ -232,6 +243,11 @@ onAfterTabChange(current, previous)
 getAdditionalControls()
    Your view model may return additional custom control definitions for inclusion on the "Control" tab of OctoPrint's
    interface. See :ref:`the custom control feature<sec-features-custom_controls>`.
+
+   .. note::
+
+      Controls injected from a view model do not support feedback controls (as defined by
+      ``regex`` and ``template``).
 
 onSettingsShown()
    Called when the settings dialog is shown.
@@ -248,6 +264,10 @@ onUserSettingsShown()
 
 onUserSettingsHidden()
    Called when the user settings dialog is hidden.
+
+onUserSettingsBeforeSave()
+   Called just before the user settings view model is sent to the server. This is useful, for example, if your plugin
+   needs to compute persisted settings from a custom view model.
 
 onWizardDetails(response)
    Called with the response from the wizard detail API call initiated before opening the wizard dialog. Will contain
@@ -313,13 +333,13 @@ Web interface startup
 
    sequenceDiagram
       participant Main
-      participant onServerConnect
-      participant fetchSettings
-      participant bindViewModels
       participant DataUpdater
       participant LoginStateViewModel
+      participant SettingsViewModel
+      participant UiStateViewModel
 
-      Note right of DataUpdater: connectCallback = undefined
+      Note over DataUpdater: connectCallback = undefined
+      Note over UiStateViewModel: loaded = false
 
       activate Main
 
@@ -337,52 +357,60 @@ Web interface startup
       Main->>+DataUpdater: connectCallback = onServerConnect
       Note right of DataUpdater: connectCallback = onServerConnect
       DataUpdater-->>-Main: ok
-      Main->>+onServerConnect: call
-      onServerConnect->>+LoginStateViewModel: passiveLogin
-      LoginStateViewModel-->>onServerConnect: ok
-      onServerConnect-->>Main: ok
-      deactivate onServerConnect
+      Main->>+Main: onServerConnect
+      Main->>+LoginStateViewModel: passiveLogin
+      LoginStateViewModel-->>Main: ok
+      Main-->>Main: ok
+      deactivate Main
       deactivate Main
 
       LoginStateViewModel->>+LoginStateViewModel: asynchronous passive login
-      Note over Main,LoginStateViewModel: Session available!
-      LoginStateViewModel-X+onServerConnect: done
+      Note over Main,UiStateViewModel: Session available!
+      LoginStateViewModel-X+Main: done
       deactivate LoginStateViewModel
       deactivate LoginStateViewModel
 
-      onServerConnect->>+DataUpdater: initialized
+      Main->>+DataUpdater: initialized
       Note right of DataUpdater: initialized = true
       DataUpdater->DataUpdater: trigger stored callbacks
-      DataUpdater-->>-onServerConnect: ok
-      onServerConnect-X+Main: done
-      deactivate onServerConnect
+      DataUpdater-->>-Main: ok
 
-      Main->>+fetchSettings: call
-      Note right of fetchSettings: trigger onStartup
+      Main->>+Main: fetchSettings
+      Note right of Main: trigger onStartup
 
-      fetchSettings-->>Main: ok
+      Main->>+SettingsViewModel: requestData
+      SettingsViewModel-->>Main: ok
+      deactivate Main
       deactivate Main
 
-      fetchSettings->>+fetchSettings: asynchronous settings fetch
-      fetchSettings->>+bindViewModels: call
+      SettingsViewModel->>+SettingsViewModel: asynchronous settings fetch
+      Note over Main,UiStateViewModel: Settings available!
+      SettingsViewModel-X+Main: done
+      deactivate SettingsViewModel
+      deactivate SettingsViewModel
+
+      Main->>+Main: bindViewModels
 
       loop for each view model
-          bindViewModels->bindViewModels: trigger onBeforeBinding
-          bindViewModels->bindViewModels: trigger onBoundTo
-          bindViewModels->bindViewModels: trigger onAfterBinding
+          Main->Main: trigger onBeforeBinding
+          Main->Main: trigger onBoundTo
+          Main->Main: trigger onAfterBinding
       end
 
-      bindViewModels->bindViewModels: trigger onAllBound
+      Main->Main: trigger onAllBound
       opt User is logged in
-         bindViewModels->>+LoginStateViewModel: onAllBound
+         Main->>+LoginStateViewModel: onAllBound
          LoginStateViewModel->LoginStateViewModel: trigger onUserLoggedIn
-         LoginStateViewModel-->>-bindViewModels: ok
+         LoginStateViewModel-->>-Main: ok
       end
-      bindViewModels->bindViewModels: trigger onStartupComplete
-      bindViewModels-->>-fetchSettings: ok
 
-      deactivate fetchSettings
-      deactivate fetchSettings
+      Main->>+UiStateViewModel: loaded
+      Note right of UiStateViewModel: loaded = true
+      UiStateViewModel-->>-Main: ok
+
+      Main->Main: trigger onStartupComplete
+      deactivate Main
+      deactivate Main
 
 
 .. _sec-plugins-viewmodels-reconnect:
@@ -425,7 +453,7 @@ Web interface reconnect
 
 .. seealso::
 
-   `OctoPrint's core viewmodels <https://github.com/foosel/OctoPrint/tree/devel/src/octoprint/static/js/app/viewmodels>`_
+   `OctoPrint's core viewmodels <https://github.com/OctoPrint/OctoPrint/tree/master/src/octoprint/static/js/app/viewmodels>`_
       OctoPrint's own view models use the same mechanisms for interacting with each other and the web application as
       plugins. Their source code is therefore a good point of reference on how to achieve certain things.
    `KnockoutJS documentation <http://knockoutjs.com/documentation/introduction.html>`_

@@ -5,11 +5,12 @@ config.yaml
 
 If not specified via the command line, the main configuration file ``config.yaml`` for OctoPrint is expected in its
 settings folder, which unless defined differently via the command line is located at ``~/.octoprint`` on Linux, at
-``%APPDATA%/OctoPrint`` on Windows and at ``~/Library/Application Support/OctoPrint`` on MacOS. If the file is not there,
+``%APPDATA%/OctoPrint`` on Windows and at ``~/Library/Application Support/OctoPrint`` on macOS. If the file is not there,
 you can just create it - it will only get created by OctoPrint once you save settings that deviate from the default
 settings.
 
 Note that many of these settings are available from the "Settings" menu in OctoPrint itself.
+They can also be configured via :ref:`config command line interface <sec-configuration-cli>`.
 
 .. contents::
 
@@ -23,20 +24,17 @@ Use the following settings to enable access control:
 .. code-block:: yaml
 
    accessControl:
-     # whether to enable access control or not. Defaults to true
-     enabled: true
-
      # The user manager implementation to use for accessing user information. Currently only a filebased
      # user manager is implemented which stores configured accounts in a YAML file (Default: users.yaml
      # in the default configuration folder, see below)
-     userManager: octoprint.users.FilebasedUserManager
+     userManager: octoprint.access.users.FilebasedUserManager
 
      # The YAML user file to use. If left out defaults to users.yaml in the default configuration folder.
-     userFile: /path/to/users.yaml
+     userfile: /path/to/users.yaml
 
      # If set to true, will automatically log on clients originating from any of the networks defined in
      # "localNetworks" as the user defined in "autologinAs". Defaults to false.
-     autologinLocal: true
+     autologinLocal: false
 
      # The name of the user to automatically log on clients originating from "localNetworks" as. Must
      # be the name of one of your configured users.
@@ -50,6 +48,33 @@ Use the following settings to enable access control:
      localNetworks:
      - 127.0.0.0/8
      - 192.168.1.0/24
+
+     # Whether to trust Basic Authentication headers. If you have setup Basic Authentication in front of
+     # OctoPrint and the user names you use there match OctoPrint accounts, by setting this to true users will
+     # be logged into OctoPrint as the user user during Basic Authentication. Your should ONLY ENABLE THIS if your
+     # OctoPrint instance is only accessible through a connection locked down through Basic Authentication!
+     trustBasicAuthentication: false
+
+     # Whether to also check the password provided through Basic Authentication if the Basic Authentication
+     # header is to be trusted. Disabling this will only match the user name in the Basic Authentication
+     # header and login the user without further checks. Use with caution.
+     checkBasicAuthenticationPassword: true
+
+     # Whether to trust remote user headers. If you have setup authentication in front of
+     # OctoPrint and the user names you use there match OctoPrint accounts, by setting this to true users will
+     # be logged into OctoPrint as the user provided in the header. Your should ONLY ENABLE THIS if your
+     # OctoPrint instance is only accessible through a connection locked down through an authenticating reverse proxy!
+     trustRemoteUser: false
+
+     # Header used by the reverse proxy to convey the authenticated user.
+     remoteUserHeader: REMOTE_USER
+
+     # If a remote user is not found, add them. Use this only if all users from the remote system can use OctoPrint.
+     addRemoteUsers: false
+
+     # Secret salt used for password hashing, DO NOT TOUCH. If changed you will no longer be able to log in with your
+     # existing accounts.
+     salt: someSecretSalt
 
 .. _sec-configuration-config_yaml-api:
 
@@ -70,7 +95,8 @@ Settings for the REST API:
      # Whether to allow cross origin access to the API or not
      allowCrossOrigin: false
 
-     # Additional app api keys, see REST API > Apps in the docs
+     # Additional app api keys, see REST API > Apps in the docs.
+     # Deprecated since 1.3.11, to be removed in 1.4.0!
      apps:
        "some.app.identifier:some_version":
          pubkey: <RSA pubkey>
@@ -99,6 +125,10 @@ appearance or to modify the order and presence of the various UI components:
      # acrylic for its frame ;)
      colorTransparent: false
 
+     # Show the internal filename in the files sidebar, if necessary
+     # UI change only
+     showInternalFilename: true
+
      # Configures the order and availability of the UI components
      components:
 
@@ -122,10 +152,14 @@ appearance or to modify the order and presence of the various UI components:
          navbar:
          - settings
          - systemmenu
+         - plugin_announcements
+         - plugin_logging
+         - plugin_pi_support
          - login
 
          # order of sidebar items
          sidebar:
+         - plugin_firmware_check
          - connection
          - state
          - files
@@ -134,13 +168,13 @@ appearance or to modify the order and presence of the various UI components:
          tab:
          - temperature
          - control
-         - gcodeviewer
+         - plugin_gcodeviewer
          - terminal
          - timelapse
 
          # order of settings, if settings plugins are registered gets extended internally by
          # section_plugins and all settings plugins
-         settings
+         settings:
          - section_printer
          - serial
          - printerprofiles
@@ -151,16 +185,39 @@ appearance or to modify the order and presence of the various UI components:
          - features
          - webcam
          - accesscontrol
+         - plugin_gcodeviewer
          - api
+         - plugin_appkeys
          - section_octoprint
          - folders
          - appearance
-         - logs
+         - plugin_logging
+         - plugin_pluginmanager
+         - plugin_softwareupdate
+         - plugin_announcements
+         - plugin_backup
+         - plugin_tracking
+         - plugin_errortracking
 
          # order of user settings
          usersettings:
          - access
          - interface
+
+         # order of wizards
+         wizard:
+         - plugin_backup
+         - plugin_corewizard_acl
+
+         # order of about dialog entries
+         about:
+         - about
+         - plugin_pi_support
+         - supporters
+         - authors
+         - license
+         - thirdparty
+         - plugin_pluginmanager
 
          # order of generic templates
          generic: []
@@ -198,7 +255,7 @@ appearance or to modify the order and presence of the various UI components:
             tab:
             - plugin_helloworld
 
-   OctoPrint will then turn this into the order ``plugin_helloworld``, ``temperature``, ``control``, ``gcodeviewer``,
+   OctoPrint will then display the tabs in the order ``plugin_helloworld``, ``temperature``, ``control``, ``plugin_gcodeviewer``,
    ``terminal``, ``timelapse`` plus any other plugins.
 
 
@@ -259,178 +316,19 @@ The following settings are only relevant to you if you want to do OctoPrint deve
        # false, no minification will take place regardless of the minify setting below.
        bundle: true
 
-       # If set to true, OctoPrint will minify its viewmodels (that includes those of plugins). Note: if bundle is
+       # If set to true, OctoPrint will the core and library javascript assets. Note: if bundle is
        # set to false, no minification will take place either.
        minify: true
+
+       # If set to true, OctoPrint will also minify the third party plugin javascript assets. Note: if bundle or
+       # minify are set to false, no minification of the plugin assets will take place either.
+       minify_plugins: false
 
        # Whether to delete generated web assets on server startup (forcing a regeneration)
        clean_on_startup: true
 
-     # Settings for the virtual printer
-     virtualPrinter:
-
-       # Whether to enable the virtual printer and include it in the list of available serial connections.
-       # Defaults to false.
-       enabled: true
-
-       # Whether to send an additional "ok" after a resend request (like Repetier)
-       okAfterResend: false
-
-       # Whether to force checksums and line number in the communication (like Repetier), if set to true
-       # printer will only accept commands that come with linenumber and checksum and throw an error for
-       # lines that don't. Defaults to false
-       forceChecksum: false
-
-       # Whether to send "ok" responses with the line number that gets acknowledged by the "ok". Defaults
-       # to false.
-       okWithLinenumber: false
-
-       # Number of extruders to simulate on the virtual printer. Map from tool id (0, 1, ...) to temperature
-       # in °C
-       numExtruders: 1
-
-       # Allows pinning certain hotends to a fixed temperature
-       pinnedExtruders: null
-
-       # Whether to include the current tool temperature in the M105 output as separate T segment or not.
-       #
-       # True:  > M105
-       #        < ok T:23.5/0.0 T0:34.3/0.0 T1:23.5/0.0 B:43.2/0.0
-       # False: > M105
-       #        < ok T0:34.3/0.0 T1:23.5/0.0 B:43.2/0.0
-       includeCurrentToolInTemps: true
-
-       # Whether to include the selected filename in the M23 File opened response.
-       #
-       # True:  > M23 filename.gcode
-       #        < File opened: filename.gcode  Size: 27
-       # False: > M23 filename.gcode
-       #        > File opened
-       includeFilenameInOpened: true
-
-       # Whether the simulated printer should also simulate a heated bed or not
-       hasBed: true
-
-       # If enabled, reports the set target temperatures as separate messages from the firmware
-       #
-       # True:  > M109 S220.0
-       #        < TargetExtr0:220.0
-       #        < ok
-       #        > M105
-       #        < ok T0:34.3 T1:23.5 B:43.2
-       # False: > M109 S220.0
-       #        < ok
-       #        > M105
-       #        < ok T0:34.3/220.0 T1:23.5/0.0 B:43.2/0.0
-       repetierStyleTargetTemperature: false
-
-       # If enabled, uses repetier style resends, sending multiple resends for the same line
-       # to make sure nothing gets lost on the line
-       repetierStyleResends: false
-
-       # If enabled, ok will be sent before a commands output, otherwise after or inline (M105)
-       #
-       # True:  > M20
-       #        < ok
-       #        < Begin file list
-       #        < End file list
-       # False: > M20
-       #        < Begin file list
-       #        < End file list
-       #        < ok
-       okBeforeCommandOutput: false
-
-       # If enabled, reports the first extruder in M105 responses as T instead of T0
-       #
-       # True:  > M105
-       #        < ok T:34.3/0.0 T1:23.5/0.0 B:43.2/0.0
-       # False: > M105
-       #        < ok T0:34.3/0.0 T1:23.5/0.0 B:43.2/0.0
-       smoothieTemperatureReporting: false
-
-       # Whether M20 responses will include filesize or not
-       #
-       # True:  <filename> <filesize in bytes>
-       # False: <filename>
-       extendedSdFileList: false
-
-       # Forced pause for retrieving from the outgoing buffer
-       throttle: 0.01
-
-       # Whether to send "wait" responses every "waitInterval" seconds when serial rx buffer is empty
-       sendWait: false
-
-       # Interval in which to send "wait" lines when rx buffer is empty
-       waitInterval: 1
-
-       # Size of the simulated RX buffer in bytes, when it's full a send from OctoPrint's
-       # side will block
-       rxBuffer: 64
-
-       # Size of simulated command buffer, number of commands. If full, buffered commands will block
-       # until a slot frees up
-       commandBuffer: 4
-
-       # Whether to support the M112 command with simulated kill
-       supportM112: true
-
-       # Whether to send messages received via M117 back as "echo:" lines
-       echoOnM117: true
-
-       # Whether to simulate broken M29 behaviour (missing ok after response)
-       brokenM29: true
-
-       # Whether F is supported as individual command
-       supportF: false
-
-       # Firmware name to report (useful for testing firmware detection)
-       firmwareName: Virtual Marlin 1.0
-
-       # Simulate a shared nozzle
-       sharedNozzle: false
-
-       # Send "busy" messages if busy processing something
-       sendBusy: false
-
-       # Simulate a reset on connect
-       simulateReset: true
-
-       # Lines to send on simulated reset
-       resetLines:
-       - start
-       - Marlin: Virtual Marlin!
-       - "\x80"
-       - "SD card ok"
-
-       # Initial set of prepared oks to use instead of regular ok (e.g. to simulate
-       # mis-sent oks). Can also be filled at runtime via the debug command prepare_ok
-       preparedOks: []
-
-       # Format string for ok response.
-       #
-       # Placeholders:
-       # - lastN: last acknowledged line number
-       # - buffer: empty slots in internal command buffer
-       #
-       # Example format string for "extended" ok format:
-       #   ok N{lastN} P{buffer}
-       okFormatString: ok
-
-       # Format string for M115 output.
-       #
-       # Placeholders:
-       # - firmare_name: The firmware name as defined in firmwareName
-       m115FormatString: "FIRMWARE_NAME: {firmware_name} PROTOCOL_VERSION:1.0"
-
-       # Whether to include capability report in M115 output
-       m115ReportCapabilites: false
-
-       # Capabilities to report if capability report is enabled
-       capabilities:
-         AUTOREPORT_TEMP: true
-
-       # Simulated ambient temperature in °C
-       ambientTemperature: 21.3
+     # enable or disable the loading animation
+     showLoadingAnimation: true
 
 .. _sec-configuration-config_yaml-estimation:
 
@@ -443,7 +341,7 @@ the estimation of the left print time during an active job utilizes this section
 .. code-block:: yaml
 
    estimation:
-     # Parameters for the print time estmation during an ongoing print job
+     # Parameters for the print time estimation during an ongoing print job
      printTime:
        # Until which percentage to do a weighted mixture of statistical duration (analysis or
        # past prints) with the result from the calculated estimate if that's already available.
@@ -522,51 +420,15 @@ Use the following settings to enable or disable OctoPrint features:
 .. code-block:: yaml
 
    feature:
+
      # Whether to enable the gcode viewer in the UI or not
      gCodeVisualizer: true
 
      # Whether to enable the temperature graph in the UI or not
      temperatureGraph: true
 
-     # Specifies whether OctoPrint should wait for the start response from the printer before trying to send commands
-     # during connect.
-     waitForStartOnConnect: false
-
-     # Specifies whether OctoPrint should send linenumber + checksum with every printer command. Needed for
-     # successful communication with Repetier firmware
-     alwaysSendChecksum: false
-
-     # Specifies whether OctoPrint should also send linenumber + checksum with commands that are *not*
-     # detected as valid GCODE (as in, they do not match the regular expression "^\s*([GM]\d+|T)").
-     sendChecksumWithUnknownCommands: false
-
-     # Specifies whether OctoPrint should also use up acknowledgments ("ok") for commands that are *not*
-     # detected as valid GCODE (as in, they do not match the regular expression "^\s*([GM]\d+|T)").
-     unknownCommandsNeedAck: false
-
-     # Whether to ignore the first ok after a resend response. Needed for successful communication with
-     # Repetier firmware
-     swallowOkAfterResend: false
-
      # Specifies whether support for SD printing and file management should be enabled
      sdSupport: true
-
-     # Specifies whether firmware expects relative paths for selecting SD files
-     sdRelativePath: false
-
-     # Whether to always assume that an SD card is present in the printer.
-     # Needed by some firmwares which don't report the SD card status properly.
-     sdAlwaysAvailable: false
-
-     # Whether the printer sends repetier style target temperatures in the format
-     #   TargetExtr0:<temperature>
-     # instead of attaching that information to the regular M105 responses
-     repetierTargetTemp: false
-
-     # Whether to enable external heatup detection (to detect heatup triggered e.g. through the printer's LCD panel or
-     # while printing from SD) or not. Causes issues with Repetier's "first ok then response" approach to
-     # communication, so disable for printers running Repetier firmware.
-     externalHeatupDetection: true
 
      # Whether to enable the keyboard control feature in the control tab
      keyboardControl: true
@@ -575,28 +437,20 @@ Use the following settings to enable or disable OctoPrint features:
      # notifications instead (false)
      pollWatched: false
 
-     # Whether to ignore identical resends from the printer (true, repetier) or not (false)
-     ignoreIdenticalResends: false
-
-     # If ignoredIdenticalResends is true, how many consecutive identical resends to ignore
-     identicalResendsCount: 7
-
-     # Whether to support F on its own as a valid GCODE command (true) or not (false)
-     supportFAsCommand: false
-
      # Whether to enable model size detection and warning (true) or not (false)
      modelSizeDetection: true
-
-     # Whether to attempt to auto detect the firmware of the printer and adjust settings
-     # accordingly (true) or not and rely on manual configuration (false)
-     firmwareDetection: true
 
      # Whether to show a confirmation on print cancelling (true) or not (false)
      printCancelConfirmation: true
 
-     # Whether to block all sending to the printer while a G4 (dwell) command is active (true, repetier)
-     # or not (false)
-     blockWhileDwelling: false
+     # Commands that should never be auto-uppercased when sent to the printer through the Terminal tab.
+     # Defaults to only M117.
+     autoUppercaseBlacklist:
+     - M117
+     - M118
+
+     # whether G90/G91 also influence absolute/relative mode of extruders
+     g90InfluencesExtruder: false
 
 .. _sec-configuration-config_yaml-folder:
 
@@ -653,15 +507,16 @@ Settings pertaining to the server side GCODE analysis implementation.
 
 .. code-block:: yaml
 
-   # Maximum number of extruders to support/to sanity check for
-   maxExtruders: 10
+   gcodeAnalysis:
+     # Maximum number of extruders to support/to sanity check for
+     maxExtruders: 10
 
-   # Pause between each processed GCODE line in normal priority mode, seconds
-   throttle_normalprio: 0.01
+     # Pause between each processed GCODE line in normal priority mode, seconds
+     throttle_normalprio: 0.01
 
-   # Pause between each processed GCODE line in high priority mode (e.g. on fresh
-   # uploads), seconds
-   throttle_highprio: 0.0
+     # Pause between each processed GCODE line in high priority mode (e.g. on fresh
+     # uploads), seconds
+     throttle_highprio: 0.0
 
 .. _sec-configuration-config_yaml-gcodeviewer:
 
@@ -672,16 +527,17 @@ Settings pertaining to the built in GCODE Viewer.
 
 .. code-block:: yaml
 
-   # Whether to enable the GCODE viewer in the UI
-   enabled: true
+   gcodeViewer:
+     # Whether to enable the GCODE viewer in the UI
+     enabled: true
 
-   # Maximum size a GCODE file may have on mobile devices to automatically be loaded
-   # into the viewer, defaults to 2MB
-   mobileSizeThreshold: 2097152
+     # Maximum size a GCODE file may have on mobile devices to automatically be loaded
+     # into the viewer, defaults to 2MB
+     mobileSizeThreshold: 2097152
 
-   # Maximum size a GCODE file may have to automatically be loaded into the viewer,
-   # defaults to 20MB
-   sizeThreshold: 20971520
+     # Maximum size a GCODE file may have to automatically be loaded into the viewer,
+     # defaults to 20MB
+     sizeThreshold: 20971520
 
 .. _sec-configuration-config_yaml-plugins:
 
@@ -698,6 +554,11 @@ plugins are tracked:
 
      # Identifiers of installed but disabled plugins
      _disabled:
+     - ...
+
+     # Identifiers of plugins for which python compatibility information will be ignored and
+     # the plugin considered compatible in any case. Only for development, do NOT use in production.
+     _forcedCompatible:
      - ...
 
      # The rest are individual plugin settings, each tracked by their identifier, e.g.:
@@ -800,6 +661,10 @@ Use the following settings to configure the serial connection to the printer:
        # Defaults to 30 sec
        communication: 30
 
+       # Timeout during serial communication when busy protocol support is detected, in seconds.
+       # Defaults to 3 sec
+       communicationBusy: 3
+
        # Timeout after which to query temperature when no target is set
        temperature: 5
 
@@ -824,7 +689,7 @@ Use the following settings to configure the serial connection to the printer:
 
      # Maximum number of write attempts to serial during which nothing can be written before the communication
      # with the printer is considered dead and OctoPrint will disconnect with an error
-     maxWritePasses:
+     maxWritePasses: 5
 
      # Use this to define additional patterns to consider for serial port listing. Must be a valid
      # "glob" pattern (see http://docs.python.org/2/library/glob.html). Defaults to not set.
@@ -835,6 +700,24 @@ Use the following settings to configure the serial connection to the printer:
      # valid integer. Defaults to not set
      additionalBaudrates:
      - 123456
+
+     # Commands which should not be sent to the printer, e.g. because they are known to block serial
+     # communication until physical interaction with the printer as is the case on most firmwares with
+     # the default M0 and M1.
+     blockedCommands:
+     - M0
+     - M1
+
+     # Commands which should not be sent to the printer and just silently ignored.
+     # An example of when you may wish to use this could be useful if you wish to manually change a filament on M600, 
+     # by using that as a Pausing command (below)
+     ignoredCommands:
+
+     # Commands which should cause OctoPrint to pause any ongoing prints.
+     pausingCommands:
+     - M0
+     - M1
+     - M25
 
      # Commands which are known to take a long time to be acknowledged by the firmware. E.g.
      # homing, dwelling, auto leveling etc. Defaults to the below commands.
@@ -858,10 +741,6 @@ Use the following settings to configure the serial connection to the printer:
      helloCommand:
      - M110 N0
 
-     # Commands that should never be auto-uppercased when sent to the printer. Defaults to only M117.
-     autoUppercaseBlacklist:
-     - M117
-
      # Whether to disconnect on errors or not
      disconnectOnErrors: true
 
@@ -872,12 +751,77 @@ Use the following settings to configure the serial connection to the printer:
      # impact, leave on if possible please
      logResends: true
 
+     # Specifies whether OctoPrint should wait for the start response from the printer before trying to send commands
+     # during connect.
+     waitForStartOnConnect: false
+
+     # Specifies whether OctoPrint should send linenumber + checksum with every printer command. Needed for
+     # successful communication with Repetier firmware
+     alwaysSendChecksum: false
+
+     # Specifies whether OctoPrint should also send linenumber + checksum with commands that are *not*
+     # detected as valid GCODE (as in, they do not match the regular expression "^\s*([GM]\d+|T)").
+     sendChecksumWithUnknownCommands: false
+
+     # Specifies whether OctoPrint should also use up acknowledgments ("ok") for commands that are *not*
+     # detected as valid GCODE (as in, they do not match the regular expression "^\s*([GM]\d+|T)").
+     unknownCommandsNeedAck: false
+
+     # Whether to ignore the first ok after a resend response. Needed for successful communication with
+     # Repetier firmware
+     swallowOkAfterResend: false
+
+     # Specifies whether firmware expects relative paths for selecting SD files
+     sdRelativePath: false
+
+     # Whether to always assume that an SD card is present in the printer.
+     # Needed by some firmwares which don't report the SD card status properly.
+     sdAlwaysAvailable: false
+
+     # Whether the printer sends repetier style target temperatures in the format
+     #   TargetExtr0:<temperature>
+     # instead of attaching that information to the regular M105 responses
+     repetierTargetTemp: false
+
+     # Whether to enable external heatup detection (to detect heatup triggered e.g. through the printer's LCD panel or
+     # while printing from SD) or not. Causes issues with Repetier's "first ok then response" approach to
+     # communication, so disable for printers running Repetier firmware.
+     externalHeatupDetection: true
+
+     # Whether to ignore identical resends from the printer (true, repetier) or not (false)
+     ignoreIdenticalResends: false
+
+     # If ignoredIdenticalResends is true, how many consecutive identical resends to ignore
+     identicalResendsCount: 7
+
+     # Whether to support F on its own as a valid GCODE command (true) or not (false)
+     supportFAsCommand: false
+
+     # Whether to attempt to auto detect the firmware of the printer and adjust settings
+     # accordingly (true) or not and rely on manual configuration (false)
+     firmwareDetection: true
+
+     # Whether to block all sending to the printer while a G4 (dwell) command is active (true, repetier)
+     # or not (false)
+     blockWhileDwelling: false
+
      # Whether to support resends without follow-up ok or not
      supportResendsWithoutOk: false
 
      # Whether to "manually" trigger an ok for M29 (a lot of versions of this command are buggy and
-     # the responds skips on the ok)
+     # the response skips on the ok)
      triggerOkForM29: true
+
+     # Percentage of resend requests among all sent lines that should be considered critical
+     resendRatioThreshold: 10
+
+     capabilities:
+
+       # Whether to enable temperature autoreport in the firmware if its support is detected
+       autoreport_temp: true
+
+       # Whether to shorten the communication timeout if the firmware seems to support the busy protocol
+       busy_protocol: true
 
 .. _sec-configuration-config_yaml-server:
 
@@ -904,12 +848,19 @@ Use the following settings to configure the server:
      # reset the setting to false
      startOnceInSafeMode: false
 
+     # Signals to OctoPrint that the last startup was incomplete. OctoPrint will then startup
+     # in safe mode
+     incompleteStartup: false
+
+     # Set this to true to make OctoPrint ignore incomplete startups. Helpful for development.
+     ignoreIncompleteStartup: false
+
      # Secret key for encrypting cookies and such, randomly generated on first run
      secretKey: someSecretKey
 
      # Settings if OctoPrint is running behind a reverse proxy (haproxy, nginx, apache, ...).
      # These are necessary in order to make OctoPrint generate correct external URLs so
-     # that AJAX requests and download URLs work.
+     # that AJAX requests and download URLs work, and so that client IPs are read correctly.
      reverseProxy:
 
        # The request header from which to determine the URL prefix under which OctoPrint
@@ -943,6 +894,33 @@ Use the following settings to configure the server:
        # (X-Forwarded-Host by default, see above) with forwarded requests.
        hostFallback:
 
+       # List of trusted downstream servers for which to ignore the IP address when trying to determine
+       # the connecting client's IP address. If you have OctoPrint behind more than one reverse proxy
+       # you should add their IPs here so that they won't be interpreted as the client's IP. One reverse
+       # proxy will be handled correctly by default.
+       trustedDownstream:
+       - 192.168.1.254
+       - 192.168.23.42
+
+     # Whether to allow OctoPrint to be embedded in a frame or not. Note that depending on your setup you might
+     # have to set SameSite to None, Secure to true and serve OctoPrint through a reverse proxy that enables https
+     # for cookies and thus logging in to work
+     allowFraming: true
+
+     # Settings for further configuration of the cookies that OctoPrint sets (login, remember me, ...)
+     cookies:
+       # SameSite setting to use on the cookies. Possible values are None, Lax and Strict. Defaults to not set but
+       # be advised that many browsers now default to Lax unless set as Secure, explicitly setting the cookie type
+       # here and served over https, which causes issues with embedding OctoPrint in frames.
+       #
+       # See also https://www.chromestatus.com/feature/5088147346030592,
+       # https://www.chromestatus.com/feature/5633521622188032 and issue #3482
+       samesite: lax
+
+       # Whether to set the Secure flag to true on cookies. Defaults to false. Only set to true if you are running
+       # OctoPrint behind a reverse proxy taking care of SSL termination.
+       secure: false
+
      # Settings for file uploads to OctoPrint, such as maximum allowed file size and
      # header suffixes to use for streaming uploads. OctoPrint does some nifty things internally in
      # order to allow streaming of large file uploads to the application rather than just storing
@@ -975,6 +953,12 @@ Use the following settings to configure the server:
 
        # Command to shut down the system OctoPrint is running on, defaults to being unset
        systemShutdownCommand: sudo shutdown -h now
+
+       # pip command associated with OctoPrint, used for installing plugins and updates,
+       # if unset (default) the command will be autodetected based on the current python
+       # executable - unless you have a really special setup this is the right way to do
+       # it and there should be no need to ever even touch this setting
+       localPipCommand: None
 
      # Configuration of the regular online connectivity check
      onlineCheck:
@@ -1022,6 +1006,15 @@ Use the following settings to configure the server:
        # How many days to leave unused entries in the preemptive cache config
        until: 7
 
+     # Configuration of the client IP check to warn about connections from external networks
+     ipCheck:
+
+       # whether to enable the check, defaults to true
+       enabled: true
+
+       # additional non-local subnets to consider trusted, in CIDR notation, e.g. "192.168.1.0/24"
+       trustedSubnets: []
+
 
 .. note::
 
@@ -1035,8 +1028,23 @@ Use the following settings to configure the server:
      * ``X-Scheme``: should contain your custom URL scheme to use (if different from ``http``), e.g. ``https``
 
    If you use these headers OctoPrint will work both via the reverse proxy as well as when called directly. Take a look
-   `into OctoPrint's wiki <https://github.com/foosel/OctoPrint/wiki/Reverse-proxy-configuration-examples>`_ for some
+   `into OctoPrint's wiki <https://community.octoprint.org/t/reverse-proxy-configuration-examples/1107>`_ for some
    examples on how to configure this.
+
+.. note::
+
+   If you want to embed OctoPrint in a frame, you'll need to set ``allowFraming`` to ``true`` or your browser will
+   prevent this.
+
+   In future browser builds you will also have to make sure you frame is on the same domain as OctoPrint or that
+   OctoPrint is served via https through a reverse proxy and has set ``cookies.secure`` to ``true`` or your browser
+   will refuse to persist cookies and logging in will not work.
+
+   See also `Cookies default to SameSite=Lax <https://www.chromestatus.com/feature/5088147346030592>`_ and
+   `Reject insecure SameSite=None cookies  <https://www.chromestatus.com/feature/5633521622188032>`_ as well as
+   `this ticket <https://github.com/OctoPrint/OctoPrint/issues/3482>`_,
+   and `this twitter thread <https://twitter.com/foosel/status/1022030752349913088>`_ on why OctoPrint cannot
+   solve this on its own/ship with https that doesn't cause scary warnings in your browser.
 
 .. _sec-configuration-config_yaml-slicing:
 
@@ -1051,14 +1059,14 @@ Settings for the built-in slicing support:
    slicing:
 
      # Whether to enable slicing support or not
-     enabled:
+     enabled: true
 
      # Default slicer to use
-     defaultSlicer: cura
+     defaultSlicer: null
 
      # Default slicing profiles per slicer
      defaultProfiles:
-       cura: ...
+       curalegacy: ...
 
 .. _sec-configuration-config_yaml-system:
 
@@ -1067,7 +1075,12 @@ System
 
 Use the following settings to add custom system commands to the "System" dropdown within OctoPrint's top bar.
 
-Commands consist of a name, an action identifier, the commandline to execute and an optional confirmation message to
+Commands consist of a ``name`` shown to the user, an ``action`` identifier used by the code and the actual
+``command`` including any argument needed for its execution.
+By default OctoPrint blocks until the command has returned so that the exit code can be used to show a success
+or failure message; use the flag ``async: true`` for commands that don't return.
+
+Optionally you can add a confirmation message to
 display before actually executing the command (should be set to False if a confirmation dialog is not desired).
 
 The following example defines a command for shutting down the system under Linux. It assumes that the user under which
@@ -1082,7 +1095,7 @@ OctoPrint is running is allowed to do this without password entry:
        command: sudo shutdown -h now
        confirm: You are about to shutdown the system.
 
-You can also add an divider by setting action to divider like this:
+You can also add a divider by setting action to divider like this:
 
 .. code-block:: yaml
 
@@ -1124,11 +1137,13 @@ Use `Javascript regular expressions <https://developer.mozilla.org/en/docs/Web/J
    # A list of filters to display in the terminal tab. Defaults to the filters shown below
    terminalFilters:
    - name: Suppress temperature messages
-     regex: '(Send: (N\d+\s+)?M105)|(Recv: ok T:)'
+     regex: '(Send: (N\d+\s+)?M105)|(Recv:\s+(ok\s+([PBN]\d+\s+)*)?([BCLPR]|T\d*):-?\d+)'
    - name: Suppress SD status messages
-     regex: '(Send: (N\d+\s+)?M27)|(Recv: SD printing byte)'
+     regex: '(Send: (N\d+\s+)?M27)|(Recv: SD printing byte)|(Recv: Not SD printing)'
    - name: Suppress wait responses
      regex: 'Recv: wait'
+   - name: Suppress processing responses
+     regex: 'Recv: (echo:\s*)?busy:\s*processing'
 
 .. _sec-configuration-config_yaml-webcam:
 
@@ -1155,6 +1170,9 @@ Use the following settings to configure webcam support:
      # Number of how many threads to instruct ffmpeg to use for encoding. Defaults to 1.
      # Should be left at 1 for RPi1.
      ffmpegThreads: 1
+
+     # Videocodec to be used for encoding. Defaults to mpeg2video.
+     ffmpegVideoCodec: mpeg2video
 
      # The bitrate to use for rendering the timelapse video. This gets directly passed to ffmpeg.
      bitrate: 5000k

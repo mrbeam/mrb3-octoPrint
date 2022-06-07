@@ -4,6 +4,8 @@
 Plugins
 *******
 
+.. versionadded:: 1.2.0
+
 Starting with OctoPrint 1.2.0, there's now a plugin system in place which allows to individually
 extend OctoPrint's functionality.
 
@@ -28,7 +30,7 @@ Finding Plugins
 
 The official OctoPrint Plugin Repository can be found at `plugins.octoprint.org <http://plugins.octoprint.org>`_.
 
-Some plugins may also be found in the list provided in `the OctoPrint wiki <https://github.com/foosel/OctoPrint/wiki#plugins>`_
+Some plugins may also be found in the list provided in `the OctoPrint wiki <https://github.com/OctoPrint/OctoPrint/wiki#plugins>`_
 and on the `OctoPrint organization Github page <https://github.com/OctoPrint>`_.
 
 .. _sec-features-plugins-installing:
@@ -46,7 +48,7 @@ Manual Installation
 
 If you don't want or can't use the Plugin Manager, plugins may also be installed manually either by copying and
 unpacking them into one of the configured plugin folders (regularly those are ``<octoprint source root>/plugins`` and
-``<octoprint config folder>/plugins`` [#f1]_ or by installing them as regular python modules via ``pip`` [#f2]_.
+``<octoprint config folder>/plugins`` [#f1]_ or by installing them as regular Python modules via ``pip`` [#f2]_.
 
 For a plugin available on the Python Package Index (PyPi), the process is as simple as issuing a
 

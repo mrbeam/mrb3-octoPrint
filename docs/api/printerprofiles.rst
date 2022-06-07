@@ -17,9 +17,11 @@ Retrieve all printer profiles
 
 .. http:get:: /api/printerprofiles
 
-   Retrieves a list of all configured printer profiles.
+   Retrieves an object representing all configured printer profiles.
 
-   Returns a :http:statuscode:`200` with a list of :ref:`profiles <sec-api-printerprofiles-datamodel-profile>`.
+   Returns a :http:statuscode:`200` with a :ref:`profile list <sec-api-printerprofiles-datamodel-profilelist>`.
+
+   Requires the ``CONNECTION`` permission.
 
    **Example**
 
@@ -35,8 +37,8 @@ Retrieve all printer profiles
       Content-Type: application/json
 
       {
-        "profiles": [
-          {
+        "profiles": {
+          "_default": {
             "id": "_default",
             "name": "Default",
             "color": "default",
@@ -52,6 +54,7 @@ Retrieve all printer profiles
               "height": 200
             },
             "heatedBed": true,
+            "heatedChamber": false,
             "axes": {
               "x": {
                 "speed": 6000,
@@ -77,7 +80,7 @@ Retrieve all printer profiles
               ]
             }
           },
-          {
+          "my_profile": {
             "id": "my_profile",
             "name": "My Profile",
             "color": "default",
@@ -93,6 +96,7 @@ Retrieve all printer profiles
               "height": 200
             },
             "heatedBed": true,
+            "heatedChamber": true,
             "axes": {
               "x": {
                 "speed": 6000,
@@ -118,9 +122,25 @@ Retrieve all printer profiles
               ]
             }
           },
-        ]
+        }
       }
 
+
+.. _sec-api-printerprofiles-get:
+
+Retrieve a single printer profile
+=================================
+
+.. http:get:: /api/printerprofiles/(string:identifier)
+
+   Retrieves an existing single printer profile.
+
+   Returns a :http:statuscode:`200` with a :ref:`profile <sec-api-printerprofiles-datamodel-profile>`.
+
+   Requires the ``CONNECTION`` permission.
+
+   :statuscode 200: No error
+   :statuscode 404: The profile does not exist
 
 .. _sec-api-printerprofiles-add:
 
@@ -141,7 +161,7 @@ Add a new printer profile
    Returns a :http:statuscode:`200` with the saved profile as property ``profile``
    in the JSON body upon success.
 
-   Requires admin rights.
+   Requires the ``SETTINGS`` permission.
 
    **Example 1**
 
@@ -184,6 +204,7 @@ Add a new printer profile
             "height": 200
           },
           "heatedBed": true,
+          "heatedChamber": false,
           "axes": {
             "x": {
               "speed": 6000,
@@ -267,6 +288,7 @@ Add a new printer profile
             "height": 300
           },
           "heatedBed": false,
+          "heatedChamber": false,
           "axes": {
             "x": {
               "speed": 6000,
@@ -310,7 +332,7 @@ Update an existing printer profile
    Returns a :http:statuscode:`200` with the saved profile as property ``profile``
    in the JSON body upon success.
 
-   Requires admin rights.
+   Requires the ``SETTINGS`` permission.
 
    **Example**
 
@@ -352,6 +374,7 @@ Update an existing printer profile
             "height": 200
           },
           "heatedBed": true,
+          "heatedChamber": false,
           "axes": {
             "x": {
               "speed": 6000,
@@ -395,7 +418,7 @@ Remove an existing printer profile
 
    Returns a :http:statuscode:`204` an empty body upon success.
 
-   Requires admin rights.
+   Requires the ``SETTINGS`` permission.
 
    **Example**
 
@@ -434,7 +457,7 @@ Profile list
      - Collection of all printer profiles available in the system
    * - ``profiles.<profile id>``
      - 0..1
-     - :ref:`Profile <sec-api-slicing-datamodel-profile>`
+     - :ref:`Profile <sec-api-printerprofiles-datamodel-profile>`
      - Information about a profile stored in the system.
 
 .. _sec-api-printerprofiles-datamodel-update:
@@ -452,7 +475,7 @@ Add or update request
      - Description
    * - ``profiles``
      - 1
-     - :ref:`Profile <sec-api-slicing-datamodel-profile>`
+     - :ref:`Profile <sec-api-printerprofiles-datamodel-profile>`
      - Information about the profile being added/updated. Only the values to be overwritten need to be supplied.
        Unset fields will be taken from the base profile, which for add requests will be the
        current default profile unless a different base is defined in the ``basedOn`` property
@@ -578,10 +601,14 @@ Profile
      - 0..1
      - ``boolean``
      - Whether the printer has a heated bed (``true``) or not (``false``)
+   * - ``heatedChamber``
+     - 0..1
+     - ``boolean``
+     - Whether the printer has a heated chamber (``true``) or not (``false``)
    * - ``axes``
      - 0..1
      - Object
-     - Description of the printer's axes properties, one entry each for ``x``, ``y``, ``z`` and ``e`` holding maxium speed
+     - Description of the printer's axes properties, one entry each for ``x``, ``y``, ``z`` and ``e`` holding maximum speed
        and whether this axis is inverted or not.
    * - ``axes.{axis}.speed``
      - 0..1

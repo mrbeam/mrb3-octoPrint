@@ -57,7 +57,7 @@ Issue a job command
 
    Upon success, a status code of :http:statuscode:`204` and an empty body is returned.
 
-   Requires user rights.
+   Requires the ``PRINT`` permission.
 
    **Example Start Request**
 
@@ -180,6 +180,8 @@ Retrieve information about the current job
 
    Returns a :http:statuscode:`200` with a :ref:`sec-api-job-datamodel-response` in the body.
 
+   Requires the ``STATUS`` permission.
+
    **Example**
 
    .. sourcecode:: http
@@ -203,8 +205,10 @@ Retrieve information about the current job
           },
           "estimatedPrintTime": 8811,
           "filament": {
-            "length": 810,
-            "volume": 5.36
+            "tool0": {
+              "length": 810,
+              "volume": 5.36
+            }
           }
         },
         "progress": {
@@ -212,7 +216,8 @@ Retrieve information about the current job
           "filepos": 337942,
           "printTime": 276,
           "printTimeLeft": 912
-        }
+        },
+        "state": "Printing"
       }
 
    :statuscode 200: No error
@@ -243,4 +248,13 @@ Job information response
      - 1
      - :ref:`sec-api-datamodel-jobs-progress`
      - Information regarding the progress of the current print job
-
+   * - ``state``
+     - 1
+     - String
+     - A textual representation of the current state of the job or connection, e.g. "Operational", "Printing", "Pausing", "Paused",
+       "Cancelling", "Error", "Offline", "Offline after error", "Opening serial connection", ... -- please note
+       that this list is not exhaustive!
+   * - ``error``
+     - 0..1
+     - String
+     - Any error message for the job or connection, only set if there has been an error.

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 # This file helps to compute a version number in source trees obtained from
 # git-archive tarball (such as those provided by githubs download-from-tag
@@ -9,9 +11,10 @@
 # versioneer-0.15+dev (https://github.com/warner/python-versioneer)
 
 """Git implementation of _version.py."""
-from __future__ import absolute_import, division, print_function
 
 import errno
+import io
+import logging
 import os
 import re
 import subprocess
@@ -41,7 +44,7 @@ def get_config():
     # _version.py
     cfg = VersioneerConfig()
     cfg.VCS = "git"
-    cfg.style = "pep440-post"
+    cfg.style = "pep440-tag"
     cfg.tag_prefix = ""
     cfg.parentdir_prefix = ""
     cfg.versionfile_source = "src/octoprint/_version.py"
@@ -61,12 +64,14 @@ HANDLERS = {}
 
 def register_vcs_handler(vcs, method):  # decorator
     """Decorator to mark a method as the handler for a particular VCS."""
+
     def decorate(f):
         """Store f in HANDLERS[vcs][method]."""
         if vcs not in HANDLERS:
             HANDLERS[vcs] = {}
         HANDLERS[vcs][method] = f
         return f
+
     return decorate
 
 
@@ -78,9 +83,12 @@ def run_command(commands, args, cwd=None, verbose=False, hide_stderr=False):
         try:
             dispcmd = str([c] + args)
             # remember shell=False, so use git.cmd on windows, not just git
-            p = subprocess.Popen([c] + args, cwd=cwd, stdout=subprocess.PIPE,
-                                 stderr=(subprocess.PIPE if hide_stderr
-                                         else None))
+            p = subprocess.Popen(
+                [c] + args,
+                cwd=cwd,
+                stdout=subprocess.PIPE,
+                stderr=(subprocess.PIPE if hide_stderr else None),
+            )
             break
         except EnvironmentError:
             e = sys.exc_info()[1]
@@ -92,7 +100,7 @@ def run_command(commands, args, cwd=None, verbose=False, hide_stderr=False):
             return None
     else:
         if verbose:
-            print("unable to find command, tried %s" % (commands,))
+            print("unable to find command, tried {}".format(commands))
         return None
     stdout = p.communicate()[0].strip()
     if sys.version_info[0] >= 3:
@@ -113,12 +121,17 @@ def versions_from_parentdir(parentdir_prefix, root, verbose):
     dirname = os.path.basename(root)
     if not dirname.startswith(parentdir_prefix):
         if verbose:
-            print("guessing rootdir is '%s', but '%s' doesn't start with "
-                  "prefix '%s'" % (root, dirname, parentdir_prefix))
+            print(
+                "guessing rootdir is '%s', but '%s' doesn't start with "
+                "prefix '%s'" % (root, dirname, parentdir_prefix)
+            )
         raise NotThisMethod("rootdir doesn't start with parentdir_prefix")
-    return {"version": dirname[len(parentdir_prefix):],
-            "full-revisionid": None,
-            "dirty": False, "error": None}
+    return {
+        "version": dirname[len(parentdir_prefix) :],
+        "full-revisionid": None,
+        "dirty": False,
+        "error": None,
+    }
 
 
 @register_vcs_handler("git", "get_keywords")
@@ -130,7 +143,7 @@ def git_get_keywords(versionfile_abs):
     # _version.py.
     keywords = {}
     try:
-        f = open(versionfile_abs, "r")
+        f = io.open(versionfile_abs, "rt", encoding="utf-8")
         for line in f.readlines():
             if line.strip().startswith("git_refnames ="):
                 mo = re.search(r'=\s*"(.*)"', line)
@@ -156,11 +169,11 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
         if verbose:
             print("keywords are unexpanded, not using")
         raise NotThisMethod("unexpanded keywords, not a git-archive tarball")
-    refs = set([r.strip() for r in refnames.strip("()").split(",")])
+    refs = {r.strip() for r in refnames.strip("()").split(",")}
     # starting in git-1.8.3, tags are listed as "tag: foo-1.0" instead of
     # just "foo-1.0". If we see a "tag: " prefix, prefer those.
     TAG = "tag: "
-    tags = set([r[len(TAG):] for r in refs if r.startswith(TAG)])
+    tags = {r[len(TAG) :] for r in refs if r.startswith(TAG)}
     if not tags:
         # Either we're using git < 1.8.3, or there really are no tags. We use
         # a heuristic: assume all version tags have a digit. The old git %d
@@ -169,12 +182,15 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
         # between branches and tags. By ignoring refnames without digits, we
         # filter out many common branch names like "release" and
         # "stabilization", as well as "HEAD" and "master".
-        tags = set([r for r in refs if re.search(r'\d', r)])
+        tags = {r for r in refs if re.search(r"\d", r)}
         if verbose:
-            print("discarding '%s', no digits" % ",".join(refs-tags))
+            print("discarding '%s', no digits" % ",".join(refs - tags))
 
-    branches = [r for r in refs if not r.startswith(TAG)
-                and r != "HEAD" and not r.startswith("refs/")]
+    branches = [
+        r
+        for r in refs
+        if not r.startswith(TAG) and r != "HEAD" and not r.startswith("refs/")
+    ]
     if verbose:
         print("likely branches: %s" % ",".join(sorted(branches)))
     branch = None
@@ -186,22 +202,28 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
     for ref in sorted(tags):
         # sorting will prefer e.g. "2.0" over "2.0rc1"
         if ref.startswith(tag_prefix):
-            r = ref[len(tag_prefix):]
+            r = ref[len(tag_prefix) :]
             if verbose:
                 print("picking %s" % r)
 
-            result = {"version": r,
-                      "full-revisionid": keywords["full"].strip(),
-                      "dirty": False, "error": None}
+            result = {
+                "version": r,
+                "full-revisionid": keywords["full"].strip(),
+                "dirty": False,
+                "error": None,
+            }
             if branch is not None:
                 result["branch"] = branch
             return result
     # no suitable tags, so version is "0+unknown", but full hex is still there
     if verbose:
         print("no suitable tags, using unknown + full revision id")
-    return {"version": "0+unknown",
-            "full-revisionid": keywords["full"].strip(),
-            "dirty": False, "error": "no suitable tags"}
+    return {
+        "version": "0+unknown",
+        "full-revisionid": keywords["full"].strip(),
+        "dirty": False,
+        "error": "no suitable tags",
+    }
 
 
 @register_vcs_handler("git", "pieces_from_vcs")
@@ -222,10 +244,19 @@ def git_pieces_from_vcs(tag_prefix, root, verbose, run_command=run_command):
         GITS = ["git.cmd", "git.exe"]
     # if there is a tag matching tag_prefix, this yields TAG-NUM-gHEX[-dirty]
     # if there isn't one, this yields HEX[-dirty] (no NUM)
-    describe_out = run_command(GITS, ["describe", "--tags", "--dirty",
-                                      "--always", "--long",
-                                      "--match", "%s*" % tag_prefix],
-                               cwd=root)
+    describe_out = run_command(
+        GITS,
+        [
+            "describe",
+            "--tags",
+            "--dirty",
+            "--always",
+            "--long",
+            "--match",
+            "%s*" % tag_prefix,
+        ],
+        cwd=root,
+    )
     # --long was added in git-1.5.5
     if describe_out is None:
         raise NotThisMethod("'git describe' failed")
@@ -248,24 +279,21 @@ def git_pieces_from_vcs(tag_prefix, root, verbose, run_command=run_command):
     dirty = git_describe.endswith("-dirty")
     pieces["dirty"] = dirty
     if dirty:
-        git_describe = git_describe[:git_describe.rindex("-dirty")]
+        git_describe = git_describe[: git_describe.rindex("-dirty")]
 
     # figure out our branch
-    abbrev_ref_out = run_command(GITS,
-                                 ["rev-parse", "--abbrev-ref", "HEAD"],
-                                 cwd=root)
-    if abbrev_ref_out is not None:
+    abbrev_ref_out = run_command(GITS, ["rev-parse", "--abbrev-ref", "HEAD"], cwd=root)
+    if abbrev_ref_out is not None and abbrev_ref_out != "HEAD":
         pieces["branch"] = abbrev_ref_out.strip()
 
     # now we have TAG-NUM-gHEX or HEX
 
     if "-" in git_describe:
         # TAG-NUM-gHEX
-        mo = re.search(r'^(.+)-(\d+)-g([0-9a-f]+)$', git_describe)
+        mo = re.search(r"^(.+)-(\d+)-g([0-9a-f]+)$", git_describe)
         if not mo:
             # unparseable. Maybe git-describe is misbehaving?
-            pieces["error"] = ("unable to parse git-describe output: '%s'"
-                               % describe_out)
+            pieces["error"] = "unable to parse git-describe output: '%s'" % describe_out
             return pieces
 
         # tag
@@ -274,10 +302,12 @@ def git_pieces_from_vcs(tag_prefix, root, verbose, run_command=run_command):
             if verbose:
                 fmt = "tag '%s' doesn't start with prefix '%s'"
                 print(fmt % (full_tag, tag_prefix))
-            pieces["error"] = ("tag '%s' doesn't start with prefix '%s'"
-                               % (full_tag, tag_prefix))
+            pieces["error"] = "tag '{}' doesn't start with prefix '{}'".format(
+                full_tag,
+                tag_prefix,
+            )
             return pieces
-        pieces["closest-tag"] = full_tag[len(tag_prefix):]
+        pieces["closest-tag"] = full_tag[len(tag_prefix) :]
 
         # distance: number of commits since tag
         pieces["distance"] = int(mo.group(2))
@@ -288,8 +318,7 @@ def git_pieces_from_vcs(tag_prefix, root, verbose, run_command=run_command):
     else:
         # HEX: no tags
         pieces["closest-tag"] = None
-        count_out = run_command(GITS, ["rev-list", "HEAD", "--count"],
-                                cwd=root)
+        count_out = run_command(GITS, ["rev-list", "HEAD", "--count"], cwd=root)
         pieces["distance"] = int(count_out)  # total number of commits
 
     return pieces
@@ -306,17 +335,18 @@ def git_parse_lookup_file(path):
         return []
 
     import re
+
     lookup = []
-    with open(path, "r") as f:
+    with io.open(path, "rt", encoding="utf-8") as f:
         for line in f:
-            if '#' in line:
-                line = line[:line.rindex("#")]
+            if "#" in line:
+                line = line[: line.index("#")]
             line = line.strip()
             if not line:
                 continue
 
             try:
-                split_line = map(lambda x: x.strip(), line.split())
+                split_line = list(map(lambda x: x.strip(), line.split()))
                 if not len(split_line):
                     continue
 
@@ -337,7 +367,8 @@ def git_parse_lookup_file(path):
                     continue
 
                 lookup.append(entry)
-            except:
+            except Exception:
+                logging.getLogger(__name__).exception("Versioneer problem")
                 break
     return lookup
 
@@ -349,46 +380,44 @@ def git_pieces_from_lookup(lookup, root, verbose, run_command=run_command):
     if sys.platform == "win32":
         GITS = ["git.cmd", "git.exe"]
 
-    stdout = run_command(GITS, ["rev-parse", "--abbrev-ref", "HEAD"],
-                         cwd=root)
+    stdout = run_command(GITS, ["rev-parse", "--abbrev-ref", "HEAD"], cwd=root)
     if stdout is None:
         raise NotThisMethod("git rev-parse --abbrev-ref HEAD failed")
 
     current_branch = stdout.strip()
+    if current_branch == "HEAD":
+        raise NotThisMethod("not on a branch")
+
     for matcher, render, tag, ref_commit in lookup:
         if matcher.match(current_branch):
             if tag is None or ref_commit is None:
-                raise NotThisMethod("tag or ref_commit is unset for "
-                                    "this branch")
+                raise NotThisMethod("tag or ref_commit is unset for " "this branch")
 
-            stdout = run_command(GITS,
-                                 ["rev-list", "%s..HEAD" % ref_commit,
-                                  "--count"],
-                                 cwd=root)
+            stdout = run_command(
+                GITS, ["rev-list", "%s..HEAD" % ref_commit, "--count"], cwd=root
+            )
             if stdout is None:
-                raise NotThisMethod("git rev-list %s..HEAD "
-                                    "--count failed" % ref_commit)
+                raise NotThisMethod(
+                    "git rev-list %s..HEAD " "--count failed" % ref_commit
+                )
             try:
                 num_commits = int(stdout.strip())
             except ValueError:
-                raise NotThisMethod("git rev-list %s..HEAD --count didn't "
-                                    "return a valid number" % ref_commit)
+                raise NotThisMethod(
+                    "git rev-list %s..HEAD --count didn't "
+                    "return a valid number" % ref_commit
+                )
 
-            stdout = run_command(GITS,
-                                 ["rev-parse", "--short", "HEAD"],
-                                 cwd=root)
+            stdout = run_command(GITS, ["rev-parse", "--short", "HEAD"], cwd=root)
             if stdout is None:
-                raise NotThisMethod("git describe rev-parse "
-                                    "--short HEAD failed")
+                raise NotThisMethod("git describe rev-parse " "--short HEAD failed")
             short_hash = stdout.strip()
 
-            stdout = run_command(GITS,
-                                 ["describe", "--tags",
-                                  "--dirty", "--always"],
-                                 cwd=root)
+            stdout = run_command(
+                GITS, ["describe", "--tags", "--dirty", "--always"], cwd=root
+            )
             if stdout is None:
-                raise NotThisMethod("git describe --tags --dirty "
-                                    "--always failed")
+                raise NotThisMethod("git describe --tags --dirty " "--always failed")
             dirty = stdout.strip().endswith("-dirty")
 
             stdout = run_command(GITS, ["rev-parse", "HEAD"], cwd=root)
@@ -404,7 +433,7 @@ def git_pieces_from_lookup(lookup, root, verbose, run_command=run_command):
                 "closest-tag": tag,
                 "distance": num_commits,
                 "error": None,
-                "render": render
+                "render": render,
             }
 
     raise NotThisMethod("no matching lookup definition found")
@@ -435,10 +464,34 @@ def render_pep440(pieces):
                 rendered += ".dirty"
     else:
         # exception #1
-        rendered = "0+untagged.%d.g%s" % (pieces["distance"],
-                                          pieces["short"])
+        rendered = "0+untagged.%d.g%s" % (pieces["distance"], pieces["short"])
         if pieces["dirty"]:
             rendered += ".dirty"
+    return rendered
+
+
+def render_pep440_tag(pieces):
+    """TAG[[.postDISTANCE].dev0+gHEX] -- Just the tag if not dirty, else more info
+
+    Useful for projects that want commit based tracking on some branches
+    but have the master branch only report tags, to allow for commits that
+    do not modify actual code (e.g. to .github/* or docs).
+
+    Exceptions:
+    1: no tags. 0.postDISTANCE[.dev0]+gHEX
+    """
+    if pieces["closest-tag"]:
+        rendered = pieces["closest-tag"]
+        if pieces["dirty"]:
+            rendered += ".post%d" % pieces["distance"]
+            rendered += ".dev0"
+            rendered += "+g%s" % pieces["short"]
+    else:
+        # exception #1
+        rendered = "0.post%d" % pieces["distance"]
+        if pieces["dirty"]:
+            rendered += ".dev0"
+        rendered += "+g%s" % pieces["short"]
     return rendered
 
 
@@ -571,10 +624,12 @@ def render_git_describe_long(pieces):
 def render(pieces, style):
     """Render the given version pieces into the requested style."""
     if pieces["error"]:
-        return {"version": "unknown",
-                "full-revisionid": pieces.get("long"),
-                "dirty": None,
-                "error": pieces["error"]}
+        return {
+            "version": "unknown",
+            "full-revisionid": pieces.get("long"),
+            "dirty": None,
+            "error": pieces["error"],
+        }
 
     if "render" in pieces and pieces["render"] is not None:
         style = pieces["render"]
@@ -592,6 +647,8 @@ def render(pieces, style):
         rendered = render_pep440_old(pieces)
     elif style == "pep440-dev":
         rendered = render_pep440_dev(pieces)
+    elif style == "pep440-tag":
+        rendered = render_pep440_tag(pieces)
     elif style == "git-describe":
         rendered = render_git_describe(pieces)
     elif style == "git-describe-long":
@@ -599,8 +656,12 @@ def render(pieces, style):
     else:
         raise ValueError("unknown style '%s'" % style)
 
-    result = {"version": rendered, "full-revisionid": pieces["long"],
-              "dirty": pieces["dirty"], "error": None}
+    result = {
+        "version": rendered,
+        "full-revisionid": pieces["long"],
+        "dirty": pieces["dirty"],
+        "error": None,
+    }
     if "branch" in pieces and pieces["branch"] is not None:
         result["branch"] = pieces["branch"]
     return result
@@ -617,8 +678,7 @@ def get_versions():
     verbose = cfg.verbose
 
     try:
-        return git_versions_from_keywords(get_keywords(), cfg.tag_prefix,
-                                          verbose)
+        return git_versions_from_keywords(get_keywords(), cfg.tag_prefix, verbose)
     except NotThisMethod:
         pass
 
@@ -627,14 +687,17 @@ def get_versions():
         # versionfile_source is the relative path from the top of the source
         # tree (where the .git directory might live) to this file. Invert
         # this to find the root from __file__.
-        for i in cfg.versionfile_source.split('/'):
+        for _ in cfg.versionfile_source.split("/"):
             root = os.path.dirname(root)
     except NameError:
-        return {"version": "0+unknown", "full-revisionid": None,
-                "dirty": None,
-                "error": "unable to find root of source tree"}
+        return {
+            "version": "0+unknown",
+            "full-revisionid": None,
+            "dirty": None,
+            "error": "unable to find root of source tree",
+        }
 
-    lookupfile = cfg.lookupfile if cfg.lookupfile is not None         else ".versioneer-lookup"
+    lookupfile = cfg.lookupfile if cfg.lookupfile is not None else ".versioneer-lookup"
     lookuppath = os.path.join(root, lookupfile)
     if os.path.exists(lookuppath):
         try:
@@ -656,6 +719,9 @@ def get_versions():
     except NotThisMethod:
         pass
 
-    return {"version": "0+unknown", "full-revisionid": None,
-            "dirty": None,
-            "error": "unable to compute version"}
+    return {
+        "version": "0+unknown",
+        "full-revisionid": None,
+        "dirty": None,
+        "error": "unable to compute version",
+    }

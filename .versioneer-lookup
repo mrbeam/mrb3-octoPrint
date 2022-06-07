@@ -7,25 +7,35 @@
 # The file is processed from top to bottom, the first matching line wins. If <tag> or <reference commit> are left out,
 # the lookup table does not apply to the matched branches
 
-# master and rc shall not use the lookup table, only tags
+# master, meta, rc and prerelease shall not use the lookup table, only tags
 master
+meta/.*
 rc/.*
+hotfix/.*
 prerelease
 
 # neither should disconnected checkouts, e.g. 'git checkout <tag>'
 HEAD
 \(detached.*
 
-# maintenance is currently the branch for preparation of maintenance release 1.3.6
+# maintenance is currently the branch for preparation of maintenance release 1.7.0
 # so are any fix/... and improve/... branches
-maintenance 1.3.6 1a6dbb3f4a5bef857cdeb13c031b9deca2cf30a2 pep440-dev
-fix/.* 1.3.6 1a6dbb3f4a5bef857cdeb13c031b9deca2cf30a2 pep440-dev
-improve/.* 1.3.6 1a6dbb3f4a5bef857cdeb13c031b9deca2cf30a2 pep440-dev
+maintenance 1.7.0 07c4630d126617c2ae98a9c23ad49facf7bf0bbd pep440-dev
+fix/.* 1.7.0 07c4630d126617c2ae98a9c23ad49facf7bf0bbd pep440-dev
+improve/.* 1.7.0 07c4630d126617c2ae98a9c23ad49facf7bf0bbd pep440-dev
 
-# staging/maintenance is currently the branch for preparation of 1.3.6rc4
+# staging/bugfix is the branch for preparation of the 1.7.3 bugfix release
+# so are any bug/... branches
+staging/bugfix 1.7.3 d60c5a631aedf2328e4492125d9b86f595e43d00 pep440-dev
+bug/.* 1.7.3 d60c5a631aedf2328e4492125d9b86f595e43d00 pep440-dev
+
+# staging/maintenance is currently the branch for preparation of 1.7.0rc4
 # so is regressionfix/...
-staging/maintenance 1.3.6rc4 a8747f7e36a03ff2449b62cdf68b8a26a6fa61b3 pep440-dev
-regressionfix/.* 1.3.6rc4 a8747f7e36a03ff2449b62cdf68b8a26a6fa61b3 pep440-dev
+staging/maintenance 1.7.0rc4 f31194f75365787f3eb5da61a24f2f8620111f4f pep440-dev
+regressionfix/.* 1.7.0rc4 f31194f75365787f3eb5da61a24f2f8620111f4f pep440-dev
 
-# every other branch is a development branch and thus gets resolved to 1.4.0-dev for now
-.* 1.4.0 7f5d03d0549bcbd26f40e7e4a3297ea5204fb1cc pep440-dev
+# staging/devel is currently inactive (but has the 1.4.1rc4 namespace)
+staging/devel 1.4.1rc4 650d54d1885409fa1d411eb54b9e8c7ff428910f pep440-dev
+
+# every other branch is a development branch and thus gets resolved to 2.0.0.dev for now
+.* 2.0.0 2da7aa358d950b4567aaab8f18d6b5779193e077 pep440-dev

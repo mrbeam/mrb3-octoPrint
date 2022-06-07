@@ -26,7 +26,7 @@ _cache_mutex = threading.RLock()
 
 
 class UnknownPip(Exception):
-	pass
+    pass
 
 
 class PipCaller(CommandlineCaller):
@@ -36,10 +36,10 @@ class PipCaller(CommandlineCaller):
 	no_use_wheel = pkg_resources.Requirement.parse("pip==1.5.0")
 	broken = pkg_resources.Requirement.parse("pip>=6.0.1,<=6.0.3")
 
-	@classmethod
-	def clean_install_command(cls, args, pip_version, virtual_env, use_user, force_user):
-		logger = logging.getLogger(__name__)
-		args = list(args)
+    @classmethod
+    def clean_install_command(cls, args, pip_version, virtual_env, use_user, force_user):
+        logger = logging.getLogger(__name__)
+        args = list(args)
 
 		# strip --process-dependency-links for versions that don't support it
 		if (
@@ -81,17 +81,17 @@ class PipCaller(CommandlineCaller):
 			)
 			args.append("--no-use-wheel")
 
-		# remove --user if it's present and a virtual env is detected
-		if "--user" in args:
-			if virtual_env or not site.ENABLE_USER_SITE:
-				logger.debug("Virtual environment detected, removing --user flag.")
-				args.remove("--user")
-		# otherwise add it if necessary
-		elif not virtual_env and site.ENABLE_USER_SITE and (use_user or force_user):
-			logger.debug("pip needs --user flag for installations.")
-			args.append("--user")
+        # remove --user if it's present and a virtual env is detected
+        if "--user" in args:
+            if virtual_env or not site.ENABLE_USER_SITE:
+                logger.debug("Virtual environment detected, removing --user flag.")
+                args.remove("--user")
+        # otherwise add it if necessary
+        elif not virtual_env and site.ENABLE_USER_SITE and (use_user or force_user):
+            logger.debug("pip needs --user flag for installations.")
+            args.append("--user")
 
-		return args
+        return args
 
 	def __init__(
 			self, configured=None, ignore_cache=False, force_sudo=False, force_user=False
@@ -99,78 +99,78 @@ class PipCaller(CommandlineCaller):
 		CommandlineCaller.__init__(self)
 		self._logger = logging.getLogger(__name__)
 
-		self.configured = configured
-		self.refresh = False
-		self.ignore_cache = ignore_cache
+        self.configured = configured
+        self.refresh = False
+        self.ignore_cache = ignore_cache
 
-		self.force_sudo = force_sudo
-		self.force_user = force_user
+        self.force_sudo = force_sudo
+        self.force_user = force_user
 
-		self._command = None
-		self._version = None
-		self._version_string = None
-		self._use_sudo = False
-		self._use_user = False
-		self._virtual_env = False
-		self._install_dir = None
+        self._command = None
+        self._version = None
+        self._version_string = None
+        self._use_sudo = False
+        self._use_user = False
+        self._virtual_env = False
+        self._install_dir = None
 
-		self.trigger_refresh()
+        self.trigger_refresh()
 
-		self.on_log_call = lambda *args, **kwargs: None
-		self.on_log_stdout = lambda *args, **kwargs: None
-		self.on_log_stderr = lambda *args, **kwargs: None
+        self.on_log_call = lambda *args, **kwargs: None
+        self.on_log_stdout = lambda *args, **kwargs: None
+        self.on_log_stderr = lambda *args, **kwargs: None
 
-	def _reset(self):
-		self._command = None
-		self._version = None
-		self._version_string = None
-		self._use_sudo = False
-		self._use_user = False
-		self._install_dir = None
+    def _reset(self):
+        self._command = None
+        self._version = None
+        self._version_string = None
+        self._use_sudo = False
+        self._use_user = False
+        self._install_dir = None
 
-	def __le__(self, other):
-		return self.version is not None and self.version <= other
+    def __le__(self, other):
+        return self.version is not None and self.version <= other
 
-	def __lt__(self, other):
-		return self.version is not None and self.version < other
+    def __lt__(self, other):
+        return self.version is not None and self.version < other
 
-	def __ge__(self, other):
-		return self.version is not None and self.version >= other
+    def __ge__(self, other):
+        return self.version is not None and self.version >= other
 
-	def __gt__(self, other):
-		return self.version is not None and self.version > other
+    def __gt__(self, other):
+        return self.version is not None and self.version > other
 
-	@property
-	def command(self):
-		return self._command
+    @property
+    def command(self):
+        return self._command
 
-	@property
-	def version(self):
-		return self._version
+    @property
+    def version(self):
+        return self._version
 
-	@property
-	def version_string(self):
-		return self._version_string
+    @property
+    def version_string(self):
+        return self._version_string
 
-	@property
-	def install_dir(self):
-		return self._install_dir
+    @property
+    def install_dir(self):
+        return self._install_dir
 
-	@property
-	def use_sudo(self):
-		return self._use_sudo
+    @property
+    def use_sudo(self):
+        return self._use_sudo
 
-	@property
-	def use_user(self):
-		return self._use_user
+    @property
+    def use_user(self):
+        return self._use_user
 
-	@property
-	def virtual_env(self):
-		return self._virtual_env
+    @property
+    def virtual_env(self):
+        return self._virtual_env
 
-	@property
-	def available(self):
-		return self._command is not None
+    @property
+    def available(self):
+        return self._command is not None
 
 	def trigger_refresh(self):
 		self._reset()
@@ -182,31 +182,31 @@ class PipCaller(CommandlineCaller):
 			self._version = None
 		self.refresh = False
 
-	def execute(self, *args, **kwargs):
-		if self.refresh:
-			self.trigger_refresh()
+    def execute(self, *args, **kwargs):
+        if self.refresh:
+            self.trigger_refresh()
 
-		if self._command is None:
-			raise UnknownPip()
+        if self._command is None:
+            raise UnknownPip()
 
-		arg_list = list(args)
+        arg_list = list(args)
 
 		if "install" in arg_list:
 			arg_list = self.clean_install_command(
 				arg_list, self.version, self._virtual_env, self.use_user, self.force_user
 			)
 
-		# add args to command
-		if isinstance(self._command, list):
-			command = self._command + list(arg_list)
-		else:
-			command = [self._command] + list(arg_list)
+        # add args to command
+        if isinstance(self._command, list):
+            command = self._command + list(arg_list)
+        else:
+            command = [self._command] + list(arg_list)
 
-		# add sudo if necessary
-		if self._use_sudo or self.force_sudo:
-			command = ["sudo"] + command
+        # add sudo if necessary
+        if self._use_sudo or self.force_sudo:
+            command = ["sudo"] + command
 
-		return self.call(command, **kwargs)
+        return self.call(command, **kwargs)
 
 	def _get_sudo_command(self, command, sudo=False):
 		if sudo:
@@ -221,9 +221,9 @@ class PipCaller(CommandlineCaller):
 		if pip_command is None:
 			return
 
-		# Determine the pip version
+        # Determine the pip version
 
-		self._logger.debug("Going to figure out pip's version")
+        self._logger.debug("Going to figure out pip's version")
 
 		pip_version, version_segment = self._get_pip_version(self._get_sudo_command(pip_command, pip_sudo))
 		if pip_version is None:
@@ -236,19 +236,19 @@ class PipCaller(CommandlineCaller):
 			)
 			return
 
-		# Now figure out if pip belongs to a virtual environment and if the
-		# default installation directory is writable.
-		#
-		# The idea is the following: If OctoPrint is installed globally,
-		# the site-packages folder is probably not writable by our user.
-		# However, the user site-packages folder as usable by providing the
-		# --user parameter during install is. This we may not use though if
-		# the provided pip belongs to a virtual env (since that hiccups hard).
-		#
-		# So we figure out the installation directory, check if it's writable
-		# and if not if pip belongs to a virtual environment. Only if the
-		# installation directory is NOT writable by us but we also don't run
-		# in a virtual environment may we proceed with the --user parameter.
+        # Now figure out if pip belongs to a virtual environment and if the
+        # default installation directory is writable.
+        #
+        # The idea is the following: If OctoPrint is installed globally,
+        # the site-packages folder is probably not writable by our user.
+        # However, the user site-packages folder as usable by providing the
+        # --user parameter during install is. This we may not use though if
+        # the provided pip belongs to a virtual env (since that hiccups hard).
+        #
+        # So we figure out the installation directory, check if it's writable
+        # and if not if pip belongs to a virtual environment. Only if the
+        # installation directory is NOT writable by us but we also don't run
+        # in a virtual environment may we proceed with the --user parameter.
 
 		ok, pip_user, pip_virtual_env, pip_install_dir = self._check_pip_setup(self._get_sudo_command(pip_command, pip_sudo))
 		if not ok:
@@ -266,27 +266,27 @@ class PipCaller(CommandlineCaller):
 				)
 			return
 
-		self._command = pip_command
-		self._version = pip_version
-		self._version_string = version_segment
-		self._use_sudo = pip_sudo
-		self._use_user = pip_user
-		self._virtual_env = pip_virtual_env
-		self._install_dir = pip_install_dir
+        self._command = pip_command
+        self._version = pip_version
+        self._version_string = version_segment
+        self._use_sudo = pip_sudo
+        self._use_user = pip_user
+        self._virtual_env = pip_virtual_env
+        self._install_dir = pip_install_dir
 
-	def _get_pip_command(self):
-		pip_command = self.configured
+    def _get_pip_command(self):
+        pip_command = self.configured
 
-		if pip_command is not None and pip_command.startswith("sudo "):
-			pip_command = pip_command[len("sudo "):]
-			pip_sudo = True
-		else:
-			pip_sudo = False
+        if pip_command is not None and pip_command.startswith("sudo "):
+            pip_command = pip_command[len("sudo ") :]
+            pip_sudo = True
+        else:
+            pip_sudo = False
 
-		if pip_command is None:
-			pip_command = self.autodetect_pip()
+        if pip_command is None:
+            pip_command = self.autodetect_pip()
 
-		return pip_command, pip_sudo
+        return pip_command, pip_sudo
 
 	@classmethod
 	def autodetect_pip(cls):
@@ -320,7 +320,7 @@ class PipCaller(CommandlineCaller):
 				)
 				return command
 
-		return None
+        return None
 
 	@classmethod
 	def to_sarge_command(cls, pip_command, *args):
@@ -360,12 +360,12 @@ class PipCaller(CommandlineCaller):
 				)
 				return None, None
 
-			output = PipCaller._preprocess(p.stdout.text)
-			# output should look something like this:
-			#
-			#     pip <version> from <path> (<python version>)
-			#
-			# we'll just split on whitespace and then try to use the second entry
+            output = PipCaller._preprocess(p.stdout.text)
+            # output should look something like this:
+            #
+            #     pip <version> from <path> (<python version>)
+            #
+            # we'll just split on whitespace and then try to use the second entry
 
 			if not output.startswith("pip"):
 				self._logger.warning(
@@ -382,7 +382,7 @@ class PipCaller(CommandlineCaller):
 					)
 				)
 
-			version_segment = split_output[1]
+            version_segment = split_output[1]
 
 			try:
 				pip_version = pkg_resources.parse_version(version_segment)
@@ -392,16 +392,16 @@ class PipCaller(CommandlineCaller):
 				)
 				return None, None
 
-			self._logger.info("Version of pip is {}".format(version_segment))
+            self._logger.info("Version of pip is {}".format(version_segment))
 
-			result = pip_version, version_segment
-			_cache["version"][pip_command_str] = result
-			return result
+            result = pip_version, version_segment
+            _cache["version"][pip_command_str] = result
+            return result
 
-	def _check_pip_setup(self, pip_command):
-		pip_command_str = pip_command
-		if isinstance(pip_command_str, list):
-			pip_command_str = " ".join(pip_command_str)
+    def _check_pip_setup(self, pip_command):
+        pip_command_str = pip_command
+        if isinstance(pip_command_str, list):
+            pip_command_str = " ".join(pip_command_str)
 
 		with _cache_mutex:
 			if not self.ignore_cache and pip_command_str in _cache["setup"]:
@@ -459,9 +459,9 @@ class PipCaller(CommandlineCaller):
 					key, value = line.split("=", 2)
 					data[key.strip()] = value.strip()
 
-			install_dir_str = data.get("PIP_INSTALL_DIR", None)
-			virtual_env_str = data.get("PIP_VIRTUAL_ENV", None)
-			writable_str = data.get("PIP_WRITABLE", None)
+            install_dir_str = data.get("PIP_INSTALL_DIR", None)
+            virtual_env_str = data.get("PIP_VIRTUAL_ENV", None)
+            writable_str = data.get("PIP_WRITABLE", None)
 
 			if (
 					install_dir_str is not None
@@ -472,10 +472,10 @@ class PipCaller(CommandlineCaller):
 				virtual_env = virtual_env_str == "True"
 				writable = writable_str == "True"
 
-				can_use_user_flag = not virtual_env and site.ENABLE_USER_SITE
+                can_use_user_flag = not virtual_env and site.ENABLE_USER_SITE
 
-				ok = writable or can_use_user_flag
-				user_flag = not writable and can_use_user_flag
+                ok = writable or can_use_user_flag
+                user_flag = not writable and can_use_user_flag
 
 				self._logger.info(
 					"pip installs to {} (writable -> {}), --user flag needed -> {}, "
@@ -503,10 +503,10 @@ class PipCaller(CommandlineCaller):
 	def _preprocess_lines(self, *lines):
 		return list(map(self._preprocess, lines))
 
-	@staticmethod
-	def _preprocess(text):
-		"""
-		Strips ANSI and VT100 cursor control characters from line and makes sure it's a unicode.
+    @staticmethod
+    def _preprocess(text):
+        """
+        Strips ANSI and VT100 cursor control characters from line and makes sure it's a unicode.
 
 		Parameters:
 			text (str or unicode): The text to process
@@ -514,7 +514,7 @@ class PipCaller(CommandlineCaller):
 		Returns:
 			(unicode) The processed text as a unicode, stripped of ANSI and VT100 cursor show/hide codes
 
-		Example::
+        Example::
 
 			>>> text = b'some text with some\x1b[?25h ANSI codes for \x1b[31mred words\x1b[39m and\x1b[?25l also some cursor control codes'
 			>>> PipCaller._preprocess(text) # doctest: +ALLOW_UNICODE
@@ -524,13 +524,13 @@ class PipCaller(CommandlineCaller):
 
 
 class LocalPipCaller(PipCaller):
-	"""
-	The LocalPipCaller always uses the pip instance associated with
-	sys.executable.
-	"""
+    """
+    The LocalPipCaller always uses the pip instance associated with
+    sys.executable.
+    """
 
-	def _get_pip_command(self):
-		return self.autodetect_pip(), False
+    def _get_pip_command(self):
+        return self.autodetect_pip(), False
 
 	def _check_pip_setup(self, pip_command):
 		import os

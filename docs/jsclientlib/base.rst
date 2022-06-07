@@ -14,12 +14,12 @@
 
    The client library instance's options. The following keys are currently supported:
 
-   ``apikey``
-       The API Key to use for requests against the OctoPrint API. Should usually be
-       the anonymous UI API Key provided on the socket.
-
    ``baseurl``
        The base URL of the OctoPrint API
+
+   ``apikey``
+       The API Key to use for requests against the OctoPrint API. If left unset, you'll
+       need to authenticate your session through a login.
 
    ``locale``
        The locale to set in ``X-Locale`` headers on API requests. Useful for API
@@ -417,7 +417,7 @@
 
    Creates a custom exception class. ``name`` may be either a function in which case it will be used
    as constructor for the new exception class, or a string, in which case a constructor with proper
-   ``name``, ``message`` and ``stack`` attributes will be created. The class hierarchy will be propery
+   ``name``, ``message`` and ``stack`` attributes will be created. The class hierarchy will be properly
    setup to subclass ``Error``.
 
    **Example:**
