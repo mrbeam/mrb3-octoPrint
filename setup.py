@@ -30,8 +30,8 @@ INSTALL_REQUIRES = [
     # the following dependencies are non trivial to update since later versions
     # introduce backwards incompatible changes that might affect plugins, or due to
     # other observed problems
-    "markupsafe>=1.1,<2.0",  # Jinja dependency, newer versions require Python 3
-    "markdown>=3.1,<3.2",  # newer versions require Python 3
+    "markupsafe>=1.1",  # Jinja dependency, newer versions require Python 3
+    "markdown>=3.1",  # newer versions require Python 3
     "wrapt>=1.12.1,<1.13",  # newer versions fail to build on OctoPi 0.15
     # anything below this should be checked on releases for new versions
     "flask>=1.1.4,<2",  # newer versions require Python 3
@@ -67,7 +67,7 @@ INSTALL_REQUIRES = [
 # Python 2 specific requirements
 INSTALL_REQUIRES_PYTHON2 = [
     "feedparser>=5.2.1,<6",  # newer versions require Python 3
-    "tornado==5.1.1",  # newer versions require Python 3
+    "tornado>=5.1.1",  # newer versions require Python 3
     "futures>=3.3,<4",
     "monotonic>=1.6,<2",
     "scandir>=1.10,<2",
