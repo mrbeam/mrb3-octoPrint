@@ -4,9 +4,6 @@ on:
   create:
     tags:
       - 'v*' # all tags
-      - 'v*.*.*a' # alpha tags
-      - 'v*.*.*rc*' # release candidate tags
-      - 'v*.*.*.post*' # post release tags
 
 jobs:
   update-tags:
