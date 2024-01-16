@@ -1,0 +1,11 @@
+name: Update tags on mrbeam/mrb3-beamOS
+
+on:
+  create:
+    tags:
+      - 'v*' # all tags
+
+jobs:
+  update-tags:
+    uses: mrbeam/mrb-workflows/.github/workflows/update-beamos-tags.yml@main
+    secrets: inherit
