@@ -1,9 +1,8 @@
 name: Update tags on mrbeam/mrb3-beamOS
 
 on:
-  create:
-    tags:
-      - 'v*' # all tags
+  release:
+    types: [published]
 
 jobs:
   update-tags:
