@@ -45,7 +45,7 @@
                 {{ _('Please log in') }}
                 <img id="logo_compact" alt="Mr Beam Logo"
                      style="float: right; height: 3rem;"
-                     src="/plugin/mrbeam/static/img/mr_x120.png">
+                     src="{{ url_for("static", filename="img/favicon.svg") }}">
             </h2>
 
             <div id="login-error" class="alert alert-error" data-test-id="login-error">{{ _('Incorrect username or password.') }}</div>
