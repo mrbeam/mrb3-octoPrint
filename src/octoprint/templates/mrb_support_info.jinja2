@@ -22,14 +22,22 @@
                 padding: 25vh 20vw;
             }
 
-            #overlay_wrapper {
-                width: 50vw;
-                height: auto;
-                margin: 0 auto;
+            body.camera #crashed_plugin_notice {
+                display: none;
             }
+
+            body:not(.camera) #calibration_mode_notice {
+                display: none;
+            }
+
+            small {
+                font-size: .7em;
+                color: #999;
+                font-weight: 300;
+            }
+
             .overlay {
-                padding: 60px;
-                margin-bottom: 30px;
+                padding: 5vw;
                 font-size: 18px;
                 line-height: 30px;
                 color: inherit;
@@ -38,20 +46,23 @@
                 position: relative;
             }
 
+            .overlay p {
+                max-width: 40vw;
+            }
+
             .overlay h1 {
                 margin-bottom: 0;
                 font-size: 30px;
                 line-height: 1;
-                letter-spacing: -1px;
                 color: inherit;
                 border-bottom: 1px solid #e25303;
             }
 
             .overlay img {
                 position: absolute;
-                height: 200px;
-                right: 60px;
-                bottom: 40px;
+                width: 10vw;
+                right: 5vw;
+                bottom: 4vw;
             }
 
             a {
@@ -81,9 +92,17 @@
 
         </style>
     </head>
-    <body>
+    <body class="{{ pluginNames | join(' ') }}">
 
-        <div class="overlay">
+        <div id="calibration_mode_notice" class="overlay">
+            <h1 id="offline_overlay_title">{{ _('Calibration Mode') }}</h1>
+            <p>{{ _('Please finish your calibration and exit the calibration tool. Afterwards reload this page.') }}</p>
+            <p>
+                <a href="/plugin/camera/calibration" target="MrBeamCalibrationTool" class="btn-link">{{ _('Open the calibration tool') }}</a>
+            </p>
+        </div>
+
+        <div id="crashed_plugin_notice" class="overlay">
             <img class="broken" src="{{ url_for('static', filename='img/favicon.svg') }}" />
             <h1 id="offline_overlay_title">{{ _('Sorry - Something went wrong') }}</h1>
             <p>{{ _('This time BeamOS was not starting up.') }}</p>
@@ -92,6 +111,8 @@
             <p>
                 <a class="btn btn-primary btn-large" href="https://support.mr-beam.org" target="_blank">{{ _('Please get in touch with us') }}</a>
             </p>
+            <small>Loaded plugins: {{ pluginNames | join(', ') }}</small><br/>
+            <small><a href="/downloads/logs/octoprint.log">Download Logs</a></small>
         </div>
 
     </body>
