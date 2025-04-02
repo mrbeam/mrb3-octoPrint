@@ -1,21 +1,21 @@
 <html>
     <head>
-        <title>OctoPrint is still starting</title>
+        <title>BeamOS is still starting</title>
         <style>
             body {
                 margin: 0;
-                font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+                font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
                 font-size: 14px;
                 line-height: 20px;
-                color: #333333;
+                color: #383e42;
                 background-color: #ffffff;
             }
 
-            a,
-            a:hover,
-            a:active,
-            a:visited {
-                color: #333333;
+            a {
+                color: #e25303;
+            }
+            a:hover {
+                color: #ff7f36;
             }
 
             #startup-overlay {
@@ -61,11 +61,11 @@
             }
 
             .normal {
-                color: #333333;
+                color: #383e42;
             }
 
             .green {
-                color: #169300;
+                color: #e25303;
             }
 
             .red {
@@ -206,7 +206,7 @@
                         // our cached.gif loaded, so the index is cached now, let's reload
                         indexCached = true;
                         message.className = "pulsate1 green";
-                        message.innerText = "OctoPrint server ready, reloading page...";
+                        message.innerText = "BeamOS ready, reloading page...";
                         reloadnow.style.display = "none";
 
                         reload();
@@ -225,7 +225,7 @@
                         serverIsOnline = true;
 
                         message.innerText =
-                            "OctoPrint server started, waiting for it to get ready...";
+                            "BeamOS started, waiting for it to get ready...";
                         reloadnowlink.onclick = function () {
                             indexCached = true; // not really, but we fake it
 
@@ -295,7 +295,7 @@
                     <div class="inner">
                         <div class="content">
                             <h1 id="message" class="pulsate3">
-                                OctoPrint is still starting up, please wait...
+                                BeamOS is still starting up, please wait...
                             </h1>
                             <small id="reloadnow" style="display: none"
                                 ><a

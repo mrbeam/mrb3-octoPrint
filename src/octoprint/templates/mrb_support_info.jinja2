@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title data-bind="text: title">BeamOS</title>
+
+        <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+        <link rel="shortcut icon" href="{{ url_for('static', filename='img/tentacle-32x32.png') }}">
+        <link rel="mask-icon" href="{{ url_for('static', filename='img/mask.svg') }}" color="#56BE37">
+        <link rel="mask-icon-theme" href="{{ url_for('static', filename='img/mask-theme.svg') }}" color="#56BE37">
+        <link rel="apple-touch-icon" sizes="114x114" href="{{ url_for('static', filename='img/apple-touch-icon-114x114.png') }}">
+        <link rel="apple-touch-icon" sizes="144x144" href="{{ url_for('static', filename='img/apple-touch-icon-144x144.png') }}">
+
+        <meta name="robots" content="noindex, nofollow, noimageindex">
+        <meta name="referrer" content="no-referrer">
+
+        <style>
+            body {
+                font-family: Roboto, 'noto emoji', sans-serif;
+                color: #383e42;
+                background: linear-gradient(90deg, #ccc 0%, #fff 100%);
+                margin: 0;
+                padding: 25vh 20vw;
+            }
+
+            #overlay_wrapper {
+                width: 50vw;
+                height: auto;
+                margin: 0 auto;
+            }
+            .overlay {
+                padding: 60px;
+                margin-bottom: 30px;
+                font-size: 18px;
+                line-height: 30px;
+                color: inherit;
+                background-color: #fff;
+                border-radius: 8px;
+                position: relative;
+            }
+
+            .overlay h1 {
+                margin-bottom: 0;
+                font-size: 30px;
+                line-height: 1;
+                letter-spacing: -1px;
+                color: inherit;
+                border-bottom: 1px solid #e25303;
+            }
+
+            .overlay img {
+                position: absolute;
+                height: 200px;
+                right: 60px;
+                bottom: 40px;
+            }
+
+            a {
+                color: #e25303;
+                text-decoration: none;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+
+
+            img.broken {
+              filter: sepia(200%) contrast(200%) brightness(0.8) hue-rotate(30deg);
+              animation: flicker 0.2s infinite alternate;
+            }
+
+            @keyframes flicker {
+                0% { opacity: 0.6; transform: skewX(0deg); }
+                100% { opacity: 0.3; transform: skewX(1deg); }
+                0% { clip-path: inset(0 0 80% 0); transform: translate(-2px, -2px); }
+                20% { clip-path: inset(10% 0 60% 0); transform: translate(2px, 2px); }
+                40% { clip-path: inset(20% 0 40% 0); transform: translate(-3px, 1px); }
+                60% { clip-path: inset(30% 0 20% 0); transform: translate(3px, -1px); }
+                80% { clip-path: inset(40% 0 10% 0); transform: translate(-1px, 3px); }
+                100% { clip-path: inset(0 0 80% 0); transform: translate(1px, -3px); }
+            }
+
+        </style>
+    </head>
+    <body>
+
+        <div class="overlay">
+            <img class="broken" src="{{ url_for('static', filename='img/favicon.svg') }}" />
+            <h1 id="offline_overlay_title">{{ _('Sorry - Something went wrong') }}</h1>
+            <p>{{ _('This time BeamOS was not starting up.') }}</p>
+            <p>{{ _('Try to power off your Mr Beam and restart.') }}</p>
+            <p>{{ _('If that does not fix it, we are happy to help.') }}</p>
+            <p>
+                <a class="btn btn-primary btn-large" href="https://support.mr-beam.org" target="_blank">{{ _('Please get in touch with us') }}</a>
+            </p>
+        </div>
+
+    </body>
+</html>
