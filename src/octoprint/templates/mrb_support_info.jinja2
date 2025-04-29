@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title data-bind="text: title">BeamOS</title>
+
+        <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+        <link rel="shortcut icon" href="{{ url_for('static', filename='img/tentacle-32x32.png') }}">
+        <link rel="mask-icon" href="{{ url_for('static', filename='img/mask.svg') }}" color="#56BE37">
+        <link rel="mask-icon-theme" href="{{ url_for('static', filename='img/mask-theme.svg') }}" color="#56BE37">
+        <link rel="apple-touch-icon" sizes="114x114" href="{{ url_for('static', filename='img/apple-touch-icon-114x114.png') }}">
+        <link rel="apple-touch-icon" sizes="144x144" href="{{ url_for('static', filename='img/apple-touch-icon-144x144.png') }}">
+
+        <meta name="robots" content="noindex, nofollow, noimageindex">
+        <meta name="referrer" content="no-referrer">
+
+        <style>
+            body {
+                font-family: Roboto, 'noto emoji', sans-serif;
+                color: #383e42;
+                background: linear-gradient(90deg, #ccc 0%, #fff 100%);
+                margin: 0;
+                padding: 25vh 20vw;
+            }
+
+            body.camera #crashed_plugin_notice {
+                display: none;
+            }
+
+            body:not(.camera) #calibration_mode_notice {
+                display: none;
+            }
+
+            small {
+                font-size: .7em;
+                color: #999;
+                font-weight: 300;
+            }
+
+            .overlay {
+                padding: 5vw;
+                font-size: 18px;
+                line-height: 30px;
+                color: inherit;
+                background-color: #fff;
+                border-radius: 8px;
+                position: relative;
+            }
+
+            .overlay p {
+                max-width: 40vw;
+            }
+
+            .overlay h1 {
+                margin-bottom: 0;
+                font-size: 30px;
+                line-height: 1;
+                color: inherit;
+                border-bottom: 1px solid #e25303;
+            }
+
+            .overlay img {
+                position: absolute;
+                width: 10vw;
+                right: 5vw;
+                bottom: 4vw;
+            }
+
+            a {
+                color: #e25303;
+                text-decoration: none;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+
+
+            img.broken {
+              filter: sepia(200%) contrast(200%) brightness(0.8) hue-rotate(30deg);
+              animation: flicker 0.2s infinite alternate;
+            }
+
+            @keyframes flicker {
+                0% { opacity: 0.6; transform: skewX(0deg); }
+                100% { opacity: 0.3; transform: skewX(1deg); }
+                0% { clip-path: inset(0 0 80% 0); transform: translate(-2px, -2px); }
+                20% { clip-path: inset(10% 0 60% 0); transform: translate(2px, 2px); }
+                40% { clip-path: inset(20% 0 40% 0); transform: translate(-3px, 1px); }
+                60% { clip-path: inset(30% 0 20% 0); transform: translate(3px, -1px); }
+                80% { clip-path: inset(40% 0 10% 0); transform: translate(-1px, 3px); }
+                100% { clip-path: inset(0 0 80% 0); transform: translate(1px, -3px); }
+            }
+
+        </style>
+    </head>
+    <body class="{{ pluginNames | join(' ') }}">
+
+        <div id="calibration_mode_notice" class="overlay">
+            <h1 id="offline_overlay_title">{{ _('Calibration Mode') }}</h1>
+            <p>{{ _('Please finish your calibration and exit the calibration tool. Afterwards reload this page.') }}</p>
+            <p>
+                <a href="/plugin/camera/calibration" target="MrBeamCalibrationTool" class="btn-link">{{ _('Open the calibration tool') }}</a>
+            </p>
+        </div>
+
+        <div id="crashed_plugin_notice" class="overlay">
+            <img class="broken" src="{{ url_for('static', filename='img/favicon.svg') }}" />
+            <h1 id="offline_overlay_title">{{ _('Sorry - Something went wrong') }}</h1>
+            <p>{{ _('This time BeamOS was not starting up.') }}</p>
+            <p>{{ _('Try to power off your Mr Beam and restart.') }}</p>
+            <p>{{ _('If that does not fix it, we are happy to help.') }}</p>
+            <p>
+                <a class="btn btn-primary btn-large" href="https://support.mr-beam.org" target="_blank">{{ _('Please get in touch with us') }}</a>
+            </p>
+            <small>Loaded plugins: {{ pluginNames | join(', ') }}</small><br/>
+            <small><a href="/downloads/logs/octoprint.log">Download Logs</a></small>
+        </div>
+
+    </body>
+</html>
