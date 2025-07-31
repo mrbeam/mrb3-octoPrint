@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 __author__ = "Gina Häußge <osd@foosel.net>"
@@ -591,6 +590,9 @@ class PrinterStateConnection(
     def _do_emit(self, type, payload):
         try:
             self.send({type: payload})
+        except TypeError as te:
+            self._logger.exception("Failed to serialize payload")
+            self._logger.warning(f"Offending payload: {repr(payload)}")
         except Exception as e:
             if self._logger.isEnabledFor(logging.DEBUG):
                 self._logger.exception(

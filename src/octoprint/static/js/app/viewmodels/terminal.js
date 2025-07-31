@@ -73,7 +73,7 @@ $(function () {
                     result.push(entry);
                     filtered = false;
                 } else if (!filtered) {
-                    result.push(self._toInternalFormat("[...]", "filtered"));
+                    result.push(self._toInternalFormat("[...]", null, "filtered"));
                     filtered = true;
                 }
             });
