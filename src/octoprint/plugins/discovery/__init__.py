@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__author__ = "Gina Häußge <osd@foosel.net>"
-__license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
-__copyright__ = "Copyright (C) 2014 The OctoPrint Project - Released under terms of the AGPLv3 License"
+PRODUCT_NAME = "Mr Beam"
 
 """
 The SSDP/UPNP implementations has been largely inspired by https://gist.github.com/schlamar/2428250
@@ -60,8 +58,8 @@ class DiscoveryPlugin(
 
     ssdp_multicast_port = 1900
 
-    ssdp_server = "{}/{} UPnP/1.0 OctoPrint/{}".format(
-        platform.system(), platform.version(), octoprint.__version__
+    ssdp_server = "{}/{} UPnP/1.0 {}/{}".format(
+        platform.system(), platform.version(), PRODUCT_NAME, octoprint.__version__
     )
 
     # noinspection PyMissingConstructor
@@ -118,8 +116,8 @@ class DiscoveryPlugin(
         vendor = self._settings.get(["model", "vendor"])
         vendorUrl = self._settings.get(["model", "vendorUrl"])
         if not vendor:
-            vendor = "The OctoPrint Project"
-            vendorUrl = "http://www.octoprint.org/"
+            vendor = "Mr Beam GmbH"
+            vendorUrl = "https://www.mr-beam.org/"
 
         response = flask.make_response(
             flask.render_template(
@@ -142,7 +140,7 @@ class DiscoveryPlugin(
     def is_blueprint_protected(self):
         return False
 
-    ##~~ StartupPlugin API -- used for registering OctoPrint's Zeroconf and SSDP services upon application startup
+    ##~~ StartupPlugin API -- used for registering Mr Beam's Zeroconf and SSDP services upon application startup
 
     def on_startup(self, host, port):
         public_host = self._settings.get(["publicHost"])
@@ -161,9 +159,9 @@ class DiscoveryPlugin(
             "_http._tcp", instance_name, txt_record=self._create_http_txt_record_dict()
         )
         self.zeroconf_register(
-            "_octoprint._tcp",
+            "_mrbeam._tcp",
             instance_name,
-            txt_record=self._create_octoprint_txt_record_dict(),
+            txt_record=self._create_mrbeam_txt_record_dict(),
         )
         for zc in self._settings.get(["zeroConf"]):
             if "service" in zc:
@@ -177,7 +175,7 @@ class DiscoveryPlugin(
         # SSDP
         self._ssdp_register()
 
-    ##~~ ShutdownPlugin API -- used for unregistering OctoPrint's Zeroconf and SSDP service upon application shutdown
+    ##~~ ShutdownPlugin API -- used for unregistering Mr Beam's Zeroconf and SSDP service upon application shutdown
 
     def on_shutdown(self):
         registrations = list(self._zeroconf_registrations.keys())
@@ -221,8 +219,8 @@ class DiscoveryPlugin(
         Registers a new service with Zeroconf/Bonjour/Avahi.
 
         :param reg_type: type of service to register, e.g. "_gntp._tcp"
-        :param name: displayable name of the service, if not given defaults to the OctoPrint instance name
-        :param port: port to register for the service, if not given defaults to OctoPrint's (public) port
+        :param name: displayable name of the service, if not given defaults to the Mr Beam instance name
+        :param port: port to register for the service, if not given defaults to Mr Beam's (public) port
         :param txt_record: optional txt record to attach to the service, dictionary of key-value-pairs
         """
 
@@ -262,7 +260,7 @@ class DiscoveryPlugin(
         Unregisters a previously registered Zeroconf/Bonjour/Avahi service identified by service and port.
 
         :param reg_type: the type of the service to be unregistered
-        :param port: the port of the service to be unregistered, defaults to OctoPrint's (public) port if not given
+        :param port: the port of the service to be unregistered, defaults to Mr Beam's (public) port if not given
         :return:
         """
 
@@ -513,7 +511,7 @@ class DiscoveryPlugin(
 
     def _create_http_txt_record_dict(self):
         """
-        Creates a TXT record for the _http._tcp Zeroconf service supplied by this OctoPrint instance.
+        Creates a TXT record for the _http._tcp Zeroconf service supplied by this Mr Beam instance.
 
         Defines the keys for _http._tcp as defined in http://www.dns-sd.org/txtrecords.html
 
@@ -542,19 +540,19 @@ class DiscoveryPlugin(
 
         return entries
 
-    def _create_octoprint_txt_record_dict(self):
+    def _create_mrbeam_txt_record_dict(self):
         """
-        Creates a TXT record for the _octoprint._tcp Zeroconf service supplied by this OctoPrint instance.
+        Creates a TXT record for the _mrbeam._tcp Zeroconf service supplied by this Mr Beam instance.
 
         The following keys are defined:
 
-          * `path`: path prefix to actual OctoPrint instance, inherited from _http._tcp
+          * `path`: path prefix to actual Mr Beam instance, inherited from _http._tcp
           * `u`: username if HTTP Basic Auth is used, optional, inherited from _http._tcp
           * `p`: password if HTTP Basic Auth is used, optional, inherited from _http._tcp
-          * `version`: OctoPrint software version
-          * `api`: OctoPrint API version
-          * `model`: Model of the device that is running OctoPrint
-          * `vendor`: Vendor of the device that is running OctoPrint
+          * `version`: Mr Beam software version
+          * `api`: Mr Beam API version
+          * `model`: Model of the device that is running Mr Beam
+          * `vendor`: Vendor of the device that is running Mr Beam
 
         :return: a dictionary containing the defined key-value-pairs, ready to be turned into a TXT record
         """
@@ -581,7 +579,7 @@ class DiscoveryPlugin(
 
     def _ssdp_register(self):
         """
-        Registers the OctoPrint instance as basic service with a presentation URL pointing to the web interface
+        Registers the Mr Beam instance as basic service with a presentation URL pointing to the web interface
         """
 
         import threading
@@ -596,7 +594,7 @@ class DiscoveryPlugin(
 
     def _ssdp_unregister(self):
         """
-        Unregisters the OctoPrint instance again
+        Unregisters the Mr Beam instance again
         """
 
         self._ssdp_monitor_active = False
@@ -801,11 +799,7 @@ class DiscoveryPlugin(
         return upnpUuid
 
     def get_instance_name(self):
-        name = self._settings.global_get(["appearance", "name"])
-        if name:
-            return 'OctoPrint instance "{}"'.format(name)
-        else:
-            return "OctoPrint instance on {}".format(socket.gethostname())
+        return f"Mr Beam Lasercutter: {socket.gethostname()}"
 
     def get_interface_addresses(self):
         addresses = self._settings.get(["addresses"])
@@ -818,14 +812,14 @@ class DiscoveryPlugin(
 
 
 __plugin_name__ = "Discovery"
-__plugin_author__ = "Gina Häußge"
-__plugin_url__ = "http://docs.octoprint.org/en/master/bundledplugins/discovery.html"
+__plugin_author__ = "Mr Beam GmbH"
+__plugin_url__ = "http://docs.mr-beam.org/en/master/bundledplugins/discovery.html"
 __plugin_description__ = (
-    "Makes the OctoPrint instance discoverable via Bonjour/Avahi/Zeroconf and uPnP"
+    "Makes the Mr Beam instance discoverable via Bonjour/Avahi/Zeroconf and uPnP"
 )
 __plugin_disabling_discouraged__ = gettext(
-    "Without this plugin your OctoPrint instance will no longer be "
+    "Without this plugin your Mr Beam instance will no longer be "
     "discoverable on the network via Bonjour and uPnP."
 )
 __plugin_license__ = "AGPLv3"
-__plugin_pythoncompat__ = ">=2.7,<4"
+__plugin_pythoncompat__ = ">=3.10,<4"
