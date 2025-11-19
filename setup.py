@@ -32,7 +32,7 @@ INSTALL_REQUIRES = [
     # other observed problems
     "markupsafe>=1.1,<2.0",  # Jinja dependency, newer versions require Python 3
     "markdown>=3.1,<3.2",  # newer versions require Python 3
-    "wrapt>=1.12.1,<1.13",  # newer versions fail to build on OctoPi 0.15
+    "wrapt>=1.14.0",  # newer versions fail to build on OctoPi 0.15
     # anything below this should be checked on releases for new versions
     "flask>=1.1.4,<2",  # newer versions require Python 3
     "Jinja2>=2.11.3,<3",  # newer versions require Python 3
