@@ -44,7 +44,7 @@ INSTALL_REQUIRES = [
     "cachelib>=0.1,<0.2",  # newer versions require Python 3
     "PyYAML>=6.0.1,<7",  # Cherry Pick from Octoprint commit fd1c6b2e7dddf4e7f6dfcc59b8833ab57aa7a94b
     "pyserial>=3.4,<4",
-    "netaddr>=0.8,<0.9",  # changelog hints at breaking changes on minor version increases
+    "netaddr==1.2.1",  # changelog hints at breaking changes on minor version increases (changed for use with Python 3.12)
     "watchdog==2.1.6",  # newer versions require Python 3
     "sarge==0.1.6",
     "netifaces>=0.11,<1",

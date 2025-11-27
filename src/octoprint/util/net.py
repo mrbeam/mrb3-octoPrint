@@ -106,12 +106,12 @@ def get_lan_ranges(additional_private=None):
                     )
                 )
 
-    subnets += list(netaddr.ip.IPV4_PRIVATE) + [
+    subnets += list(netaddr.ip.IPV4_PRIVATE_USE) + [
         netaddr.ip.IPV4_LOOPBACK,
         netaddr.ip.IPV4_LINK_LOCAL,
     ]
     if HAS_V6:
-        subnets += list(netaddr.ip.IPV6_PRIVATE) + [
+        subnets += [netaddr.ip.IPV6_UNIQUE_LOCAL] + [
             netaddr.IPNetwork(netaddr.ip.IPV6_LOOPBACK),
             netaddr.ip.IPV6_LINK_LOCAL,
         ]
