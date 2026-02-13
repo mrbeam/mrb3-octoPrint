@@ -87,7 +87,7 @@ EXTRA_REQUIRES = {
     "develop": [
         # Testing dependencies
         "mock>=3.0.5,<4",
-        "pytest==4.6.10",
+        "pytest>=7.4,<8",
         "pytest-doctest-custom>=1.0.0,<2",
         "ddt",
         # pre-commit

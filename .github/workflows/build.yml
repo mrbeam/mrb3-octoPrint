@@ -11,7 +11,7 @@ jobs:
     name: 🔨 Build distribution
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: 🏗 Set up Python "3.10"
@@ -34,9 +34,9 @@ jobs:
     name: 🧹 Pre-commit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: 🏗 Set up Python "3.10"
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
       - name: 🏗 Set up dev dependencies
@@ -53,17 +53,20 @@ jobs:
         python: ["3.10", "3.14"]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: 🏗 Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
       - name: 🏗 Set up test dependencies
         run: |
           pip install -e .[develop]
       - name: 🚀 Run test suite
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+          PYTHONWARNINGS: default
         run: |
-          pytest
+          pytest -p pytest_doctest_custom
 
   test-install:
     name: 🧪 Installation tests
@@ -80,7 +83,7 @@ jobs:
           name: dist
           path: dist
       - name: 🏗 Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
       - name: 🚀 Install wheel
@@ -98,7 +101,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: ⬇ Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: ⬇ Download build result
         uses: actions/download-artifact@v4
@@ -106,7 +109,7 @@ jobs:
           name: dist
           path: dist
       - name: 🏗 Set up Python "3.10"
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
       - name: 🚀 Install wheel
