@@ -100,9 +100,7 @@ context("Login tests", () => {
         });
 
         afterEach(() => {
-            cy.get("[data-test-id=login-title]")
-                .should("be.visible")
-                .should("contain", "Please log in");
+            cy.get("[data-test-id=login-title]").should("be.visible").should("contain", "Please log in");
             cy.get("[data-test-id=login-error]")
                 .should("be.visible")
                 .should("contain", "Incorrect username or password");

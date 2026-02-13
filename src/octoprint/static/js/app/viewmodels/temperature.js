@@ -42,10 +42,7 @@ $(function () {
             });
 
             entry.offset.subscribe(function (newValue) {
-                if (
-                    self.changingOffset.item !== undefined &&
-                    self.changingOffset.item.key() === entry.key()
-                ) {
+                if (self.changingOffset.item !== undefined && self.changingOffset.item.key() === entry.key()) {
                     // if our we currently have the offset dialog open for this entry and the offset changed
                     // meanwhile, update the displayed value in the dialog
                     self.changingOffset.offset(newValue);
@@ -124,12 +121,8 @@ $(function () {
 
             // tools
             var currentProfileData = self.settingsViewModel.printerProfiles.currentProfileData();
-            var numExtruders = currentProfileData
-                ? currentProfileData.extruder.count()
-                : 0;
-            var sharedNozzle = currentProfileData
-                ? currentProfileData.extruder.sharedNozzle()
-                : false;
+            var numExtruders = currentProfileData ? currentProfileData.extruder.count() : 0;
+            var sharedNozzle = currentProfileData ? currentProfileData.extruder.sharedNozzle() : false;
             if (numExtruders && numExtruders > 1 && !sharedNozzle) {
                 // multiple extruders
                 for (var extruder = 0; extruder < numExtruders; extruder++) {
@@ -282,11 +275,7 @@ $(function () {
 
             if (!CONFIG_TEMPERATURE_GRAPH) return;
 
-            self.temperatures = self._processTemperatureData(
-                serverTime,
-                data,
-                self.temperatures
-            );
+            self.temperatures = self._processTemperatureData(serverTime, data, self.temperatures);
             self.updatePlot();
         };
 
@@ -504,38 +493,19 @@ $(function () {
                 }
 
                 var actualTemp =
-                    actuals && actuals.length
-                        ? formatTemperature(
-                              actuals[actuals.length - 1][1],
-                              showFahrenheit
-                          )
-                        : "-";
+                    actuals && actuals.length ? formatTemperature(actuals[actuals.length - 1][1], showFahrenheit) : "-";
                 var targetTemp =
                     targets && targets.length
-                        ? formatTemperature(
-                              targets[targets.length - 1][1],
-                              showFahrenheit,
-                              1
-                          )
+                        ? formatTemperature(targets[targets.length - 1][1], showFahrenheit, 1)
                         : "-";
 
                 data.push({
-                    label:
-                        gettext("Actual") +
-                        " " +
-                        heaterOptions[type].name +
-                        ": " +
-                        actualTemp,
+                    label: gettext("Actual") + " " + heaterOptions[type].name + ": " + actualTemp,
                     color: heaterOptions[type].color,
                     data: actuals.length ? actuals : [[now, undefined]]
                 });
                 data.push({
-                    label:
-                        gettext("Target") +
-                        " " +
-                        heaterOptions[type].name +
-                        ": " +
-                        targetTemp,
+                    label: gettext("Target") + " " + heaterOptions[type].name + ": " + targetTemp,
                     color: pusher.color(heaterOptions[type].color).tint(0.5).html(),
                     data: targets.length ? targets : [[now, undefined]]
                 });
@@ -551,10 +521,7 @@ $(function () {
 
             var resetLegend = function () {
                 _.each(dataset, function (series, index) {
-                    var value =
-                        series.data && series.data.length
-                            ? series.data[series.data.length - 1][1]
-                            : undefined;
+                    var value = series.data && series.data.length ? series.data[series.data.length - 1][1] : undefined;
                     replaceLegendLabel(index, series, value);
                 });
             };
@@ -595,9 +562,7 @@ $(function () {
                         } else if (p2 === undefined) {
                             y = p1[1];
                         } else {
-                            y =
-                                p1[1] +
-                                ((p2[1] - p1[1]) * (pos.x - p1[0])) / (p2[0] - p1[0]);
+                            y = p1[1] + ((p2[1] - p1[1]) * (pos.x - p1[0])) / (p2[0] - p1[0]);
                         }
 
                         replaceLegendLabel(index, series, y, true);
@@ -628,10 +593,7 @@ $(function () {
 
         self.incrementTarget = function (item) {
             var value = item.newTarget();
-            if (
-                value === undefined ||
-                (typeof value === "string" && value.trim() === "")
-            ) {
+            if (value === undefined || (typeof value === "string" && value.trim() === "")) {
                 value = item.target();
             }
             try {
@@ -646,10 +608,7 @@ $(function () {
 
         self.decrementTarget = function (item) {
             var value = item.newTarget();
-            if (
-                value === undefined ||
-                (typeof value === "string" && value.trim() === "")
-            ) {
+            if (value === undefined || (typeof value === "string" && value.trim() === "")) {
                 value = item.target();
             }
             try {
@@ -666,8 +625,7 @@ $(function () {
 
         self.autosendTarget = function (item) {
             if (!self.settingsViewModel.temperature_sendAutomatically()) return;
-            var delay =
-                self.settingsViewModel.temperature_sendAutomaticallyAfter() * 1000;
+            var delay = self.settingsViewModel.temperature_sendAutomaticallyAfter() * 1000;
 
             var name = item.name();
             if (_sendTimeout[name]) {
@@ -855,8 +813,7 @@ $(function () {
                 return OctoPrintClient.createRejectedDeferred();
             }
 
-            if (value < -50 || value > 50)
-                return OctoPrintClient.createRejectedDeferred();
+            if (value < -50 || value > 50) return OctoPrintClient.createRejectedDeferred();
 
             var onSuccess = function () {
                 item.offset(value);
@@ -938,10 +895,7 @@ $(function () {
         self.handleFocus = function (event, type, item) {
             if (type === "target") {
                 var value = item.newTarget();
-                if (
-                    value === undefined ||
-                    (typeof value === "string" && value.trim() === "")
-                ) {
+                if (value === undefined || (typeof value === "string" && value.trim() === "")) {
                     item.newTarget(item.target());
                 }
                 window.setTimeout(function () {

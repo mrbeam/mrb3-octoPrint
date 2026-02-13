@@ -174,10 +174,7 @@ var analyzeModel = function () {
 
             var retract = cmds[j].retract && cmds[j].retract > 0;
             var extrude = cmds[j].extrude && cmds[j].extrude > 0 && !retract;
-            var move =
-                cmds[j].x !== undefined ||
-                cmds[j].y !== undefined ||
-                cmds[j].z !== undefined;
+            var move = cmds[j].x !== undefined || cmds[j].y !== undefined || cmds[j].z !== undefined;
 
             var prevInBounds = withinBedBounds(cmds[j].prevX, cmds[j].prevY, bounds);
             var inBounds = withinBedBounds(
@@ -193,14 +190,8 @@ var analyzeModel = function () {
                 min.x = min.x !== undefined ? Math.min(min.x, x) : x;
 
                 if (inBounds) {
-                    boundingBox.minX =
-                        boundingBox.minX !== undefined
-                            ? Math.min(boundingBox.minX, x)
-                            : x;
-                    boundingBox.maxX =
-                        boundingBox.maxX !== undefined
-                            ? Math.max(boundingBox.maxX, x)
-                            : x;
+                    boundingBox.minX = boundingBox.minX !== undefined ? Math.min(boundingBox.minX, x) : x;
+                    boundingBox.maxX = boundingBox.maxX !== undefined ? Math.max(boundingBox.maxX, x) : x;
                 }
             };
 
@@ -211,14 +202,8 @@ var analyzeModel = function () {
                 min.y = min.y !== undefined ? Math.min(min.y, y) : y;
 
                 if (inBounds) {
-                    boundingBox.minY =
-                        boundingBox.minY !== undefined
-                            ? Math.min(boundingBox.minY, y)
-                            : y;
-                    boundingBox.maxY =
-                        boundingBox.maxY !== undefined
-                            ? Math.max(boundingBox.maxY, y)
-                            : y;
+                    boundingBox.minY = boundingBox.minY !== undefined ? Math.min(boundingBox.minY, y) : y;
+                    boundingBox.maxY = boundingBox.maxY !== undefined ? Math.max(boundingBox.maxY, y) : y;
                 }
             };
 
@@ -243,27 +228,19 @@ var analyzeModel = function () {
 
             if (!totalFilament[tool]) totalFilament[tool] = 0;
             if (!filamentByLayer[cmds[j].prevZ]) filamentByLayer[cmds[j].prevZ] = [0];
-            if (!filamentByLayer[cmds[j].prevZ][tool])
-                filamentByLayer[cmds[j].prevZ][tool] = 0;
+            if (!filamentByLayer[cmds[j].prevZ][tool]) filamentByLayer[cmds[j].prevZ][tool] = 0;
             if (cmds[j].extrusion) {
                 totalFilament[tool] += cmds[j].extrusion;
                 filamentByLayer[cmds[j].prevZ][tool] += cmds[j].extrusion;
             }
 
-            if (
-                cmds[j].x !== undefined &&
-                !isNaN(cmds[j].x) &&
-                cmds[j].y !== undefined &&
-                !isNaN(cmds[j].y)
-            ) {
+            if (cmds[j].x !== undefined && !isNaN(cmds[j].x) && cmds[j].y !== undefined && !isNaN(cmds[j].y)) {
                 var diffX = cmds[j].x - cmds[j].prevX;
                 var diffY = cmds[j].y - cmds[j].prevY;
                 if (move) {
-                    printTimeAdd =
-                        Math.sqrt(diffX * diffX + diffY * diffY) / (cmds[j].speed / 60);
+                    printTimeAdd = Math.sqrt(diffX * diffX + diffY * diffY) / (cmds[j].speed / 60);
                 } else if (extrude) {
-                    tmp1 =
-                        Math.sqrt(diffX * diffX + diffY * diffY) / (cmds[j].speed / 60);
+                    tmp1 = Math.sqrt(diffX * diffX + diffY * diffY) / (cmds[j].speed / 60);
                     tmp2 = Math.abs(cmds[j].extrusion / (cmds[j].speed / 60));
                     printTimeAdd = Math.max(tmp1, tmp2);
                 } else if (retract) {
@@ -424,8 +401,7 @@ var doParse = function () {
                             prev_extrude[tool][argChar] += numSlice;
                         } else {
                             // absolute extrusion positioning
-                            prev_extrude[tool]["abs"] =
-                                numSlice - prev_extrude[tool][argChar];
+                            prev_extrude[tool]["abs"] = numSlice - prev_extrude[tool][argChar];
                             prev_extrude[tool][argChar] = numSlice;
                         }
 
@@ -435,10 +411,7 @@ var doParse = function () {
                             retract = -1;
                         } else if (prev_extrude[tool]["abs"] === 0) {
                             retract = 0;
-                        } else if (
-                            prev_extrude[tool]["abs"] > 0 &&
-                            prev_retract[tool] < 0
-                        ) {
+                        } else if (prev_extrude[tool]["abs"] > 0 && prev_retract[tool] < 0) {
                             prev_retract[tool] = 0;
                             retract = 1;
                         } else {
@@ -466,17 +439,10 @@ var doParse = function () {
 
             if (dcExtrude && !assumeNonDC) {
                 extrude = true;
-                prev_extrude[tool]["abs"] = Math.sqrt(
-                    (prevX - x) * (prevX - x) + (prevY - y) * (prevY - y)
-                );
+                prev_extrude[tool]["abs"] = Math.sqrt((prevX - x) * (prevX - x) + (prevY - y) * (prevY - y));
             }
 
-            if (
-                typeof x !== "undefined" ||
-                typeof y !== "undefined" ||
-                typeof z !== "undefined" ||
-                retract !== 0
-            ) {
+            if (typeof x !== "undefined" || typeof y !== "undefined" || typeof z !== "undefined" || retract !== 0) {
                 addToModel = true;
                 move = true;
             }
@@ -543,11 +509,7 @@ var doParse = function () {
                 }
             }
 
-            if (
-                typeof x !== "undefined" ||
-                typeof y !== "undefined" ||
-                typeof z !== "undefined"
-            ) {
+            if (typeof x !== "undefined" || typeof y !== "undefined" || typeof z !== "undefined") {
                 addToModel = true;
                 move = false;
             }
@@ -582,19 +544,13 @@ var doParse = function () {
                 z = 0;
             }
 
-            if (
-                typeof x !== "undefined" ||
-                typeof y !== "undefined" ||
-                typeof z !== "undefined" ||
-                retract !== 0
-            ) {
+            if (typeof x !== "undefined" || typeof y !== "undefined" || typeof z !== "undefined" || retract !== 0) {
                 addToModel = true;
                 move = true;
             }
         } else if (/^(?:T\d+)/i.test(line)) {
             tool = Number(line.split(/\s/)[0].slice(1));
-            if (!prev_extrude[tool])
-                prev_extrude[tool] = {a: 0, b: 0, c: 0, e: 0, abs: 0};
+            if (!prev_extrude[tool]) prev_extrude[tool] = {a: 0, b: 0, c: 0, e: 0, abs: 0};
             if (!prev_retract[tool]) prev_retract[tool] = 0;
 
             activeToolOffset = toolOffsets[tool];
@@ -644,10 +600,7 @@ var doParse = function () {
                 extrude: extrude,
                 retract: retract,
                 noMove: !move,
-                extrusion:
-                    (extrude || retract) && prev_extrude[tool]["abs"]
-                        ? prev_extrude[tool]["abs"]
-                        : 0,
+                extrusion: (extrude || retract) && prev_extrude[tool]["abs"] ? prev_extrude[tool]["abs"] : 0,
                 prevX: prevX,
                 prevY: prevY,
                 prevZ: prevZ,
@@ -667,10 +620,7 @@ var doParse = function () {
                 // there's something to be checked in the Z-lift cache
                 if (prevZ === zLiftZ) {
                     zLiftMoves.forEach(function (zLiftMove) {
-                        model[zLiftMove.layer].splice(
-                            model[layer].indexOf(zLiftMove.command),
-                            1
-                        );
+                        model[zLiftMove.layer].splice(model[layer].indexOf(zLiftMove.command), 1);
                         model[z_heights[zLiftZ]].push(zLiftMove.command);
                     });
                 }
@@ -690,11 +640,7 @@ var doParse = function () {
         if (typeof sendLayer !== "undefined") {
             if (i - lastSend > gcode.length * 0.02 && sendMultiLayer.length !== 0) {
                 lastSend = i;
-                sendMultiLayerToParent(
-                    sendMultiLayer,
-                    sendMultiLayerZ,
-                    (i / gcode.length) * 100
-                );
+                sendMultiLayerToParent(sendMultiLayer, sendMultiLayerZ, (i / gcode.length) * 100);
                 sendMultiLayer = [];
                 sendMultiLayerZ = [];
             }

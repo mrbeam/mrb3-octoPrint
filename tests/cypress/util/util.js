@@ -11,9 +11,7 @@ export const prepare_server = () => {
 };
 
 export const await_loginui = () => {
-    cy.get("[data-test-id=login-title]")
-        .should("be.visible")
-        .should("contain", "Please log in");
+    cy.get("[data-test-id=login-title]").should("be.visible").should("contain", "Please log in");
     cy.window().its("OctoPrint.loginui.startedUp", {timeout: 30000}).should("be.true");
 };
 

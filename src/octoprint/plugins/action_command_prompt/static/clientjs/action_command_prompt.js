@@ -20,9 +20,6 @@
         return this.base.simpleApiCommand("action_command_prompt", "select", data, opts);
     };
 
-    OctoPrintClient.registerPluginComponent(
-        "action_command_prompt",
-        OctoPrintActionCommandPromptClient
-    );
+    OctoPrintClient.registerPluginComponent("action_command_prompt", OctoPrintActionCommandPromptClient);
     return OctoPrintActionCommandPromptClient;
 });

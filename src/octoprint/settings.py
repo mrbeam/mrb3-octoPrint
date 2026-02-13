@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This module represents OctoPrint's settings management. Within this module the default settings for the core
 application are defined and the instance of the :class:`Settings` is held, which offers getter and setter

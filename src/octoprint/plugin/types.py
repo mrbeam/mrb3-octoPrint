@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This module bundles all of OctoPrint's supported plugin implementation types as well as their common parent
 class, :class:`OctoPrintPlugin`.

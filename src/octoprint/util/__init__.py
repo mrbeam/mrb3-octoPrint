@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This module bundles commonly used utility methods or helper classes that are used in multiple places within
 OctoPrint's source code.

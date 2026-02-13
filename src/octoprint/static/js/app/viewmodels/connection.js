@@ -163,9 +163,7 @@ $(function () {
                                 "to the printer, any attempt to restart OctoPrint or reconnect to the printer " +
                                 "could interrupt the print.<p>"
                         ),
-                        question: gettext(
-                            "Are you sure you want to disconnect from the printer?"
-                        ),
+                        question: gettext("Are you sure you want to disconnect from the printer?"),
                         cancel: gettext("Stay Connected"),
                         proceed: gettext("Disconnect"),
                         onproceed: function () {
@@ -210,12 +208,7 @@ $(function () {
 
     OCTOPRINT_VIEWMODELS.push({
         construct: ConnectionViewModel,
-        dependencies: [
-            "loginStateViewModel",
-            "settingsViewModel",
-            "printerProfilesViewModel",
-            "accessViewModel"
-        ],
+        dependencies: ["loginStateViewModel", "settingsViewModel", "printerProfilesViewModel", "accessViewModel"],
         elements: ["#connection_wrapper"]
     });
 });

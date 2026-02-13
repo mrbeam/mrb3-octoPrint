@@ -21,10 +21,7 @@ ko.bindingHandlers.toggleContent = {
             }
             if (options.container) {
                 if (options.parent) {
-                    $elm.parents(options.parent)
-                        .find(options.container)
-                        .stop()
-                        .slideToggle("fast", options.onComplete);
+                    $elm.parents(options.parent).find(options.container).stop().slideToggle("fast", options.onComplete);
                 } else {
                     $(options.container).stop().slideToggle("fast", options.onComplete);
                 }

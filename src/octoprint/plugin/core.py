@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 In this module resides the core data structures and logic of the plugin system.
 
