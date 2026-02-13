@@ -14,10 +14,10 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: 🏗 Set up Python 3.7
+      - name: 🏗 Set up Python 3.10
         uses: actions/setup-python@v1
         with:
-          python-version: 3.7
+          python-version: 3.10
       - name: 🏗 Install build dependencies
         run: |
           python -m pip install wheel --user
@@ -35,10 +35,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: 🏗 Set up Python 3.7
+      - name: 🏗 Set up Python 3.10
         uses: actions/setup-python@v1
         with:
-          python-version: 3.7
+          python-version: 3.10
       - name: 🏗 Set up dev dependencies
         run: |
           pip install -e .[develop]
@@ -50,7 +50,7 @@ jobs:
     name: 🧪 Unit tests
     strategy:
       matrix:
-        python: ["2.7", "3.7", "3.8", "3.9"]
+        python: ["3.7", "3.8", "3.10"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -70,7 +70,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        python: ["2.7", "3.7", "3.8", "3.9"]
+        python: ["3.7", "3.8", "3.10"]
         installable: ["wheel", "sdist"]
     runs-on: ubuntu-latest
     steps:
@@ -105,10 +105,10 @@ jobs:
         with:
           name: dist
           path: dist
-      - name: 🏗 Set up Python 3.7
+      - name: 🏗 Set up Python 3.10
         uses: actions/setup-python@v1
         with:
-          python-version: 3.7
+          python-version: 3.10
       - name: 🚀 Install wheel
         run: |
           pip install dist/OctoPrint-*-py2.py3-none-any.whl
