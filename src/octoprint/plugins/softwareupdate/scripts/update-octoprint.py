@@ -12,7 +12,6 @@ import sys
 import time
 import traceback
 
-from past.builtins import unicode
 
 # default close_fds settings
 if sys.platform == "win32" and sys.version_info < (3, 7):
@@ -47,7 +46,7 @@ def _log(lines, prefix=None, stream=None):
 
 
 def _to_unicode(s_or_u, encoding="utf-8", errors="strict"):
-    """Make sure ``s_or_u`` is a unicode string."""
+    """Make sure ``s_or_u`` is a str string."""
     if isinstance(s_or_u, bytes):
         return s_or_u.decode(encoding, errors=errors)
     else:
@@ -56,7 +55,7 @@ def _to_unicode(s_or_u, encoding="utf-8", errors="strict"):
 
 def _to_bytes(s_or_u, encoding="utf-8", errors="strict"):
     """Make sure ``s_or_u`` is a str."""
-    if isinstance(s_or_u, unicode):
+    if isinstance(s_or_u, str):
         return s_or_u.encode(encoding, errors=errors)
     else:
         return s_or_u
@@ -205,7 +204,7 @@ def _to_error(*lines):
     if len(lines) == 1:
         if isinstance(lines[0], (list, tuple)):
             lines = lines[0]
-        elif not isinstance(lines[0], (str, unicode)):
+        elif not isinstance(lines[0], (str, str)):
             lines = [
                 repr(lines[0]),
             ]

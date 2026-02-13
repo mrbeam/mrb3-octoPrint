@@ -38,15 +38,12 @@ except ImportError:
     # Python 2
     from frozendict import frozendict as immutabledict
 
-import past.builtins
-
 try:
     import queue
 except ImportError:
     import Queue as queue
 
 # noinspection PyCompatibility
-from past.builtins import basestring, unicode
 
 from octoprint import UMASK
 from octoprint.util.connectivity import ConnectivityChecker  # noqa: F401
@@ -65,12 +62,12 @@ logger = logging.getLogger(__name__)
 
 
 def to_bytes(s_or_u, encoding="utf-8", errors="strict"):
-    # type: (Union[unicode, bytes], str, str) -> bytes
+    # type: (Union[str, bytes], str, str) -> bytes
     """
     Make sure ``s_or_u`` is a byte string.
 
     Arguments:
-        s_or_u (string or unicode): The value to convert
+        s_or_u (str or bytes): The value to convert
         encoding (string): encoding to use if necessary, see :meth:`python:str.encode`
         errors (string): error handling to use if necessary, see :meth:`python:str.encode`
     Returns:
@@ -79,22 +76,22 @@ def to_bytes(s_or_u, encoding="utf-8", errors="strict"):
     if s_or_u is None:
         return s_or_u
 
-    if not isinstance(s_or_u, basestring):
+    if not isinstance(s_or_u, (str, bytes)):
         s_or_u = str(s_or_u)
 
-    if isinstance(s_or_u, unicode):
+    if isinstance(s_or_u, str):
         return s_or_u.encode(encoding, errors=errors)
     else:
         return s_or_u
 
 
 def to_unicode(s_or_u, encoding="utf-8", errors="strict"):
-    # type: (Union[unicode, bytes], str, str) -> unicode
+    # type: (Union[str, bytes], str, str) -> str
     """
-    Make sure ``s_or_u`` is a unicode string.
+    Make sure ``s_or_u`` is a str string.
 
     Arguments:
-        s_or_u (string or unicode): The value to convert
+        s_or_u (str or bytes): The value to convert
         encoding (string): encoding to use if necessary, see :meth:`python:bytes.decode`
         errors (string): error handling to use if necessary, see :meth:`python:bytes.decode`
     Returns:
@@ -103,7 +100,7 @@ def to_unicode(s_or_u, encoding="utf-8", errors="strict"):
     if s_or_u is None:
         return s_or_u
 
-    if not isinstance(s_or_u, basestring):
+    if not isinstance(s_or_u, (str, bytes)):
         s_or_u = str(s_or_u)
 
     if isinstance(s_or_u, bytes):
@@ -113,11 +110,11 @@ def to_unicode(s_or_u, encoding="utf-8", errors="strict"):
 
 
 def to_native_str(s_or_u):
-    # type: (Union[unicode, bytes]) -> str
+    # type: (Union[str, bytes]) -> str
     """
     Make sure ``s_or_u`` is a native 'str' for the current Python version
 
-    Will ensure a byte string under Python 2 and a unicode string under Python 3."""
+    Will ensure a byte string under Python 2 and a str string under Python 3."""
     if sys.version_info[0] == 2:
         return to_bytes(s_or_u)
     else:
@@ -486,9 +483,9 @@ def get_exception_string(fmt="{type}: '{message}' @ {file}:{function}:{line}"):
 
 
 def sanitize_ascii(line):
-    if not isinstance(line, basestring):
+    if not isinstance(line, str):
         raise ValueError(
-            "Expected either str or unicode but got {} instead".format(
+            "Expected either str or bytes but got {} instead".format(
                 line.__class__.__name__ if line is not None else None
             )
         )
@@ -949,8 +946,8 @@ def guess_mime_type(data):
 def parse_mime_type(mime):
     import cgi
 
-    if not mime or not isinstance(mime, basestring):
-        raise ValueError("mime must be a non empty str or unicode")
+    if not mime or not isinstance(mime, str):
+        raise ValueError("mime must be a non empty str or bytes")
 
     mime, params = cgi.parse_header(mime)
 
@@ -1658,16 +1655,16 @@ class CaseInsensitiveSet(Set):
     """
     Basic case insensitive set
 
-    Any str or unicode values will be stored and compared in lower case. Other value types are left as-is.
+    Any str values will be stored and compared in lower case. Other value types are left as-is.
     """
 
     def __init__(self, *args):
         self.data = {
-            x.lower() if isinstance(x, past.builtins.basestring) else x for x in args
+            x.lower() if isinstance(x, str) else x for x in args
         }
 
     def __contains__(self, item):
-        if isinstance(item, past.builtins.basestring):
+        if isinstance(item, str):
             return item.lower() in self.data
         else:
             return item in self.data

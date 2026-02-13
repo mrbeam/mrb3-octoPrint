@@ -11,7 +11,6 @@ import unittest
 
 import ddt
 import mock
-from past.builtins import unicode
 
 import octoprint.util
 
@@ -557,7 +556,7 @@ class IsHiddenPathTest(unittest.TestCase):
             import ctypes
 
             ctypes.windll.kernel32.SetFileAttributesW(
-                unicode(self.path_hidden_on_windows), 2
+                str(self.path_hidden_on_windows), 2
             )
 
     def tearDown(self):

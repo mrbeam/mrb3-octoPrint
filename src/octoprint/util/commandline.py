@@ -11,7 +11,6 @@ import re
 import time
 
 import sarge
-from past.builtins import unicode
 
 from octoprint.util.platform import CLOSE_FDS
 
@@ -39,10 +38,10 @@ def clean_ansi(line):
     Removes ANSI control codes from ``line``.
 
     Parameters:
-        line (bytes or unicode): the line to process
+        line (bytes or str): the line to process
 
     Returns:
-        (bytes or unicode) The line without any ANSI control codes
+        (bytes or str) The line without any ANSI control codes
 
     Example::
 
@@ -53,7 +52,7 @@ def clean_ansi(line):
         >>> clean_ansi(text) # doctest: +ALLOW_BYTES
         'We hide the cursor here and then show it again here'
     """
-    if isinstance(line, unicode):
+    if isinstance(line, str):
         return _ANSI_REGEX.sub(b"", line.encode("latin1")).decode("latin1")
     return _ANSI_REGEX.sub(b"", line)
 
@@ -174,7 +173,7 @@ class CommandlineCaller(object):
         self._logger.debug("Calling: {}".format(joined_command))
         self.on_log_call(joined_command)
 
-        # if we are running under windows, make sure there are no unicode strings in the env
+        # if we are running under windows, make sure there are no str strings in the env
         if get_os() == "windows" and "env" in kwargs:
             kwargs["env"] = {
                 to_native_str(k): to_native_str(v) for k, v in kwargs["env"].items()
