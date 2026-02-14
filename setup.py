@@ -127,7 +127,7 @@ def params():
     return dict(
         name=name,
         version=version,
-        context=cmdclass,
+        cmdclass=cmdclass,
         python_requires=PYTHON_REQUIRES,
         setup_requires=SETUP_REQUIRES,
         install_requires=INSTALL_REQUIRES,

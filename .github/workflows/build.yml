@@ -95,10 +95,14 @@ jobs:
       - name: 🚀 Install wheel
         if: matrix.installable == 'wheel'
         run: |
-          pip install dist/OctoPrint-*-py2.py3-none-any.whl
+          # Verify the file exists before attempting install
+          ls -R dist/
+          pip install dist/OctoPrint-*.whl
       - name: 🚀 Install source tarball
         if: matrix.installable == 'sdist'
         run: |
+          # Verify the file exists before attempting install
+          ls -R dist/
           pip install dist/OctoPrint-*.tar.gz
 
   test-e2e:
