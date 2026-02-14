@@ -74,7 +74,7 @@ def enable_additional_translations(default_locale="en", additional_folders=None)
                     result.append(Locale.parse(entry.name))
             return result
 
-        dirs = additional_folders + [os.path.join(flask.current_app.root_path, "translations")]
+        dirs = additional_folders + [os.path.join(self.app.root_path, "translations")]
 
         # translations from plugins
         plugins = octoprint.plugin.plugin_manager().enabled_plugins

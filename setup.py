@@ -33,7 +33,7 @@ INSTALL_REQUIRES = [
     "itsdangerous>=2.1.2,<3",
 
     "Flask-Login>=0.6.3,<0.7",
-    "Flask-Babel>=4.0.0,<5",
+    "Flask-Babel>=2.0.0,<3.0.0",
     "Flask-Assets>=2.1.0,<3",
     "cachelib>=0.13.0,<0.14",
 
