@@ -97,13 +97,13 @@ jobs:
         run: |
           # Verify the file exists before attempting install
           ls -R dist/
-          pip install dist/OctoPrint-*.whl
+          pip install dist/octoprint-*.whl
       - name: 🚀 Install source tarball
         if: matrix.installable == 'sdist'
         run: |
           # Verify the file exists before attempting install
           ls -R dist/
-          pip install dist/OctoPrint-*.tar.gz
+          pip install dist/octoprint-*.tar.gz
 
   test-e2e:
     name: 🧪 E2E tests
