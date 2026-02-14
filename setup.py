@@ -64,6 +64,7 @@ INSTALL_REQUIRES = [
     "zipstream-new>=1.1.8,<1.2",
     "blinker>=1.9,<2",
     "zeroconf>=0.132.0,<1",
+    "colorlog>=6.8.2,<7",
 ]
 
 # Development & Test dependencies
