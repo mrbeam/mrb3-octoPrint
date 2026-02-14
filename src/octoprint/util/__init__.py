@@ -22,7 +22,18 @@ import threading
 import time
 import traceback
 import warnings
+
 from functools import wraps
+import unittest.mock
+
+# Fix for Python 3.13 + Mock + functools.wraps compatibility
+# MagicMocks lack __type_params__ which wraps() now expects in Py 3.13
+if not hasattr(unittest.mock.NonCallableMock, "__type_params__"):
+    try:
+        unittest.mock.NonCallableMock.__type_params__ = ()
+    except Exception:
+        pass
+
 from typing import Union
 
 try:
@@ -57,11 +68,6 @@ from octoprint.util.net import (  # noqa: F401
     interface_addresses,
     server_reachable,
 )
-
-import unittest.mock
-# Python 3.13 compatibility patch for MagicMock + functools.wraps
-if not hasattr(unittest.mock.NonCallableMock, "__type_params__"):
-    unittest.mock.NonCallableMock.__type_params__ = ()
 
 logger = logging.getLogger(__name__)
 

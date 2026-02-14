@@ -103,10 +103,13 @@ def get_lan_ranges(additional_private=None):
                     if logger.isEnabledFor(logging.DEBUG):
                         logger.exception("Error adding v6 network to local subnets: {!r}".format(v6))
 
-    # 3. Add user-defined additional private ranges (This fixes the '11/8' test failure!)
+    # 3. Add user-defined additional private ranges
     for additional in additional_private:
         try:
-            subnets.append(netaddr.IPNetwork(additional))
+            # We use cidr_only=False to allow short notations like "11/8"
+            # which netaddr will expand to "11.0.0.0/8"
+            nw = netaddr.IPNetwork(additional)
+            subnets.append(nw)
         except Exception:
             if logger.isEnabledFor(logging.DEBUG):
                 logger.exception("Error adding additional private network: {}".format(additional))
@@ -119,16 +122,27 @@ def is_lan_address(address, additional_private=None):
 
     import netaddr
     try:
-        # Convert string input to a proper IPAddress object
+        # 1. Strip interface tags and convert to IPAddress object
+        # This handles strings like "11.1.2.3" or "::1"
         ip = netaddr.IPAddress(strip_interface_tag(address))
+
+        # 2. Normalize IPv4-mapped IPv6 addresses (::ffff:192.168.x.x)
+        if ip.is_ipv4_mapped():
+            ip = ip.ipv4()
     except Exception:
         return False
 
     subnets = get_lan_ranges(additional_private=additional_private)
 
+    # 3. Use optimized netaddr comparison
     for subnet in subnets:
-        if ip in subnet: # Now comparing IPAddress object against IPNetwork object
-            return True
+        try:
+            # We ensure we are checking against the CIDR representation
+            # This makes "11.1.2.3 in 11.0.0.0/8" work perfectly
+            if ip in subnet.cidr:
+                return True
+        except Exception:
+            continue
 
     return False
 
