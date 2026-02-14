@@ -21,10 +21,10 @@ import tempfile
 import threading
 import time
 import traceback
-import warnings
-
-from functools import wraps
 import unittest.mock
+import warnings
+from functools import WRAPPER_ASSIGNMENTS, wraps
+
 # Python 3.13 compatibility patch - MUST be at the top
 if not hasattr(unittest.mock.NonCallableMock, "__type_params__"):
     unittest.mock.NonCallableMock.__type_params__ = ()
@@ -65,6 +65,19 @@ from octoprint.util.net import (  # noqa: F401
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _safe_wraps(func):
+    assigned = WRAPPER_ASSIGNMENTS
+
+    if "__type_params__" in assigned:
+        type_params = getattr(func, "__type_params__", ())
+        if not isinstance(type_params, tuple):
+            assigned = tuple(
+                attribute for attribute in assigned if attribute != "__type_params__"
+            )
+
+    return wraps(func, assigned=assigned)
 
 
 def to_bytes(s_or_u, encoding="utf-8", errors="strict"):
@@ -185,7 +198,7 @@ def warning_decorator_factory(warning_type):
         message, stacklevel=1, since=None, includedoc=None, extenddoc=False
     ):
         def decorator(func):
-            @wraps(func)
+            @_safe_wraps(func)
             def func_wrapper(*args, **kwargs):
                 # we need to increment the stacklevel by one because otherwise we'll get the location of our
                 # func_wrapper in the log, instead of our caller (which is the real caller of the wrapped function)
@@ -1722,7 +1735,7 @@ def time_this(
 
         logger = logging.getLogger(lt)
 
-        @wraps(f)
+        @_safe_wraps(f)
         def wrapper(*args, **kwargs):
             data = {"func": func, "func_args": "?", "func_kwargs": "?"}
             if incl_func_args and logger.isEnabledFor(logging.DEBUG):
