@@ -25,24 +25,9 @@ import warnings
 
 from functools import wraps
 import unittest.mock
-try:
-    import mock
-except ImportError:
-    mock = None
-
-# Patch standard library mock
+# Python 3.13 compatibility patch - MUST be at the top
 if not hasattr(unittest.mock.NonCallableMock, "__type_params__"):
-    try:
-        unittest.mock.NonCallableMock.__type_params__ = ()
-    except Exception:
-        pass
-
-# Patch external mock library (CRITICAL for test_settings.py)
-if mock and not hasattr(mock.NonCallableMock, "__type_params__"):
-    try:
-        mock.NonCallableMock.__type_params__ = ()
-    except Exception:
-        pass
+    unittest.mock.NonCallableMock.__type_params__ = ()
 
 from typing import Union
 
