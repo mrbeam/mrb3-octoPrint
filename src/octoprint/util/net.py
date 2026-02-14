@@ -53,9 +53,10 @@ else:
 
 
 def get_lan_ranges(additional_private=None):
+    import socket
+
     import netaddr
     import netifaces
-    import socket
 
     # 1. Use the clean, version-agnostic list of defaults
     subnets = [
@@ -94,15 +95,36 @@ def get_lan_ranges(additional_private=None):
         try:
             subnets.append(netaddr.IPNetwork(additional))
         except Exception:
+            # Backwards-compatible shorthand for IPv4 ranges like "11/8".
+            # Recent netaddr versions reject this, but older versions accepted
+            # it and users may still have it in their config.
+            try:
+                if isinstance(additional, str) and "/" in additional:
+                    network, prefix = additional.split("/", 1)
+                    if network and "." not in network and ":" not in network:
+                        octets = network.split(".")
+                        if 1 <= len(octets) <= 4 and all(
+                            octet.isdigit() and 0 <= int(octet) <= 255 for octet in octets
+                        ):
+                            padded_network = ".".join(octets + ["0"] * (4 - len(octets)))
+                            subnets.append(
+                                netaddr.IPNetwork("{}/{}".format(padded_network, prefix))
+                            )
+                            continue
+            except Exception:
+                pass
+
             continue
 
     return subnets
+
 
 def is_lan_address(address, additional_private=None):
     if address is None:
         return True
 
     import netaddr
+
     try:
         # Convert input to IPAddress and normalize mapped IPv4 (::ffff:x.x.x.x)
         ip = netaddr.IPAddress(strip_interface_tag(address))
@@ -117,6 +139,7 @@ def is_lan_address(address, additional_private=None):
         if ip in subnet:
             return True
     return False
+
 
 def sanitize_address(address):
     address = unmap_v4_as_v6(address)
