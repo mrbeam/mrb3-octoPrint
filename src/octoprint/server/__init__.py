@@ -38,7 +38,6 @@ from flask_login import (  # noqa: F401
     session_protected,
     user_logged_out,
 )
-from past.builtins import basestring, unicode
 from watchdog.observers import Observer
 from watchdog.observers.polling import PollingObserver
 from werkzeug.exceptions import HTTPException
@@ -950,7 +949,7 @@ class Server(object):
                     for entry in result:
                         if not isinstance(entry, tuple) or not len(entry) == 3:
                             continue
-                        if not isinstance(entry[0], basestring):
+                        if not isinstance(entry[0], str):
                             continue
                         if not isinstance(entry[2], dict):
                             continue
@@ -2357,7 +2356,7 @@ class Server(object):
                         if content_type:
                             self.send_header("Content-Type", content_type)
                         self.end_headers()
-                        if isinstance(data, unicode):
+                        if isinstance(data, str):
                             data = data.encode("utf-8")
                         self.wfile.write(data)
                         break
@@ -2697,7 +2696,7 @@ class LifecycleManager(object):
             lifecycle_callback(name, plugin)
 
     def add_callback(self, events, callback):
-        if isinstance(events, basestring):
+        if isinstance(events, str):
             events = [events]
 
         for event in events:
@@ -2709,7 +2708,7 @@ class LifecycleManager(object):
                 if callback in self._plugin_lifecycle_callbacks[event]:
                     self._plugin_lifecycle_callbacks[event].remove(callback)
         else:
-            if isinstance(events, basestring):
+            if isinstance(events, str):
                 events = [events]
 
             for event in events:

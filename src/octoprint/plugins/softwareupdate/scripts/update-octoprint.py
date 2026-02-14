@@ -11,7 +11,8 @@ import sys
 import time
 import traceback
 
-from past.builtins import unicode
+# from past.builtins import unicode
+unicode = str
 
 # default close_fds settings
 if sys.platform == "win32" and sys.version_info < (3, 7):

@@ -9,7 +9,6 @@ import logging
 import os
 from collections import namedtuple
 
-from past.builtins import basestring
 
 import octoprint.plugin
 import octoprint.util
@@ -679,7 +678,7 @@ class FileManager(object):
     ):
         if not destinations:
             destinations = list(self._storage_managers.keys())
-        if isinstance(destinations, basestring):
+        if isinstance(destinations, str):
             destinations = [destinations]
 
         result = {}

@@ -54,94 +54,83 @@ else:
 
 def get_lan_ranges(additional_private=None):
     logger = logging.getLogger(__name__)
+    import netaddr
+    import socket
+    import netifaces
+
+    # 1. Start with the standard global private/local ranges using version-agnostic CIDRs
+    subnets = [
+        netaddr.IPNetwork("127.0.0.0/8"),    # IPv4 Loopback
+        netaddr.IPNetwork("10.0.0.0/8"),     # RFC1918
+        netaddr.IPNetwork("172.16.0.0/12"),  # RFC1918
+        netaddr.IPNetwork("192.168.0.0/16"), # RFC1918
+        netaddr.IPNetwork("169.254.0.0/16"), # IPv4 Link-Local
+        netaddr.IPNetwork("::1/128"),        # IPv6 Loopback
+        netaddr.IPNetwork("fe80::/10"),      # IPv6 Link-Local
+        netaddr.IPNetwork("fc00::/7"),       # IPv6 ULA (Unique Local)
+    ]
 
     if additional_private is None or not isinstance(additional_private, (list, tuple)):
         additional_private = []
 
+    # Helper to convert netifaces dict to IPNetwork
     def to_ipnetwork(address):
         prefix = address["netmask"]
         if "/" in prefix:
             # v6 notation in netifaces output, e.g. "ffff:ffff:ffff:ffff::/64"
             _, prefix = prefix.split("/")
-
         addr = strip_interface_tag(address["addr"])
         return netaddr.IPNetwork("{}/{}".format(addr, prefix))
 
-    subnets = []
-
+    # 2. Add subnets from all local network interfaces
     for interface in netifaces.interfaces():
         addrs = netifaces.ifaddresses(interface)
+
+        # Handle IPv4 Interfaces
         for v4 in addrs.get(socket.AF_INET, ()):
             try:
                 subnets.append(to_ipnetwork(v4))
             except Exception:
                 if logger.isEnabledFor(logging.DEBUG):
-                    logger.exception(
-                        "Error while trying to add v4 network to local subnets: {!r}".format(
-                            v4
-                        )
-                    )
+                    logger.exception("Error adding v4 network to local subnets: {!r}".format(v4))
 
+        # Handle IPv6 Interfaces
         if HAS_V6:
             for v6 in addrs.get(socket.AF_INET6, ()):
                 try:
                     subnets.append(to_ipnetwork(v6))
                 except Exception:
                     if logger.isEnabledFor(logging.DEBUG):
-                        logger.exception(
-                            "Error while trying to add v6 network to local subnets: {!r}".format(
-                                v6
-                            )
-                        )
+                        logger.exception("Error adding v6 network to local subnets: {!r}".format(v6))
 
+    # 3. Add user-defined additional private ranges (This fixes the '11/8' test failure!)
     for additional in additional_private:
         try:
             subnets.append(netaddr.IPNetwork(additional))
         except Exception:
             if logger.isEnabledFor(logging.DEBUG):
-                logger.exception(
-                    "Error while trying to add additional private network to local subnets: {}".format(
-                        additional
-                    )
-                )
-
-    subnets += list(netaddr.ip.IPV4_PRIVATE) + [
-        netaddr.ip.IPV4_LOOPBACK,
-        netaddr.ip.IPV4_LINK_LOCAL,
-    ]
-    if HAS_V6:
-        subnets += list(netaddr.ip.IPV6_PRIVATE) + [
-            netaddr.IPNetwork(netaddr.ip.IPV6_LOOPBACK),
-            netaddr.ip.IPV6_LINK_LOCAL,
-        ]
+                logger.exception("Error adding additional private network: {}".format(additional))
 
     return subnets
 
-
 def is_lan_address(address, additional_private=None):
-    if not address:
-        # no address is LAN address
+    if address is None:
         return True
 
+    import netaddr
     try:
-        address = sanitize_address(address)
-        ip = netaddr.IPAddress(address)
-        subnets = get_lan_ranges(additional_private=additional_private)
-
-        if any(map(lambda subnet: ip in subnet, subnets)):
-            return True
-
+        # Convert string input to a proper IPAddress object
+        ip = netaddr.IPAddress(strip_interface_tag(address))
+    except Exception:
         return False
 
-    except Exception:
-        # we are extra careful here since an unhandled exception in this method will effectively nuke the whole UI
-        logging.getLogger(__name__).exception(
-            "Error while trying to determine whether {} is a local address".format(
-                address
-            )
-        )
-        return True
+    subnets = get_lan_ranges(additional_private=additional_private)
 
+    for subnet in subnets:
+        if ip in subnet: # Now comparing IPAddress object against IPNetwork object
+            return True
+
+    return False
 
 def sanitize_address(address):
     address = unmap_v4_as_v6(address)

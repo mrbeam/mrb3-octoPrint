@@ -33,7 +33,6 @@ from collections import OrderedDict, defaultdict, namedtuple
 
 import pkg_resources
 import pkginfo
-from past.builtins import unicode
 
 from octoprint.util import sv, time_this, to_unicode
 from octoprint.util.version import get_python_version_string, is_python_compatible
@@ -484,7 +483,7 @@ class PluginInfo(object):
         else:
             ret = ""
 
-        ret += unicode(self)
+        ret += str(self)
 
         if show_bundled:
             ret += (
@@ -2046,7 +2045,7 @@ class PluginManager(object):
                         show_enabled=show_enabled,
                         enabled_strs=enabled_str,
                     ),
-                    sorted(self.plugins.values(), key=lambda x: unicode(x).lower()),
+                    sorted(self.plugins.values(), key=lambda x: str(x).lower()),
                 )
             )
             legend = "Prefix legend: {1} = disabled, {2} = blacklisted, {3} = incompatible".format(

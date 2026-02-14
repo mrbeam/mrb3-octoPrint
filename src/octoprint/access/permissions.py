@@ -12,7 +12,6 @@ from flask_babel import gettext
 from future.utils import with_metaclass
 
 # noinspection PyCompatibility
-from past.builtins import basestring
 
 from octoprint.access import ADMIN_GROUP, READONLY_GROUP, USER_GROUP
 from octoprint.vendor.flask_principal import Need, Permission, PermissionDenied, RoleNeed
@@ -36,7 +35,7 @@ class OctoPrintPermission(Permission):
                 result.append(need)
             elif isinstance(need, Permission):
                 result += need.needs
-            elif isinstance(need, basestring):
+            elif isinstance(need, str):
                 result.append(RoleNeed(need))
         return result
 
@@ -253,7 +252,7 @@ class PermissionsMetaClass(type):
             key = p.key
         elif isinstance(p, dict):
             key = p.get("key")
-        elif isinstance(p, basestring):
+        elif isinstance(p, str):
             key = p
 
         if key is None:

@@ -19,7 +19,6 @@ except ImportError:
 
 from contextlib import contextmanager
 
-from past.builtins import basestring
 
 import octoprint.filemanager
 from octoprint.util import atomic_write, is_hidden_path, time_this, to_bytes, to_unicode
@@ -167,7 +166,7 @@ class StorageInterface(object):
 
         :param string path:          the path of the new folder
         :param bool ignore_existing: if set to True, no error will be raised if the folder to be added already exists
-        :param unicode display:      display name of the folder
+        :param str display:      display name of the folder
         :return: the sanitized name of the new folder to be used for future references to the folder
         """
         raise NotImplementedError()
@@ -223,7 +222,7 @@ class StorageInterface(object):
         :param list links:             any links to add with the file
         :param bool allow_overwrite:   if set to True no error will be raised if the file already exists and the existing file
                                        and its metadata will just be silently overwritten
-        :param unicode display:        display name of the file
+        :param str display:        display name of the file
         :return: the sanitized name of the file to be used for future references to it
         """
         raise NotImplementedError()
@@ -1146,7 +1145,7 @@ class LocalFileStorage(StorageInterface):
 
     def canonicalize(self, path):
         name = None
-        if isinstance(path, basestring):
+        if isinstance(path, str):
             path = to_unicode(path)
             if path.startswith(self.basefolder):
                 path = path[len(self.basefolder) :]
@@ -1236,7 +1235,7 @@ class LocalFileStorage(StorageInterface):
     def path_in_storage(self, path):
         if isinstance(path, (tuple, list)):
             path = self.join_path(*path)
-        if isinstance(path, basestring):
+        if isinstance(path, str):
             path = to_unicode(path)
             if path.startswith(self.basefolder):
                 path = path[len(self.basefolder) :]

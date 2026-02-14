@@ -22,7 +22,6 @@ import requests
 import sarge
 from flask import Response, abort, jsonify, request
 from flask_babel import gettext
-from past.builtins import basestring
 
 import octoprint.plugin
 import octoprint.plugin.core
@@ -93,7 +92,7 @@ def map_repository_entry(entry):
         if (
             "python" in entry["compatibility"]
             and entry["compatibility"]["python"] is not None
-            and isinstance(entry["compatibility"]["python"], basestring)
+            and isinstance(entry["compatibility"]["python"], str)
         ):
             result["is_compatible"]["python"] = is_python_compatible(
                 entry["compatibility"]["python"]
@@ -1402,7 +1401,7 @@ class PluginManagerPlugin(
         result_notifications=True,
         settings_save=True,
     ):
-        if isinstance(plugin, basestring):
+        if isinstance(plugin, str):
             key = result_value = plugin
         else:
             key = plugin.key
@@ -1980,7 +1979,7 @@ class PluginManagerPlugin(
                 result = hook()
                 if isinstance(result, (list, tuple)):
                     reconnect_hooks.extend(
-                        filter(lambda x: isinstance(x, basestring), result)
+                        filter(lambda x: isinstance(x, str), result)
                     )
             except Exception:
                 self._logger.exception(

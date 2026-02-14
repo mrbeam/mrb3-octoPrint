@@ -7,7 +7,6 @@ __copyright__ = "Copyright (C) 2014 The OctoPrint Project - Released under terms
 import re
 
 from flask import Response, abort, jsonify, request
-from past.builtins import basestring, long, unicode
 
 from octoprint.access.permissions import Permissions
 from octoprint.printer import UnknownScript
@@ -93,7 +92,7 @@ def printerToolCommand():
     ##~~ tool selection
     if command == "select":
         tool = data["tool"]
-        if not isinstance(tool, basestring) or re.match(validation_regex, tool) is None:
+        if not isinstance(tool, str) or re.match(validation_regex, tool) is None:
             abort(400, description="tool is invalid")
 
         printer.change_tool(tool, tags=tags)
@@ -107,7 +106,7 @@ def printerToolCommand():
         for tool, value in targets.items():
             if re.match(validation_regex, tool) is None:
                 abort(400, description="targets contains invalid tool")
-            if not isinstance(value, (int, long, float)):
+            if not isinstance(value, (int, float)):
                 abort(400, description="targets contains invalid value")
             validated_values[tool] = value
 
@@ -124,7 +123,7 @@ def printerToolCommand():
         for tool, value in offsets.items():
             if re.match(validation_regex, tool) is None:
                 abort(400, description="offsets contains invalid tool")
-            if not isinstance(value, (int, long, float)) or not -50 <= value <= 50:
+            if not isinstance(value, (int, float)) or not -50 <= value <= 50:
                 abort(400, description="offsets contains invalid value")
             validated_values[tool] = value
 
@@ -139,13 +138,13 @@ def printerToolCommand():
 
         amount = data["amount"]
         speed = data.get("speed", None)
-        if not isinstance(amount, (int, long, float)):
+        if not isinstance(amount, (int, float)):
             abort(400, description="amount is invalid")
         printer.extrude(amount, speed=speed, tags=tags)
 
     elif command == "flowrate":
         factor = data["factor"]
-        if not isinstance(factor, (int, long, float)):
+        if not isinstance(factor, (int, float)):
             abort(400, description="factor is invalid")
         try:
             printer.flow_rate(factor, tags=tags)
@@ -190,7 +189,7 @@ def printerBedCommand():
         target = data["target"]
 
         # make sure the target is a number
-        if not isinstance(target, (int, long, float)):
+        if not isinstance(target, (int, float)):
             abort(400, description="target is invalid")
 
         # perform the actual temperature command
@@ -201,7 +200,7 @@ def printerBedCommand():
         offset = data["offset"]
 
         # make sure the offset is valid
-        if not isinstance(offset, (int, long, float)) or not -50 <= offset <= 50:
+        if not isinstance(offset, (int, float)) or not -50 <= offset <= 50:
             abort(400, description="offset is invalid")
 
         # set the offsets
@@ -252,7 +251,7 @@ def printerChamberCommand():
         target = data["target"]
 
         # make sure the target is a number
-        if not isinstance(target, (int, long, float)):
+        if not isinstance(target, (int, float)):
             abort(400, description="target is invalid")
 
         # perform the actual temperature command
@@ -263,7 +262,7 @@ def printerChamberCommand():
         offset = data["offset"]
 
         # make sure the offset is valid
-        if not isinstance(offset, (int, long, float)) or not -50 <= offset <= 50:
+        if not isinstance(offset, (int, float)) or not -50 <= offset <= 50:
             abort(400, description="offset is invalid")
 
         # set the offsets
@@ -315,7 +314,7 @@ def printerPrintheadCommand():
         for axis in valid_axes:
             if axis in data:
                 value = data[axis]
-                if not isinstance(value, (int, long, float)):
+                if not isinstance(value, (int, float)):
                     abort(400, description="axis value is invalid")
                 validated_values[axis] = value
 
@@ -339,7 +338,7 @@ def printerPrintheadCommand():
 
     elif command == "feedrate":
         factor = data["factor"]
-        if not isinstance(factor, (int, long, float)):
+        if not isinstance(factor, (int, float)):
             abort(400, description="factor is invalid")
         try:
             printer.feed_rate(factor, tags=tags)
@@ -469,7 +468,7 @@ def _get_temperature_data(preprocessor):
         tempHistory = printer.get_temperature_history()
 
         limit = 300
-        if "limit" in request.values and unicode(request.values["limit"]).isnumeric():
+        if "limit" in request.values and str(request.values["limit"]).isnumeric():
             limit = int(request.values["limit"])
 
         history = list(tempHistory)
