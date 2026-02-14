@@ -25,12 +25,22 @@ import warnings
 
 from functools import wraps
 import unittest.mock
+try:
+    import mock
+except ImportError:
+    mock = None
 
-# Fix for Python 3.13 + Mock + functools.wraps compatibility
-# MagicMocks lack __type_params__ which wraps() now expects in Py 3.13
+# Patch standard library mock
 if not hasattr(unittest.mock.NonCallableMock, "__type_params__"):
     try:
         unittest.mock.NonCallableMock.__type_params__ = ()
+    except Exception:
+        pass
+
+# Patch external mock library (CRITICAL for test_settings.py)
+if mock and not hasattr(mock.NonCallableMock, "__type_params__"):
+    try:
+        mock.NonCallableMock.__type_params__ = ()
     except Exception:
         pass
 

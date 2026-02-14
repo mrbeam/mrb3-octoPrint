@@ -53,66 +53,48 @@ else:
 
 
 def get_lan_ranges(additional_private=None):
-    logger = logging.getLogger(__name__)
     import netaddr
-    import socket
     import netifaces
+    import socket
 
-    # 1. Start with the standard global private/local ranges using version-agnostic CIDRs
+    # 1. Use the clean, version-agnostic list of defaults
     subnets = [
-        netaddr.IPNetwork("127.0.0.0/8"),    # IPv4 Loopback
-        netaddr.IPNetwork("10.0.0.0/8"),     # RFC1918
-        netaddr.IPNetwork("172.16.0.0/12"),  # RFC1918
-        netaddr.IPNetwork("192.168.0.0/16"), # RFC1918
-        netaddr.IPNetwork("169.254.0.0/16"), # IPv4 Link-Local
-        netaddr.IPNetwork("::1/128"),        # IPv6 Loopback
-        netaddr.IPNetwork("fe80::/10"),      # IPv6 Link-Local
-        netaddr.IPNetwork("fc00::/7"),       # IPv6 ULA (Unique Local)
+        netaddr.IPNetwork("127.0.0.0/8"),
+        netaddr.IPNetwork("10.0.0.0/8"),
+        netaddr.IPNetwork("172.16.0.0/12"),
+        netaddr.IPNetwork("192.168.0.0/16"),
+        netaddr.IPNetwork("169.254.0.0/16"),
+        netaddr.IPNetwork("::1/128"),
+        netaddr.IPNetwork("fe80::/10"),
+        netaddr.IPNetwork("fc00::/7"),
     ]
 
     if additional_private is None or not isinstance(additional_private, (list, tuple)):
         additional_private = []
 
-    # Helper to convert netifaces dict to IPNetwork
-    def to_ipnetwork(address):
-        prefix = address["netmask"]
-        if "/" in prefix:
-            # v6 notation in netifaces output, e.g. "ffff:ffff:ffff:ffff::/64"
-            _, prefix = prefix.split("/")
-        addr = strip_interface_tag(address["addr"])
-        return netaddr.IPNetwork("{}/{}".format(addr, prefix))
-
     # 2. Add subnets from all local network interfaces
     for interface in netifaces.interfaces():
-        addrs = netifaces.ifaddresses(interface)
-
-        # Handle IPv4 Interfaces
-        for v4 in addrs.get(socket.AF_INET, ()):
-            try:
-                subnets.append(to_ipnetwork(v4))
-            except Exception:
-                if logger.isEnabledFor(logging.DEBUG):
-                    logger.exception("Error adding v4 network to local subnets: {!r}".format(v4))
-
-        # Handle IPv6 Interfaces
-        if HAS_V6:
-            for v6 in addrs.get(socket.AF_INET6, ()):
-                try:
-                    subnets.append(to_ipnetwork(v6))
-                except Exception:
-                    if logger.isEnabledFor(logging.DEBUG):
-                        logger.exception("Error adding v6 network to local subnets: {!r}".format(v6))
+        try:
+            addrs = netifaces.ifaddresses(interface)
+            for family in (socket.AF_INET, socket.AF_INET6):
+                for address in addrs.get(family, ()):
+                    try:
+                        addr = strip_interface_tag(address["addr"])
+                        mask = address["netmask"]
+                        if "/" in mask:
+                            _, mask = mask.split("/")
+                        subnets.append(netaddr.IPNetwork("{}/{}".format(addr, mask)))
+                    except Exception:
+                        continue
+        except (ValueError, KeyError):
+            continue
 
     # 3. Add user-defined additional private ranges
     for additional in additional_private:
         try:
-            # We use cidr_only=False to allow short notations like "11/8"
-            # which netaddr will expand to "11.0.0.0/8"
-            nw = netaddr.IPNetwork(additional)
-            subnets.append(nw)
+            subnets.append(netaddr.IPNetwork(additional))
         except Exception:
-            if logger.isEnabledFor(logging.DEBUG):
-                logger.exception("Error adding additional private network: {}".format(additional))
+            continue
 
     return subnets
 
@@ -122,28 +104,18 @@ def is_lan_address(address, additional_private=None):
 
     import netaddr
     try:
-        # 1. Strip interface tags and convert to IPAddress object
-        # This handles strings like "11.1.2.3" or "::1"
+        # Convert input to IPAddress and normalize mapped IPv4 (::ffff:x.x.x.x)
         ip = netaddr.IPAddress(strip_interface_tag(address))
-
-        # 2. Normalize IPv4-mapped IPv6 addresses (::ffff:192.168.x.x)
         if ip.is_ipv4_mapped():
             ip = ip.ipv4()
     except Exception:
         return False
 
     subnets = get_lan_ranges(additional_private=additional_private)
-
-    # 3. Use optimized netaddr comparison
     for subnet in subnets:
-        try:
-            # We ensure we are checking against the CIDR representation
-            # This makes "11.1.2.3 in 11.0.0.0/8" work perfectly
-            if ip in subnet.cidr:
-                return True
-        except Exception:
-            continue
-
+        # Crucial: comparing IPAddress object against IPNetwork object
+        if ip in subnet:
+            return True
     return False
 
 def sanitize_address(address):
