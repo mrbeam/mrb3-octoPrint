@@ -1877,16 +1877,24 @@ class Server(object):
         return blueprint, url_prefix
 
     def _prepare_asset_plugin(self, plugin):
-        name = plugin._identifier # Back to dots
-        url_prefix = "/plugin/{name}".format(name=name)
+        # 1. Safe name for Flask (underscores)
+        safe_name = plugin._identifier.replace(".", "_")
+
+        # 2. URL prefix for the browser (dots are fine here)
+        url_prefix = "/plugin/{name}".format(name=plugin._identifier)
+
+        # 3. Use an ABSOLUTE path for the static folder
+        # This bypasses OctoPrint's name-based lookup logic
+        import os
+        asset_folder = plugin.get_asset_folder()
 
         blueprint = Blueprint(
-            "plugin." + name + "_assets", # Back to dots
+            "plugin_" + safe_name + "_assets",
             plugin.__module__,
-            static_folder=plugin.get_asset_folder(),
+            static_folder=asset_folder,
             static_url_path="/static"
         )
-        # Keep your registration safety check here!
+
         if blueprint.name not in app.blueprints:
             app.register_blueprint(blueprint, url_prefix=url_prefix)
 

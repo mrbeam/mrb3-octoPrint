@@ -1413,7 +1413,9 @@ class BlueprintPlugin(OctoPrintPlugin, RestartNeedingPlugin):
 
         kwargs = self.get_blueprint_kwargs()
         blueprint = flask.Blueprint(
-            "plugin." + self._identifier, self._identifier, **kwargs
+            "plugin_" + self._identifier.replace(".", "_") + "_logic", # Use underscores
+            self.__module__, # Use module path for better resolution
+            **kwargs
         )
 
         # we now iterate over all members of ourselves and look if we find an attribute
