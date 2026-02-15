@@ -1759,6 +1759,19 @@ class Server(object):
         # make sure all before/after_request hook results are attached as well
         self._add_plugin_request_handlers_to_blueprints(*blueprints.values())
 
+
+        self._logger.warning(
+            ">>>    Already registered Flask blueprints before plugin registration: %s",
+            sorted(app.blueprints.keys()),
+        )
+
+        for url_prefix, blueprint in blueprints.items():
+            self._logger.warning(
+                "======   Registering blueprint %r with url prefix %r",
+                getattr(blueprint, "name", "<unnamed>"),
+                url_prefix,
+            )
+
         # register everything with the system
         for url_prefix, blueprint in blueprints.items():
             self._logger.warning(f"#####  {blueprint.name}")
