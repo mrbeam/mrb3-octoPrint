@@ -1760,17 +1760,17 @@ class Server(object):
         self._add_plugin_request_handlers_to_blueprints(*blueprints.values())
 
 
-        self._logger.warning(
-            "==    Already registered Flask blueprints before plugin registration: %s",
-            sorted(app.blueprints.keys()),
-        )
-
-        for url_prefix, blueprint in blueprints.items():
-            self._logger.warning(
-                ">>   To register blueprint %r with url prefix %r",
-                getattr(blueprint, "name", "<unnamed>"),
-                url_prefix,
-            )
+        # self._logger.debug(
+        #     "==    Already registered Flask blueprints before plugin registration: %s",
+        #     sorted(app.blueprints.keys()),
+        # )
+        #
+        # for url_prefix, blueprint in blueprints.items():
+        #     self._logger.debug(
+        #         ">>   To register blueprint %r with url prefix %r",
+        #         getattr(blueprint, "name", "<unnamed>"),
+        #         url_prefix,
+        #     )
 
         # register everything with the system
         for url_prefix, blueprint in blueprints.items():

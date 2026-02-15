@@ -15,10 +15,9 @@
 
 // Import commands.js using ES2015 syntax:
 import "./commands";
+import 'cypress-file-upload'; // This one is likely needed for upload.js
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
 
 require("cypress-terminal-report/src/installLogsCollector")();
-require("cypress-commands");
-require("cypress-plugin-retries");
