@@ -1761,6 +1761,7 @@ class Server(object):
 
         # register everything with the system
         for url_prefix, blueprint in blueprints.items():
+            self._logger.warning(f"#####  {blueprint.name}")
             app.register_blueprint(blueprint, url_prefix=url_prefix)
 
         @app.errorhandler(HTTPException)
