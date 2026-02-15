@@ -125,7 +125,7 @@ jobs:
       - name: 🚀 Install wheel
         run: |
           ls -R dist/
-          pip install --upgrade pip
+          pip install --upgrade pip setuptools
           # Force reinstall to ensure your NEW pins in setup.py are actually applied
           pip install --force-reinstall dist/octoprint-*.whl
 
