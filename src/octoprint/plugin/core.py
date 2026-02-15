@@ -1125,7 +1125,7 @@ class PluginManager(object):
                         "version": version,
                         "bundled": bundled,
                     }
-                    package_name = entry_point.dist.project_name
+                    package_name = entry_point.dist.name
                     try:
                         entry_point_metadata = EntryPointMetadata(entry_point)
                     except Exception:
