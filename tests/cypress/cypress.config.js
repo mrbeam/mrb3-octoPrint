@@ -5,12 +5,11 @@ module.exports = defineConfig({
     baseUrl: "http://127.0.0.1:5000",
     specPattern: "integration/**/*.js", // Replaces integrationFolder
     supportFile: "support/index.js",
-    retries: {
-      runMode: 2,   // Number of retries when running 'cypress run'
-      openMode: 0,  // Number of retries when running 'cypress open'
-    },
+    video: false,
+    screenshotOnRunFailure: true,
     setupNodeEvents(on, config) {
-      // Replaces pluginsFile
+      // Logic for older plugins/index.js
+      // Ensure you have removed the 'retries' require line inside plugins/index.js!
       return require("./plugins/index.js")(on, config);
     },
   },

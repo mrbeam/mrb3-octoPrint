@@ -1842,11 +1842,12 @@ class Server(object):
         return blueprint, url_prefix
 
     def _prepare_asset_plugin(self, plugin):
-        name = plugin._identifier
+        # name = plugin._identifier
+        name = plugin._identifier.replace(".", "_")
 
         url_prefix = "/plugin/{name}".format(name=name)
         blueprint = Blueprint(
-            "plugin." + name, name, static_folder=plugin.get_asset_folder()
+            "plugin_" + name + "_assets", name, static_folder=plugin.get_asset_folder()
         )
         app.register_blueprint(blueprint, url_prefix=url_prefix)
 
