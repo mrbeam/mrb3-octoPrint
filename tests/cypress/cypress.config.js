@@ -9,7 +9,6 @@ module.exports = defineConfig({
     screenshotOnRunFailure: true,
     setupNodeEvents(on, config) {
       // Logic for older plugins/index.js
-      // Ensure you have removed the 'retries' require line inside plugins/index.js!
       return require("./plugins/index.js")(on, config);
     },
   },
