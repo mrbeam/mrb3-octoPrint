@@ -1761,21 +1761,37 @@ class Server(object):
 
 
         self._logger.warning(
-            ">>>    Already registered Flask blueprints before plugin registration: %s",
+            "==    Already registered Flask blueprints before plugin registration: %s",
             sorted(app.blueprints.keys()),
         )
 
         for url_prefix, blueprint in blueprints.items():
             self._logger.warning(
-                "======   Registering blueprint %r with url prefix %r",
+                ">>   To register blueprint %r with url prefix %r",
                 getattr(blueprint, "name", "<unnamed>"),
                 url_prefix,
             )
 
         # register everything with the system
         for url_prefix, blueprint in blueprints.items():
-            self._logger.warning(f"#####  {blueprint.name}")
-            app.register_blueprint(blueprint, url_prefix=url_prefix)
+            # THE CRITICAL FIX FOR FLASK 2.3+
+            # 1. Check if the name is already in the app
+            # 2. Reset the internal '_got_registered_once' flag if it exists (for Intermediary Server compatibility)
+            if blueprint.name not in app.blueprints:
+                try:
+                    app.register_blueprint(blueprint, url_prefix=url_prefix)
+                except ValueError:
+                    # Fallback for some Flask versions that track registration on the blueprint object itself
+                    if hasattr(blueprint, "_got_registered_once"):
+                        blueprint._got_registered_once = False
+                    app.register_blueprint(blueprint, url_prefix=url_prefix)
+            else:
+                self._logger.debug(f"Skipping registration of {blueprint.name}, already registered.")
+
+        # register everything with the system
+        # for url_prefix, blueprint in blueprints.items():
+        #     self._logger.warning(f"#####  {blueprint.name}")
+        #     app.register_blueprint(blueprint, url_prefix=url_prefix)
 
         @app.errorhandler(HTTPException)
         def _handle_api_error(ex):
