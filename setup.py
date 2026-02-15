@@ -27,8 +27,8 @@ INSTALL_REQUIRES = [
     "markdown>=3.7,<4",
     "wrapt>=1.17.2,<1.18",
 
-    "flask>=2.2.5,<2.3",     # Downgraded from 3.0.3
-    "werkzeug>=2.3.8,<3.0",  # Downgraded to match Flask 2.2
+    "flask>=2.2.5,<2.3.0",     # Downgraded from 3.0.3
+    "werkzeug>=2.3.8,<3.0.0",  # Downgraded to match Flask 2.2
     "Jinja2>=3.1.2,<4",
     "itsdangerous>=2.1.2,<3",
 
