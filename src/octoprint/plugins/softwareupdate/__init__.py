@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import datetime
+from importlib.metadata import version as get_version
 
 __author__ = "Gina Häußge <osd@foosel.net>"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
@@ -341,8 +342,6 @@ class SoftwareUpdatePlugin(
             return self._configured_checks
 
     def _check_environment(self):
-        import pkg_resources
-
         local_pip = create_pip_caller(
             command=self._settings.global_get(["server", "commands", "localPipCommand"])
         )
@@ -350,7 +349,7 @@ class SoftwareUpdatePlugin(
         # check python and setuptools version
         versions = {
             "python": get_python_version_string(),
-            "setuptools": pkg_resources.get_distribution("setuptools").version,
+            "setuptools": get_version("setuptools"),
             "pip": local_pip.version_string,
         }
         supported = (
@@ -2283,8 +2282,6 @@ class SoftwareUpdatePlugin(
                         result["release_compare"] = "python_unequal"
 
         elif target == "pip":
-            import pkg_resources
-
             displayName = check.get("displayName")
             if displayName is None:
                 # displayName missing or set to None
@@ -2294,9 +2291,7 @@ class SoftwareUpdatePlugin(
             displayVersion = check.get("displayVersion")
             if displayVersion is None:
                 # displayVersion missing or set to None
-                distribution = pkg_resources.get_distribution("pip")
-                if distribution:
-                    displayVersion = distribution.version
+                displayVersion = get_version("pip")
             result["displayVersion"] = to_unicode(displayVersion, errors="replace")
 
             result["pip_command"] = check.get(

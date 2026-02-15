@@ -4,8 +4,8 @@ __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agp
 __copyright__ = "Copyright (C) 2019 The OctoPrint Project - Released under terms of the AGPLv3 License"
 
 import logging
+from importlib.metadata import PackageNotFoundError, version as get_version
 
-import pkg_resources
 import requests
 
 from octoprint.util import to_native_str  # noqa: F401
@@ -106,10 +106,9 @@ def get_latest(target, check, online=True, *args, **kwargs):
 
     package = check.get("package")
 
-    distribution = pkg_resources.get_distribution(package)
-    if distribution:
-        local_version = distribution.version
-    else:
+    try:
+        local_version = get_version(package)
+    except PackageNotFoundError:
         local_version = None
 
     remote_version = _get_latest_release(

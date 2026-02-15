@@ -30,6 +30,7 @@ import logging
 import os
 import sys
 from collections import OrderedDict, defaultdict, namedtuple
+from importlib.metadata import entry_points
 
 import pkg_resources
 import pkginfo
@@ -1074,16 +1075,11 @@ class PluginManager(object):
         added = OrderedDict()
         found = []
 
-        # let's make sure we have a current working set ...
-        working_set = pkg_resources.WorkingSet()
-
-        # ... including the user's site packages
+        # make sure user site packages are on sys.path so importlib metadata can see them
         import site
         import sys
 
         if site.ENABLE_USER_SITE:
-            if site.USER_SITE not in working_set.entries:
-                working_set.add_entry(site.USER_SITE)
             if site.USER_SITE not in sys.path:
                 site.addsitedir(site.USER_SITE)
 
@@ -1103,12 +1099,14 @@ class PluginManager(object):
                     )
 
         for group in groups:
-            for entry_point in wrapped(
-                working_set.iter_entry_points(group=group, name=None)
-            ):
+            for entry_point in wrapped(entry_points(group=group)):
                 try:
                     key = entry_point.name
-                    module_name = entry_point.module_name
+                    module_name = (
+                        entry_point.module
+                        if hasattr(entry_point, "module")
+                        else entry_point.module_name
+                    )
                     version = entry_point.dist.version
 
                     found.append(key)

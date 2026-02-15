@@ -8,6 +8,7 @@ import logging
 import os
 import sys
 import threading
+from importlib.metadata import version as get_version
 
 import psutil
 import yaml
@@ -98,9 +99,7 @@ class EnvironmentDetector(object):
 
         # try to find pip version
         try:
-            import pkg_resources
-
-            result["pip"] = pkg_resources.get_distribution("pip").version
+            result["pip"] = get_version("pip")
         except Exception:
             self._logger.exception("Error detecting pip version")
 
