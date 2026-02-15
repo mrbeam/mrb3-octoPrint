@@ -19,6 +19,7 @@ SETUP_REQUIRES = ["markdown>=3.7,<4"]
 # Modernized requirements for Python 3.10+
 # Pinned to versions compatible with Python 3.13 (removes 'imp' and 'pathtools' dependencies)
 INSTALL_REQUIRES = [
+    "setuptools",
     "OctoPrint-FileCheck>=2021.2.23",
     "OctoPrint-FirmwareCheck>=2021.10.11",
     "OctoPrint-PiSupport>=2021.10.28",
