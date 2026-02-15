@@ -1641,30 +1641,36 @@ class PluginAssetResolver(flask_assets.FlaskResolver):
         app = ctx.environment._app
         if item.startswith("plugin/"):
             try:
-                # 1. Parse the request path (e.g., 'plugin/announcements/js/main.js')
                 parts = item.split("/", 2)
                 if len(parts) < 3:
                     return flask_assets.FlaskResolver.split_prefix(self, ctx, item)
 
                 prefix, plugin_id, file_path = parts
 
-                # 2. Try our new Flask-safe naming convention first
-                # This matches: "plugin_" + plugin_id.replace(".", "_") + "_assets"
-                safe_plugin_id = plugin_id.replace(".", "_")
-                blueprint_name = f"plugin_{safe_plugin_id}_assets"
+                # USE THE TAG: Search for the blueprint that has the matching ID
+                blueprint_obj = None
+                endpoint_name = None
 
-                if blueprint_name not in app.blueprints:
-                    # Fallback to the old dot-notation just in case some are still registered that way
-                    blueprint_name = f"plugin.{plugin_id}"
+                for bp in app.blueprints.values():
+                    # We check the custom attribute we injected in server/__init__.py
+                    if getattr(bp, "octoprint_plugin_identifier", None) == plugin_id:
+                        blueprint_obj = bp
+                        endpoint_name = bp.name
+                        break
 
-                if blueprint_name in app.blueprints:
-                    blueprint_obj = app.blueprints[blueprint_name]
+                # FALLBACK: If tag not found, try string matching (legacy/bundled plugins)
+                if not blueprint_obj:
+                    safe_id = plugin_id.replace(".", "_")
+                    candidates = [f"plugin_{safe_id}_assets", f"plugin_{safe_id}_logic", safe_id]
+                    for candidate in candidates:
+                        if candidate in app.blueprints:
+                            blueprint_obj = app.blueprints[candidate]
+                            endpoint_name = candidate
+                            break
+
+                if blueprint_obj:
                     directory = flask_assets.get_static_folder(blueprint_obj)
-
-                    # The endpoint used for generating URLs must match the internal name
-                    endpoint = f"{blueprint_name}.static"
-
-                    return directory, file_path, endpoint
+                    return directory, file_path, f"{endpoint_name}.static"
 
             except (ValueError, KeyError):
                 pass

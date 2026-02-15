@@ -1882,10 +1882,16 @@ class Server(object):
 
             url_prefix = "/plugin/{name}".format(name=plugin._identifier)
 
+            # Ensure we have an absolute path for the static folder
+            import os
+            static_folder = plugin.get_asset_folder()
+            if not os.path.isabs(static_folder):
+                static_folder = os.path.abspath(static_folder)
+
             blueprint = Blueprint(
                 "plugin_" + safe_name + "_assets",
                 plugin.__module__,
-                static_folder=plugin.get_asset_folder(),
+                static_folder=static_folder,
                 static_url_path="/static"
             )
 
