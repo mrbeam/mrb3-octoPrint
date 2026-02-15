@@ -1842,19 +1842,25 @@ class Server(object):
         return blueprint, url_prefix
 
     def _prepare_asset_plugin(self, plugin):
-        # name = plugin._identifier
-        name = plugin._identifier.replace(".", "_")
+        # Use the identifier as the folder name in the URL, but the safe name for the blueprint
+        safe_name = plugin._identifier.replace(".", "_")
 
-        url_prefix = "/plugin/{name}".format(name=name)
+        url_prefix = "/plugin/{name}".format(name=plugin._identifier)
+
         blueprint = Blueprint(
-            "plugin_" + name + "_assets", name, static_folder=plugin.get_asset_folder()
+            "plugin_" + safe_name + "_assets",
+            plugin.__module__, # Use the actual module path here
+            static_folder=plugin.get_asset_folder(),
+            static_url_path="/static" # Relative to the blueprint's url_prefix
         )
+
+        # We use 'app' from the outer scope, which should be the Flask instance
         app.register_blueprint(blueprint, url_prefix=url_prefix)
 
         if self._logger:
             self._logger.debug(
                 "Registered assets of plugin {name} under URL prefix {url_prefix}".format(
-                    name=name, url_prefix=url_prefix
+                    name=plugin._identifier, url_prefix=url_prefix
                 )
             )
 
