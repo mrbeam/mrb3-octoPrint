@@ -1877,28 +1877,26 @@ class Server(object):
         return blueprint, url_prefix
 
     def _prepare_asset_plugin(self, plugin):
-        # 1. Safe name for Flask (underscores)
-        safe_name = plugin._identifier.replace(".", "_")
+            # The name Flask sees (No dots!)
+            safe_name = plugin._identifier.replace(".", "_")
 
-        # 2. URL prefix for the browser (dots are fine here)
-        url_prefix = "/plugin/{name}".format(name=plugin._identifier)
+            url_prefix = "/plugin/{name}".format(name=plugin._identifier)
 
-        # 3. Use an ABSOLUTE path for the static folder
-        # This bypasses OctoPrint's name-based lookup logic
-        import os
-        asset_folder = plugin.get_asset_folder()
+            blueprint = Blueprint(
+                "plugin_" + safe_name + "_assets",
+                plugin.__module__,
+                static_folder=plugin.get_asset_folder(),
+                static_url_path="/static"
+            )
 
-        blueprint = Blueprint(
-            "plugin_" + safe_name + "_assets",
-            plugin.__module__,
-            static_folder=asset_folder,
-            static_url_path="/static"
-        )
+            # MANUALLY add a helper attribute that OctoPrint's asset manager looks for
+            # This helps the internal 'fix_webassets_filtertool' find the right path
+            blueprint.octoprint_plugin_identifier = plugin._identifier
 
-        if blueprint.name not in app.blueprints:
-            app.register_blueprint(blueprint, url_prefix=url_prefix)
+            if blueprint.name not in app.blueprints:
+                app.register_blueprint(blueprint, url_prefix=url_prefix)
 
-        return blueprint, url_prefix
+            return blueprint, url_prefix
 
     def _add_plugin_request_handlers_to_blueprints(self, *blueprints):
         before_hooks = octoprint.plugin.plugin_manager().get_hooks(

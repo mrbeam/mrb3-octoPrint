@@ -1641,13 +1641,31 @@ class PluginAssetResolver(flask_assets.FlaskResolver):
         app = ctx.environment._app
         if item.startswith("plugin/"):
             try:
-                prefix, plugin, name = item.split("/", 2)
-                blueprint = prefix + "." + plugin
+                # 1. Parse the request path (e.g., 'plugin/announcements/js/main.js')
+                parts = item.split("/", 2)
+                if len(parts) < 3:
+                    return flask_assets.FlaskResolver.split_prefix(self, ctx, item)
 
-                directory = flask_assets.get_static_folder(app.blueprints[blueprint])
-                item = name
-                endpoint = blueprint + ".static"
-                return directory, item, endpoint
+                prefix, plugin_id, file_path = parts
+
+                # 2. Try our new Flask-safe naming convention first
+                # This matches: "plugin_" + plugin_id.replace(".", "_") + "_assets"
+                safe_plugin_id = plugin_id.replace(".", "_")
+                blueprint_name = f"plugin_{safe_plugin_id}_assets"
+
+                if blueprint_name not in app.blueprints:
+                    # Fallback to the old dot-notation just in case some are still registered that way
+                    blueprint_name = f"plugin.{plugin_id}"
+
+                if blueprint_name in app.blueprints:
+                    blueprint_obj = app.blueprints[blueprint_name]
+                    directory = flask_assets.get_static_folder(blueprint_obj)
+
+                    # The endpoint used for generating URLs must match the internal name
+                    endpoint = f"{blueprint_name}.static"
+
+                    return directory, file_path, endpoint
+
             except (ValueError, KeyError):
                 pass
 
@@ -1655,9 +1673,7 @@ class PluginAssetResolver(flask_assets.FlaskResolver):
 
     def resolve_output_to_path(self, ctx, target, bundle):
         import os
-
         return os.path.normpath(os.path.join(ctx.environment.directory, target))
-
 
 ##~~ Webassets updater that takes changes in the configuration into account
 
