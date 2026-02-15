@@ -32,8 +32,8 @@ import sys
 from collections import OrderedDict, defaultdict, namedtuple
 from importlib.metadata import entry_points
 
-import pkg_resources
 import pkginfo
+from packaging.requirements import Requirement
 
 from octoprint.util import sv, time_this, to_unicode
 from octoprint.util.version import get_python_version_string, is_python_compatible
@@ -852,9 +852,7 @@ class PluginManager(object):
             if isinstance(entry, (tuple, list)):
                 key, version = entry
                 try:
-                    processed_blacklist.append(
-                        (key, pkg_resources.Requirement.parse(key + version))
-                    )
+                    processed_blacklist.append((key, Requirement(key + version)))
                 except Exception:
                     self.logger.warning(
                         "Invalid version requirement {} for blacklist "
@@ -1333,7 +1331,9 @@ class PluginManager(object):
         def matches_plugin(entry):
             if isinstance(entry, (tuple, list)) and len(entry) == 2:
                 entry_key, entry_version = entry
-                return entry_key == key and version in entry_version
+                return entry_key == key and entry_version.specifier.contains(
+                    str(version), prereleases=True
+                )
             return False
 
         return any(map(matches_plugin, self.plugin_blacklist))

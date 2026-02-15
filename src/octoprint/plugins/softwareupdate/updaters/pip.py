@@ -9,8 +9,6 @@ import collections
 import logging
 import threading
 
-import pkg_resources
-
 from octoprint.util.pip import UnknownPip, create_pip_caller
 from octoprint.util.version import get_comparable_version
 
@@ -27,7 +25,6 @@ _POTENTIAL_EGG_PROBLEM_WINDOWS = "The system cannot find the file specified"
 
 _pip_callers = {}
 _pip_caller_mutex = collections.defaultdict(threading.RLock)
-_pip_version_dependency_links = pkg_resources.parse_version("1.5")
 
 
 def can_perform_update(target, check, online=True):

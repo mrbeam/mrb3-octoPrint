@@ -8,7 +8,7 @@ import unittest
 
 import ddt
 import mock
-import pkg_resources
+from packaging.version import parse as parse_version
 
 import octoprint.util.pip
 
@@ -137,7 +137,7 @@ class PipCallerTest(unittest.TestCase):
         self, args, version, virtual_env, use_user, force_user, user_site, expected
     ):
         with mock.patch.object(site, "ENABLE_USER_SITE", user_site):
-            parsed = pkg_resources.parse_version(version)
+            parsed = parse_version(version)
             actual = octoprint.util.pip.PipCaller.clean_install_command(
                 args, parsed, virtual_env, use_user, force_user
             )

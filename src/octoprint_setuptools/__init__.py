@@ -571,7 +571,7 @@ def create_plugin_setup_parameters(
     package=None,
     dependency_links=None,
 ):
-    import pkg_resources
+    from packaging.utils import canonicalize_name
 
     if package is None:
         package = "octoprint_{identifier}".format(**locals())
@@ -610,9 +610,8 @@ def create_plugin_setup_parameters(
     if not isinstance(eggs, list):
         raise ValueError("eggs must be a list")
 
-    egg = "{name}*.egg-info".format(
-        name=pkg_resources.to_filename(pkg_resources.safe_name(name))
-    )
+    egg_name = canonicalize_name(name).replace("-", "_")
+    egg = "{name}*.egg-info".format(name=egg_name)
     if egg not in eggs:
         eggs = [egg] + eggs
 

@@ -17,11 +17,11 @@ import time
 from datetime import datetime
 
 import filetype
-import pkg_resources
 import requests
 import sarge
 from flask import Response, abort, jsonify, request
 from flask_babel import gettext
+from packaging.requirements import Requirement
 
 import octoprint.plugin
 import octoprint.plugin.core
@@ -1978,9 +1978,7 @@ class PluginManagerPlugin(
             try:
                 result = hook()
                 if isinstance(result, (list, tuple)):
-                    reconnect_hooks.extend(
-                        filter(lambda x: isinstance(x, str), result)
-                    )
+                    reconnect_hooks.extend(filter(lambda x: isinstance(x, str), result))
             except Exception:
                 self._logger.exception(
                     "Error while retrieving additional hooks for which a "
@@ -2108,7 +2106,7 @@ def _filter_relevant_notification(notification, plugin_version, octoprint_versio
         is_range = lambda x: "=" in x or ">" in x or "<" in x
         version_ranges = list(
             map(
-                lambda x: pkg_resources.Requirement.parse(notification["plugin"] + x),
+                lambda x: Requirement(notification["plugin"] + x),
                 filter(is_range, pluginversions),
             )
         )
@@ -2126,7 +2124,16 @@ def _filter_relevant_notification(notification, plugin_version, octoprint_versio
             (version_ranges is None and versions is None)
             or (
                 version_ranges
-                and (any(map(lambda v: plugin_version in v, version_ranges)))
+                and (
+                    any(
+                        map(
+                            lambda v: v.specifier.contains(
+                                str(plugin_version), prereleases=True
+                            ),
+                            version_ranges,
+                        )
+                    )
+                )
             )
             or (versions and plugin_version in versions)
         )
