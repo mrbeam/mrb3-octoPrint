@@ -1877,32 +1877,30 @@ class Server(object):
         return blueprint, url_prefix
 
     def _prepare_asset_plugin(self, plugin):
-            # The name Flask sees (No dots!)
-            safe_name = plugin._identifier.replace(".", "_")
+        safe_name = plugin._identifier.replace(".", "_")
+        blueprint_name = "plugin_" + safe_name + "_assets"
+        url_prefix = "/plugin/{name}".format(name=plugin._identifier)
 
-            url_prefix = "/plugin/{name}".format(name=plugin._identifier)
+        # FORCE ABSOLUTE PATH
+        import os
+        asset_folder = plugin.get_asset_folder()
+        if not os.path.isabs(asset_folder):
+            asset_folder = os.path.abspath(asset_folder)
 
-            # Ensure we have an absolute path for the static folder
-            import os
-            static_folder = plugin.get_asset_folder()
-            if not os.path.isabs(static_folder):
-                static_folder = os.path.abspath(static_folder)
+        blueprint = Blueprint(
+            blueprint_name,
+            plugin.__module__,
+            static_folder=asset_folder, # Use the absolute path
+            static_url_path="/static"
+        )
 
-            blueprint = Blueprint(
-                "plugin_" + safe_name + "_assets",
-                plugin.__module__,
-                static_folder=static_folder,
-                static_url_path="/static"
-            )
+        # This tag is REQUIRED for the flask.py fix above
+        blueprint.octoprint_plugin_identifier = plugin._identifier
 
-            # MANUALLY add a helper attribute that OctoPrint's asset manager looks for
-            # This helps the internal 'fix_webassets_filtertool' find the right path
-            blueprint.octoprint_plugin_identifier = plugin._identifier
+        if blueprint.name not in app.blueprints:
+            app.register_blueprint(blueprint, url_prefix=url_prefix)
 
-            if blueprint.name not in app.blueprints:
-                app.register_blueprint(blueprint, url_prefix=url_prefix)
-
-            return blueprint, url_prefix
+        return blueprint, url_prefix
 
     def _add_plugin_request_handlers_to_blueprints(self, *blueprints):
         before_hooks = octoprint.plugin.plugin_manager().get_hooks(

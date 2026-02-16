@@ -15,8 +15,7 @@ export const await_loginui = () => {
 };
 
 export const await_coreui = () => {
-    // REMOVED "@login" from this list because cy.request (used in login())
-    // is not caught by cy.intercept.
+    // REMOVED "@login"
     cy.wait(["@settings", "@files", "@softwareupdate", "@pluginmanager"], {timeout: 30000});
     cy.window().its("OctoPrint.coreui.startedUp", {timeout: 30000}).should("be.true");
 };

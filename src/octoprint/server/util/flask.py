@@ -1647,30 +1647,34 @@ class PluginAssetResolver(flask_assets.FlaskResolver):
 
                 prefix, plugin_id, file_path = parts
 
-                # USE THE TAG: Search for the blueprint that has the matching ID
+                # --- NEW LOGIC START ---
                 blueprint_obj = None
-                endpoint_name = None
 
+                # 1. Search by TAG (The robust way)
                 for bp in app.blueprints.values():
-                    # We check the custom attribute we injected in server/__init__.py
                     if getattr(bp, "octoprint_plugin_identifier", None) == plugin_id:
                         blueprint_obj = bp
-                        endpoint_name = bp.name
                         break
 
-                # FALLBACK: If tag not found, try string matching (legacy/bundled plugins)
+                # 2. Fallback: Search by known name patterns
                 if not blueprint_obj:
                     safe_id = plugin_id.replace(".", "_")
-                    candidates = [f"plugin_{safe_id}_assets", f"plugin_{safe_id}_logic", safe_id]
-                    for candidate in candidates:
-                        if candidate in app.blueprints:
-                            blueprint_obj = app.blueprints[candidate]
-                            endpoint_name = candidate
+                    # Try all possible naming variations
+                    candidates = [
+                        f"plugin_{safe_id}_assets",
+                        f"plugin_{safe_id}_logic",
+                        safe_id,
+                        f"plugin.{plugin_id}"
+                    ]
+                    for name in candidates:
+                        if name in app.blueprints:
+                            blueprint_obj = app.blueprints[name]
                             break
+                # --- NEW LOGIC END ---
 
                 if blueprint_obj:
                     directory = flask_assets.get_static_folder(blueprint_obj)
-                    return directory, file_path, f"{endpoint_name}.static"
+                    return directory, file_path, f"{blueprint_obj.name}.static"
 
             except (ValueError, KeyError):
                 pass
