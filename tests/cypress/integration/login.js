@@ -1,4 +1,4 @@
-import {prepare_server, await_coreui, await_loginui, login} from "../util/util";
+import {prepare_server, await_support_info_page, await_loginui, login} from "../util/util";
 
 context("Login tests", () => {
     const username = "admin";
@@ -24,13 +24,13 @@ context("Login tests", () => {
             cy.get("[data-test-id=login-submit]").click({force: true});
             cy.wait("@login");
 
-            await_coreui();
+            await_support_info_page();
 
             cy.get("[data-test-id=login-menu-title]").should("contain", username);
             cy.getCookie("session_P5000").should("exist");
             cy.getCookie("remember_token_P5000").should("not.exist");
             //cy.visit("/");
-            await_support_info_page();
+            //await_support_info_page();
             // cy.location().should((loc) => {
             //     expect(loc.hash).to.eq("#temp");
             // });
@@ -44,7 +44,7 @@ context("Login tests", () => {
             cy.get("[data-test-id=login-submit]").click({force: true});
             cy.wait("@login");
 
-            await_coreui();
+            await_support_info_page();
 
             cy.get("[data-test-id=login-menu-title]").should("contain", username);
             cy.getCookie("session_P5000").should("exist");
@@ -55,7 +55,7 @@ context("Login tests", () => {
             // cy.location().should((loc) => {
             //     expect(loc.hash).to.eq("#temp");
             // });
-            await_support_info_page();
+            // await_support_info_page();
         });
     });
 
@@ -67,7 +67,7 @@ context("Login tests", () => {
 
             cy.visit("/?l10n=en");
 
-            await_coreui();
+            await_support_info_page();
 
             cy.get("[data-test-id=login-menu]").click();
             cy.get("[data-test-id=logout-submit]").click();
