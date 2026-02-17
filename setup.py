@@ -37,6 +37,7 @@ INSTALL_REQUIRES = [
     "Flask-Login>=0.6.3,<0.7",
     "Flask-Babel>=2.0.0,<3.0.0",
     "Flask-Assets>=2.1.0,<3",
+    "webassets>=2.0,<3",
     "cachelib>=0.13.0,<0.14",
 
     "tornado>=6.2,<7",       # Missing: Required for the web server
