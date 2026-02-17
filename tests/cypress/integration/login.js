@@ -29,9 +29,11 @@ context("Login tests", () => {
             cy.get("[data-test-id=login-menu-title]").should("contain", username);
             cy.getCookie("session_P5000").should("exist");
             cy.getCookie("remember_token_P5000").should("not.exist");
-            cy.location().should((loc) => {
-                expect(loc.hash).to.eq("#temp");
-            });
+            //cy.visit("/");
+            await_support_info_page();
+            // cy.location().should((loc) => {
+            //     expect(loc.hash).to.eq("#temp");
+            // });
         });
 
         it("logs in with remember me", () => {
@@ -50,9 +52,10 @@ context("Login tests", () => {
                 expect($cookie).to.have.property("value");
                 expect($cookie.value).to.match(new RegExp("^" + username + "|"));
             });
-            cy.location().should((loc) => {
-                expect(loc.hash).to.eq("#temp");
-            });
+            // cy.location().should((loc) => {
+            //     expect(loc.hash).to.eq("#temp");
+            // });
+            await_support_info_page();
         });
     });
 

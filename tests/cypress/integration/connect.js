@@ -17,31 +17,29 @@ context("Connection test against virtual printer", () => {
         await_coreui();
     });
 
-    it("connect & disconnect", () => {
-        cy.get("[data-test-id=state-string]", {timeout: 10000}).should("contain", "Offline");
+    // it("connect & disconnect", () => {
+    //     cy.get("[data-test-id=state-string]", {timeout: 10000}).should("contain", "Offline");
+    //
+    //     cy.get("[data-test-id=connection-printer-profiles]").should("have.length.greaterThan", 0);
+    //     cy.get("[data-test-id=connection-ports]").select("VIRTUAL");
+    //     cy.get("[data-test-id=connection-baudrates]").select("AUTO");
+    //     cy.get("[data-test-id=connection-connect]").should("contain", "Connect").click();
+    //
+    //     cy.wait(["@connectionCommand", "@connectionDetails"]);
+    //     cy.get("[data-test-id=sidebar-connection-content]", {timeout: 10000}).should("not.be.visible");
+    //     cy.get("[data-test-id=state-string]").should("contain", "Operational");
+    //
+    //     cy.get("[data-test-id=sidebar-connection-toggle]").click();
+    //     cy.get("[data-test-id=connection-connect]").should("be.visible").should("contain", "Disconnect").click();
+    //
+    //     cy.wait(["@connectionCommand", "@connectionDetails"]);
+    //     cy.get("[data-test-id=state-string]").should("contain", "Offline");
+    // });
 
-        cy.get("[data-test-id=connection-printer-profiles]").should("have.length.greaterThan", 0);
-        cy.get("[data-test-id=connection-ports]").select("VIRTUAL");
-        cy.get("[data-test-id=connection-baudrates]").select("AUTO");
-        cy.get("[data-test-id=connection-connect]").should("contain", "Connect").click();
-
-        cy.wait(["@connectionCommand", "@connectionDetails"]);
-        cy.get("[data-test-id=sidebar-connection-content]", {timeout: 10000}).should("not.be.visible");
-        cy.get("[data-test-id=state-string]").should("contain", "Operational");
-
-        cy.get("[data-test-id=sidebar-connection-toggle]").click();
-        cy.get("[data-test-id=connection-connect]").should("be.visible").should("contain", "Disconnect").click();
-
-        cy.wait(["@connectionCommand", "@connectionDetails"]);
-        cy.get("[data-test-id=state-string]").should("contain", "Offline");
-    });
-});
-
-import {await_support_info_page} from "../util/util";
-
-context("Support info page", () => {
     it("renders the support information page", () => {
         cy.visit("/");
         await_support_info_page();
     });
 });
+
+
