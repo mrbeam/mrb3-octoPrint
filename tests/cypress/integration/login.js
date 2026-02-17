@@ -63,6 +63,7 @@ context("Login tests", () => {
             // LOGOUT VIA API (Bypasses missing UI buttons of mrb support info page)
             // This sends POST /api/logout
             logout();
+            cy.visit("/?l10n=en");
 
             await_loginui();
             cy.location().should((loc) => {
