@@ -136,7 +136,7 @@ class Slugify(object):
         self.unwanted_chars_re = re.compile(unwanted_chars_re, re.IGNORECASE)
 
         if self._stop_words:
-            unwanted_chars_and_words_re = unwanted_chars_re + u'|(?<!\p{AlNum})(?:\L<stop_words>)(?!\p{AlNum})'
+            unwanted_chars_and_words_re = unwanted_chars_re + r'|(?<!\p{AlNum})(?:\L<stop_words>)(?!\p{AlNum})'
             self.unwanted_chars_and_words_re = re.compile(unwanted_chars_and_words_re, re.IGNORECASE, stop_words=self._stop_words)
         else:
             self.unwanted_chars_and_words_re = None
