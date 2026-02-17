@@ -1,4 +1,4 @@
-import {prepare_server, await_support_info_page, await_loginui, login} from "../util/util";
+import {prepare_server, await_support_info_page, await_loginui, login, logout} from "../util/util";
 
 context("Login tests", () => {
     const username = "admin";
@@ -31,27 +31,23 @@ context("Login tests", () => {
 
         });
 
-        // it("logs in with remember me", () => {
-        //     cy.get("[data-test-id=login-username]").type(username);
-        //     cy.get("[data-test-id=login-password]").type(password);
-        //     cy.get("[data-test-id=login-remember-me]").click();
-        //
-        //     cy.get("[data-test-id=login-submit]").click({force: true});
-        //     cy.wait("@login");
-        //
-        //     await_support_info_page();
-        //
-        //     cy.get("[data-test-id=login-menu-title]").should("contain", username);
-        //     cy.getCookie("session_P5000").should("exist");
-        //     cy.getCookie("remember_token_P5000").should(($cookie) => {
-        //         expect($cookie).to.have.property("value");
-        //         expect($cookie.value).to.match(new RegExp("^" + username + "|"));
-        //     });
-        //     // cy.location().should((loc) => {
-        //     //     expect(loc.hash).to.eq("#temp");
-        //     // });
-        //     // await_support_info_page();
-        // });
+        it("logs in with remember me", () => {
+            cy.get("[data-test-id=login-username]").type(username);
+            cy.get("[data-test-id=login-password]").type(password);
+            cy.get("[data-test-id=login-remember-me]").click();
+
+            cy.get("[data-test-id=login-submit]").click({force: true});
+            cy.wait("@login");
+
+            await_support_info_page();
+
+            cy.getCookie("session_P5000").should("exist");
+            cy.getCookie("remember_token_P5000").should(($cookie) => {
+                expect($cookie).to.have.property("value");
+                expect($cookie.value).to.match(new RegExp("^" + username + "|"));
+            });
+
+        });
     });
 
     context("Successful logout", () => {
