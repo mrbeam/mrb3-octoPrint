@@ -31,8 +31,12 @@ $(function () {
         self.settingsDialog = undefined;
         self.settings_dialog_update_detected = undefined;
         self.translationManagerDialog = undefined;
-        self.translationUploadElement = $("#settings_appearance_managelanguagesdialog_upload");
-        self.translationUploadButton = $("#settings_appearance_managelanguagesdialog_upload_start");
+        self.translationUploadElement = $(
+            "#settings_appearance_managelanguagesdialog_upload"
+        );
+        self.translationUploadButton = $(
+            "#settings_appearance_managelanguagesdialog_upload_start"
+        );
 
         self.translationUploadFilename = ko.observable();
         self.invalidTranslationArchive = ko.pureComputed(function () {
@@ -49,7 +53,11 @@ $(function () {
         });
         self.enableTranslationUpload = ko.pureComputed(function () {
             var name = self.translationUploadFilename();
-            return name !== undefined && name.trim() != "" && !self.invalidTranslationArchive();
+            return (
+                name !== undefined &&
+                name.trim() != "" &&
+                !self.invalidTranslationArchive()
+            );
         });
 
         self.translations = new ItemListHelper(
@@ -57,8 +65,10 @@ $(function () {
             {
                 locale: function (a, b) {
                     // sorts ascending
-                    if (a["locale"].toLocaleLowerCase() < b["locale"].toLocaleLowerCase()) return -1;
-                    if (a["locale"].toLocaleLowerCase() > b["locale"].toLocaleLowerCase()) return 1;
+                    if (a["locale"].toLocaleLowerCase() < b["locale"].toLocaleLowerCase())
+                        return -1;
+                    if (a["locale"].toLocaleLowerCase() > b["locale"].toLocaleLowerCase())
+                        return 1;
                     return 0;
                 }
             },
@@ -268,7 +278,9 @@ $(function () {
         self.server_diskspace_warning = ko.observable();
         self.server_diskspace_critical = ko.observable();
         self.server_diskspace_warning_str = sizeObservable(self.server_diskspace_warning);
-        self.server_diskspace_critical_str = sizeObservable(self.server_diskspace_critical);
+        self.server_diskspace_critical_str = sizeObservable(
+            self.server_diskspace_critical
+        );
 
         self.server_onlineCheck_enabled = ko.observable();
         self.server_onlineCheck_interval = ko.observable();
@@ -319,7 +331,8 @@ $(function () {
                 var duplicate = false;
                 _.each(folderTypes, function (otherFolderType) {
                     if (folderType !== otherFolderType) {
-                        duplicate = duplicate || path === self["folder_" + otherFolderType]();
+                        duplicate =
+                            duplicate || path === self["folder_" + otherFolderType]();
                     }
                 });
                 self.testFolderConfigDuplicate[folderType](duplicate);
@@ -338,10 +351,16 @@ $(function () {
             self.testFolderConfigBroken[folderType] = ko.observable(false);
             self.testFolderConfigDuplicate[folderType] = ko.observable(false);
             self.testFolderConfigError[folderType] = ko.pureComputed(function () {
-                return self.testFolderConfigBroken[folderType]() || self.testFolderConfigDuplicate[folderType]();
+                return (
+                    self.testFolderConfigBroken[folderType]() ||
+                    self.testFolderConfigDuplicate[folderType]()
+                );
             });
             self.testFolderConfigSuccess[folderType] = ko.pureComputed(function () {
-                return self.testFolderConfigOk[folderType]() && !self.testFolderConfigDuplicate[folderType]();
+                return (
+                    self.testFolderConfigOk[folderType]() &&
+                    !self.testFolderConfigDuplicate[folderType]()
+                );
             });
             self["folder_" + folderType].subscribe(checkForDuplicateFolders);
         });
@@ -367,7 +386,8 @@ $(function () {
             feature_sdAlwaysAvailable: "serial_sdAlwaysAvailable",
             feature_swallowOkAfterResend: "serial_swallowOkAfterResend",
             feature_repetierTargetTemp: "serial_repetierTargetTemp",
-            feature_disableExternalHeatupDetection: "serial_disableExternalHeatupDetection",
+            feature_disableExternalHeatupDetection:
+                "serial_disableExternalHeatupDetection",
             feature_ignoreIdenticalResends: "serial_ignoreIdenticalResends",
             feature_firmwareDetection: "serial_firmwareDetection",
             feature_blockWhileDwelling: "serial_blockWhileDwelling",
@@ -395,7 +415,8 @@ $(function () {
         self.addTerminalFilter = function () {
             self.terminalFilters.push({
                 name: "New",
-                regex: "(Send:\\s+(N\\d+\\s+)?M105)|(Recv:\\s+(ok\\s+([PBN]\\d+\\s+)*)?.*([BCLPR]|T\\d*):-?\\d+)"
+                regex:
+                    "(Send:\\s+(N\\d+\\s+)?M105)|(Recv:\\s+(ok\\s+([PBN]\\d+\\s+)*)?.*([BCLPR]|T\\d*):-?\\d+)"
             });
         };
 
@@ -413,13 +434,17 @@ $(function () {
                 return;
             }
 
-            var text = gettext("If you see your webcam stream below, the entered stream URL is ok.");
+            var text = gettext(
+                "If you see your webcam stream below, the entered stream URL is ok."
+            );
             var streamType = determineWebcamStreamType(self.webcam_streamUrl());
             var webcam_element;
             if (streamType == "mjpg") {
                 webcam_element = $('<img src="' + self.webcam_streamUrl() + '">');
             } else if (streamType == "hls") {
-                webcam_element = $('<video id="webcam_hls" muted autoplay style="width: 100%"/>');
+                webcam_element = $(
+                    '<video id="webcam_hls" muted autoplay style="width: 100%"/>'
+                );
                 video_element = webcam_element[0];
                 if (video_element.canPlayType("application/vnd.apple.mpegurl")) {
                     video_element.src = self.webcam_streamUrl();
@@ -457,7 +482,9 @@ $(function () {
                 return;
             }
 
-            var errorText = gettext("Could not retrieve snapshot URL, please double check the URL");
+            var errorText = gettext(
+                "Could not retrieve snapshot URL, please double check the URL"
+            );
             var errorTitle = gettext("Snapshot test failed");
 
             self.testWebcamSnapshotUrlBusy(true);
@@ -472,7 +499,11 @@ $(function () {
                 })
                 .done(function (response) {
                     if (!response.result) {
-                        if (response.status && response.response && response.response.content_type) {
+                        if (
+                            response.status &&
+                            response.response &&
+                            response.response.content_type
+                        ) {
                             // we could contact the server, but something else was wrong, probably the mime type
                             errorText = gettext(
                                 "Could retrieve the snapshot URL, but it didn't look like an " +
@@ -553,7 +584,9 @@ $(function () {
                         } else if (!response.typeok) {
                             self.webcam_ffmpegPathText(gettext("The path is not a file"));
                         } else if (!response.access) {
-                            self.webcam_ffmpegPathText(gettext("The path is not an executable"));
+                            self.webcam_ffmpegPathText(
+                                gettext("The path is not an executable")
+                            );
                         }
                     } else {
                         self.webcam_ffmpegPathText(gettext("The path is valid"));
@@ -574,10 +607,15 @@ $(function () {
 
             self.testOnlineConnectivityConfigBusy(true);
             OctoPrint.util
-                .testServer(self.server_onlineCheck_host(), self.server_onlineCheck_port())
+                .testServer(
+                    self.server_onlineCheck_host(),
+                    self.server_onlineCheck_port()
+                )
                 .done(function (response) {
                     if (!response.result) {
-                        self.server_onlineCheckText(gettext("The server is not reachable"));
+                        self.server_onlineCheckText(
+                            gettext("The server is not reachable")
+                        );
                     } else {
                         self.server_onlineCheckText(gettext("The server is reachable"));
                     }
@@ -599,9 +637,13 @@ $(function () {
                 .testResolution(self.server_onlineCheck_name())
                 .done(function (response) {
                     if (!response.result) {
-                        self.server_onlineCheckResolutionText(gettext("Name cannot be resolved"));
+                        self.server_onlineCheckResolutionText(
+                            gettext("Name cannot be resolved")
+                        );
                     } else {
-                        self.server_onlineCheckResolutionText(gettext("Name can be resolved"));
+                        self.server_onlineCheckResolutionText(
+                            gettext("Name can be resolved")
+                        );
                     }
                     self.server_onlineCheckResolutionOk(response.result);
                     self.server_onlineCheckResolutionBroken(!response.result);
@@ -631,15 +673,21 @@ $(function () {
                 .done(function (response) {
                     if (!response.result) {
                         if (response.broken_symlink) {
-                            self.testFolderConfigText[folder](gettext("The path is a broken symlink."));
+                            self.testFolderConfigText[folder](
+                                gettext("The path is a broken symlink.")
+                            );
                         } else if (!response.exists) {
                             self.testFolderConfigText[folder](
                                 gettext("The path does not exist and cannot be created.")
                             );
                         } else if (!response.typeok) {
-                            self.testFolderConfigText[folder](gettext("The path is not a folder."));
+                            self.testFolderConfigText[folder](
+                                gettext("The path is not a folder.")
+                            );
                         } else if (!response.access) {
-                            self.testFolderConfigText[folder](gettext("The path is not writable."));
+                            self.testFolderConfigText[folder](
+                                gettext("The path is not writable.")
+                            );
                         }
                     } else {
                         self.testFolderConfigText[folder](gettext("The path is valid"));
@@ -666,9 +714,15 @@ $(function () {
         self.onStartup = function () {
             self.settingsDialog = $("#settings_dialog");
             self.settingsUpdatedDialog = $("#settings_dialog_update_detected");
-            self.translationManagerDialog = $("#settings_appearance_managelanguagesdialog");
-            self.translationUploadElement = $("#settings_appearance_managelanguagesdialog_upload");
-            self.translationUploadButton = $("#settings_appearance_managelanguagesdialog_upload_start");
+            self.translationManagerDialog = $(
+                "#settings_appearance_managelanguagesdialog"
+            );
+            self.translationUploadElement = $(
+                "#settings_appearance_managelanguagesdialog_upload"
+            );
+            self.translationUploadButton = $(
+                "#settings_appearance_managelanguagesdialog_upload_start"
+            );
 
             self.translationUploadElement.fileupload({
                 dataType: "json",
@@ -734,9 +788,12 @@ $(function () {
             });
 
             // reset scroll position on tab change
-            $('ul.nav-list a[data-toggle="tab"]', self.settingsDialog).on("show", function () {
-                self._resetScrollPosition();
-            });
+            $('ul.nav-list a[data-toggle="tab"]', self.settingsDialog).on(
+                "show",
+                function () {
+                    self._resetScrollPosition();
+                }
+            );
         };
 
         self.show = function (tab) {
@@ -770,7 +827,9 @@ $(function () {
             if (!CONFIG_ACCESS_CONTROL) return;
 
             showConfirmationDialog(
-                gettext("This will generate a new API Key. The old API Key will cease to function immediately."),
+                gettext(
+                    "This will generate a new API Key. The old API Key will cease to function immediately."
+                ),
                 function () {
                     OctoPrint.settings.generateApiKey().done(function (response) {
                         self.api_key(response.apikey);
@@ -814,7 +873,12 @@ $(function () {
                 try {
                     callback();
                 } catch (exc) {
-                    log.error("Error calling settings callback", callback, ":", exc.stack || exc.stacktrace || exc);
+                    log.error(
+                        "Error calling settings callback",
+                        callback,
+                        ":",
+                        exc.stack || exc.stacktrace || exc
+                    );
                 }
             };
 
@@ -910,7 +974,10 @@ $(function () {
         };
 
         self.languagePackDisplay = function (item) {
-            return item.display + (item.english != undefined ? " (" + item.english + ")" : "");
+            return (
+                item.display +
+                (item.english != undefined ? " (" + item.english + ")" : "")
+            );
         };
 
         self.languagePacksAvailable = ko.pureComputed(function () {
@@ -934,7 +1001,11 @@ $(function () {
             var specialMappings = {
                 feature: {
                     autoUppercaseBlacklist: function () {
-                        return splitTextToArray(self.feature_autoUppercaseBlacklist(), ",", true);
+                        return splitTextToArray(
+                            self.feature_autoUppercaseBlacklist(),
+                            ",",
+                            true
+                        );
                     }
                 },
                 serial: {
@@ -943,9 +1014,14 @@ $(function () {
                     },
                     additionalBaudrates: function () {
                         return _.map(
-                            splitTextToArray(self.serial_additionalBaudrates(), ",", true, function (item) {
-                                return !isNaN(parseInt(item));
-                            }),
+                            splitTextToArray(
+                                self.serial_additionalBaudrates(),
+                                ",",
+                                true,
+                                function (item) {
+                                    return !isNaN(parseInt(item));
+                                }
+                            ),
                             function (item) {
                                 return parseInt(item);
                             }
@@ -956,19 +1032,32 @@ $(function () {
                     },
                     blacklistedBaudrates: function () {
                         return _.map(
-                            splitTextToArray(self.serial_blacklistedBaudrates(), ",", true, function (item) {
-                                return !isNaN(parseInt(item));
-                            }),
+                            splitTextToArray(
+                                self.serial_blacklistedBaudrates(),
+                                ",",
+                                true,
+                                function (item) {
+                                    return !isNaN(parseInt(item));
+                                }
+                            ),
                             function (item) {
                                 return parseInt(item);
                             }
                         );
                     },
                     longRunningCommands: function () {
-                        return splitTextToArray(self.serial_longRunningCommands(), ",", true);
+                        return splitTextToArray(
+                            self.serial_longRunningCommands(),
+                            ",",
+                            true
+                        );
                     },
                     checksumRequiringCommands: function () {
-                        return splitTextToArray(self.serial_checksumRequiringCommands(), ",", true);
+                        return splitTextToArray(
+                            self.serial_checksumRequiringCommands(),
+                            ",",
+                            true
+                        );
                     },
                     blockedCommands: function () {
                         return splitTextToArray(self.serial_blockedCommands(), ",", true);
@@ -980,7 +1069,11 @@ $(function () {
                         return splitTextToArray(self.serial_pausingCommands(), ",", true);
                     },
                     emergencyCommands: function () {
-                        return splitTextToArray(self.serial_emergencyCommands(), ",", true);
+                        return splitTextToArray(
+                            self.serial_emergencyCommands(),
+                            ",",
+                            true
+                        );
                     },
                     externalHeatupDetection: function () {
                         return !self.serial_disableExternalHeatupDetection();
@@ -1031,9 +1124,15 @@ $(function () {
                                 result.push({
                                     name: profile.name,
                                     extruder: Math.floor(
-                                        _.isNumber(profile.extruder) ? profile.extruder : parseInt(profile.extruder)
+                                        _.isNumber(profile.extruder)
+                                            ? profile.extruder
+                                            : parseInt(profile.extruder)
                                     ),
-                                    bed: Math.floor(_.isNumber(profile.bed) ? profile.bed : parseInt(profile.bed)),
+                                    bed: Math.floor(
+                                        _.isNumber(profile.bed)
+                                            ? profile.bed
+                                            : parseInt(profile.bed)
+                                    ),
                                     chamber: Math.floor(
                                         _.isNumber(profile.chamber)
                                             ? profile.chamber
@@ -1108,8 +1207,14 @@ $(function () {
 
             if (local) {
                 // local is true, so we'll keep all local changes and only update what's been updated server side
-                serverChangedData = getOnlyChangedData(response, self.lastReceivedSettings);
-                clientChangedData = getOnlyChangedData(self.getLocalData(), self.lastReceivedSettings);
+                serverChangedData = getOnlyChangedData(
+                    response,
+                    self.lastReceivedSettings
+                );
+                clientChangedData = getOnlyChangedData(
+                    self.getLocalData(),
+                    self.lastReceivedSettings
+                );
             } else {
                 // local is false or unset, so we'll forcefully update with the settings from the server
                 serverChangedData = response;
@@ -1224,7 +1329,12 @@ $(function () {
 
                     var haveLocalVersion = local && local.hasOwnProperty(key);
 
-                    if (mapping && mapping[key] && _.isFunction(mapping[key]) && !haveLocalVersion) {
+                    if (
+                        mapping &&
+                        mapping[key] &&
+                        _.isFunction(mapping[key]) &&
+                        !haveLocalVersion
+                    ) {
                         // if we have a custom apply function for this, we'll use it
                         mapping[key](value);
                     } else if (_.isPlainObject(value)) {
@@ -1320,7 +1430,12 @@ $(function () {
                     try {
                         return viewModel["onSettingsPreventRefresh"]();
                     } catch (e) {
-                        log.warn("Error while calling onSettingsPreventRefresh on", viewModel, ":", e);
+                        log.warn(
+                            "Error while calling onSettingsPreventRefresh on",
+                            viewModel,
+                            ":",
+                            e
+                        );
                         return false;
                     }
                 } else {
@@ -1335,7 +1450,12 @@ $(function () {
 
             if (self.isDialogActive()) {
                 // dialog is open and not currently busy...
-                if (self.sending() || self.receiving() || self.active || self.ignoreNextUpdateEvent) {
+                if (
+                    self.sending() ||
+                    self.receiving() ||
+                    self.active ||
+                    self.ignoreNextUpdateEvent
+                ) {
                     self.ignoreNextUpdateEvent = false;
                     return;
                 }
@@ -1357,9 +1477,18 @@ $(function () {
             $("#settings_dialog_content", self.settingsDialog).scrollTop(0);
 
             // also reset any contained tabs/pills/lists to first pane
-            $('#settings_dialog_content ul.nav-pills a[data-toggle="tab"]:first', self.settingsDialog).tab("show");
-            $('#settings_dialog_content ul.nav-list a[data-toggle="tab"]:first', self.settingsDialog).tab("show");
-            $('#settings_dialog_content ul.nav-tabs a[data-toggle="tab"]:first', self.settingsDialog).tab("show");
+            $(
+                '#settings_dialog_content ul.nav-pills a[data-toggle="tab"]:first',
+                self.settingsDialog
+            ).tab("show");
+            $(
+                '#settings_dialog_content ul.nav-list a[data-toggle="tab"]:first',
+                self.settingsDialog
+            ).tab("show");
+            $(
+                '#settings_dialog_content ul.nav-tabs a[data-toggle="tab"]:first',
+                self.settingsDialog
+            ).tab("show");
         };
 
         self.selectTab = function (tab) {
@@ -1369,7 +1498,9 @@ $(function () {
                 }
                 $('ul.nav-list a[href="' + tab + '"]', self.settingsDialog).tab("show");
             } else {
-                $('ul.nav-list a[data-toggle="tab"]:first', self.settingsDialog).tab("show");
+                $('ul.nav-list a[data-toggle="tab"]:first', self.settingsDialog).tab(
+                    "show"
+                );
             }
         };
 

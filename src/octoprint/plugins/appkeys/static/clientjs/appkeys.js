@@ -14,7 +14,10 @@
     };
 
     OctoPrintAppKeysClient.prototype.getAllKeys = function (opts) {
-        return this.base.get(OctoPrintClient.prototype.getSimpleApiUrl("appkeys") + "?all=true", opts);
+        return this.base.get(
+            OctoPrintClient.prototype.getSimpleApiUrl("appkeys") + "?all=true",
+            opts
+        );
     };
 
     OctoPrintAppKeysClient.prototype.generateKey = function (app, opts) {
@@ -22,7 +25,12 @@
     };
 
     OctoPrintAppKeysClient.prototype.generateKeyForUser = function (user, app, opts) {
-        return this.base.simpleApiCommand("appkeys", "generate", {app: app, user: user}, opts);
+        return this.base.simpleApiCommand(
+            "appkeys",
+            "generate",
+            {app: app, user: user},
+            opts
+        );
     };
 
     OctoPrintAppKeysClient.prototype.revokeKey = function (key, opts) {
@@ -46,11 +54,18 @@
     };
 
     OctoPrintAppKeysClient.prototype.requestForUser = function (app, user, opts) {
-        return this.base.postJson(this.base.getBlueprintUrl("appkeys") + "request", {app: app, user: user}, opts);
+        return this.base.postJson(
+            this.base.getBlueprintUrl("appkeys") + "request",
+            {app: app, user: user},
+            opts
+        );
     };
 
     OctoPrintAppKeysClient.prototype.checkDecision = function (token, opts) {
-        return this.base.get(this.base.getBlueprintUrl("appkeys") + "request/" + token, opts);
+        return this.base.get(
+            this.base.getBlueprintUrl("appkeys") + "request/" + token,
+            opts
+        );
     };
 
     OctoPrintAppKeysClient.prototype.authenticate = function (app, user) {

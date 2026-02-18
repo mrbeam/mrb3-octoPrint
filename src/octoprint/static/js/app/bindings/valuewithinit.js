@@ -5,7 +5,12 @@ ko.bindingHandlers.valueWithInit = {
 
         observable(value);
 
-        ko.bindingHandlers.value.init(element, valueAccessor, allBindingsAccessor, context);
+        ko.bindingHandlers.value.init(
+            element,
+            valueAccessor,
+            allBindingsAccessor,
+            context
+        );
     },
     update: ko.bindingHandlers.value.update
 };

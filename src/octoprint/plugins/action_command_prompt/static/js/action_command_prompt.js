@@ -18,7 +18,12 @@ $(function () {
         });
 
         self.requestData = function () {
-            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_ACTION_COMMAND_PROMPT_INTERACT)) return;
+            if (
+                !self.loginState.hasPermission(
+                    self.access.permissions.PLUGIN_ACTION_COMMAND_PROMPT_INTERACT
+                )
+            )
+                return;
 
             OctoPrint.plugins.action_command_prompt.get().done(self.fromResponse);
         };
@@ -72,7 +77,12 @@ $(function () {
         };
 
         self.onDataUpdaterPluginMessage = function (plugin, data) {
-            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_ACTION_COMMAND_PROMPT_INTERACT)) return;
+            if (
+                !self.loginState.hasPermission(
+                    self.access.permissions.PLUGIN_ACTION_COMMAND_PROMPT_INTERACT
+                )
+            )
+                return;
             if (plugin !== "action_command_prompt") {
                 return;
             }

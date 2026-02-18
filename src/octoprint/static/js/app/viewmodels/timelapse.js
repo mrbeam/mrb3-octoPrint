@@ -130,8 +130,10 @@ $(function () {
             {
                 name: function (a, b) {
                     // sorts ascending
-                    if (a["name"].toLocaleLowerCase() < b["name"].toLocaleLowerCase()) return -1;
-                    if (a["name"].toLocaleLowerCase() > b["name"].toLocaleLowerCase()) return 1;
+                    if (a["name"].toLocaleLowerCase() < b["name"].toLocaleLowerCase())
+                        return -1;
+                    if (a["name"].toLocaleLowerCase() > b["name"].toLocaleLowerCase())
+                        return 1;
                     return 0;
                 },
                 date: function (a, b) {
@@ -160,8 +162,10 @@ $(function () {
             {
                 name: function (a, b) {
                     // sorts ascending
-                    if (a["name"].toLocaleLowerCase() < b["name"].toLocaleLowerCase()) return -1;
-                    if (a["name"].toLocaleLowerCase() > b["name"].toLocaleLowerCase()) return 1;
+                    if (a["name"].toLocaleLowerCase() < b["name"].toLocaleLowerCase())
+                        return -1;
+                    if (a["name"].toLocaleLowerCase() > b["name"].toLocaleLowerCase())
+                        return 1;
                     return 0;
                 },
                 creation: function (a, b) {
@@ -185,7 +189,8 @@ $(function () {
         );
 
         self.requestData = function () {
-            if (!self.loginState.hasPermission(self.access.permissions.TIMELAPSE_LIST)) return;
+            if (!self.loginState.hasPermission(self.access.permissions.TIMELAPSE_LIST))
+                return;
 
             OctoPrint.timelapse.get(true).done(self.fromResponse);
         };
@@ -210,19 +215,31 @@ $(function () {
         self.fromConfig = function (config) {
             self.timelapseType(config.type);
 
-            if (config.type === "timed" && config.interval !== undefined && config.interval > 0) {
+            if (
+                config.type === "timed" &&
+                config.interval !== undefined &&
+                config.interval > 0
+            ) {
                 self.timelapseTimedInterval(config.interval);
             } else {
                 self.timelapseTimedInterval(self.defaultInterval);
             }
 
-            if (config.type === "zchange" && config.retractionZHop !== undefined && config.retractionZHop > 0) {
+            if (
+                config.type === "zchange" &&
+                config.retractionZHop !== undefined &&
+                config.retractionZHop > 0
+            ) {
                 self.timelapseRetractionZHop(config.retractionZHop);
             } else {
                 self.timelapseRetractionZHop(self.defaultRetractionZHop);
             }
 
-            if (config.type === "zchange" && config.minDelay !== undefined && config.minDelay >= 0) {
+            if (
+                config.type === "zchange" &&
+                config.minDelay !== undefined &&
+                config.minDelay >= 0
+            ) {
                 self.timelapseMinDelay(config.minDelay);
             } else {
                 self.timelapseMinDelay(self.defaultMinDelay);
@@ -264,7 +281,11 @@ $(function () {
 
         self.markFilesOnPage = function () {
             self.markedForFileDeletion(
-                _.uniq(self.markedForFileDeletion().concat(_.map(self.listHelper.paginatedItems(), "name")))
+                _.uniq(
+                    self
+                        .markedForFileDeletion()
+                        .concat(_.map(self.listHelper.paginatedItems(), "name"))
+                )
             );
         };
 
@@ -279,7 +300,9 @@ $(function () {
         self.isTimelapseViewable = function (data) {
             var url = data.url;
             return (
-                self.loginState.hasPermission(self.access.permissions.TIMELAPSE_DOWNLOAD) && url.indexOf(".mp4") >= 0
+                self.loginState.hasPermission(
+                    self.access.permissions.TIMELAPSE_DOWNLOAD
+                ) && url.indexOf(".mp4") >= 0
             );
         };
         self.showTimelapsePreview = function (data) {
@@ -295,7 +318,8 @@ $(function () {
         };
 
         self.removeFile = function (filename) {
-            if (!self.loginState.hasPermission(self.access.permissions.TIMELAPSE_DELETE)) return;
+            if (!self.loginState.hasPermission(self.access.permissions.TIMELAPSE_DELETE))
+                return;
 
             var perform = function () {
                 OctoPrint.timelapse
@@ -314,7 +338,9 @@ $(function () {
                                 {name: _.escape(filename)}
                             );
                         html += pnotifyAdditionalInfo(
-                            '<pre style="overflow: auto">' + _.escape(jqXHR.responseText) + "</pre>"
+                            '<pre style="overflow: auto">' +
+                                _.escape(jqXHR.responseText) +
+                                "</pre>"
                         );
                         new PNotify({
                             title: gettext("Could not remove timelapse"),
@@ -334,7 +360,8 @@ $(function () {
         };
 
         self.removeMarkedFiles = function () {
-            if (!self.loginState.hasPermission(self.access.permissions.TIMELAPSE_DELETE)) return;
+            if (!self.loginState.hasPermission(self.access.permissions.TIMELAPSE_DELETE))
+                return;
 
             var perform = function () {
                 self._bulkRemove(self.markedForFileDeletion(), "files").done(function () {
@@ -351,7 +378,11 @@ $(function () {
         };
 
         self.enableBulkDownload = ko.pureComputed(function () {
-            return self.markedForFileDeletion().length && !self.isBusy() && !self.bulkDownloadUrlTooLong();
+            return (
+                self.markedForFileDeletion().length &&
+                !self.isBusy() &&
+                !self.bulkDownloadUrlTooLong()
+            );
         });
 
         self.bulkDownloadUrlTooLong = ko.pureComputed(function () {
@@ -374,13 +405,17 @@ $(function () {
         self.markUnrenderedOnPage = function () {
             self.markedForUnrenderedDeletion(
                 _.uniq(
-                    self.markedForUnrenderedDeletion().concat(_.map(self.unrenderedListHelper.paginatedItems(), "name"))
+                    self
+                        .markedForUnrenderedDeletion()
+                        .concat(_.map(self.unrenderedListHelper.paginatedItems(), "name"))
                 )
             );
         };
 
         self.markAllUnrendered = function () {
-            self.markedForUnrenderedDeletion(_.map(self.unrenderedListHelper.allItems, "name"));
+            self.markedForUnrenderedDeletion(
+                _.map(self.unrenderedListHelper.allItems, "name")
+            );
         };
 
         self.clearMarkedUnrendered = function () {
@@ -388,7 +423,8 @@ $(function () {
         };
 
         self.removeUnrendered = function (name) {
-            if (!self.loginState.hasPermission(self.access.permissions.TIMELAPSE_DELETE)) return;
+            if (!self.loginState.hasPermission(self.access.permissions.TIMELAPSE_DELETE))
+                return;
 
             var perform = function () {
                 OctoPrint.timelapse.deleteUnrendered(name).done(function () {
@@ -398,24 +434,31 @@ $(function () {
             };
 
             showConfirmationDialog(
-                _.sprintf(gettext('You are about to delete unrendered timelapse "%(name)s".'), {name: _.escape(name)}),
+                _.sprintf(
+                    gettext('You are about to delete unrendered timelapse "%(name)s".'),
+                    {name: _.escape(name)}
+                ),
                 perform
             );
         };
 
         self.removeMarkedUnrendered = function () {
-            if (!self.loginState.hasPermission(self.access.permissions.TIMELAPSE_DELETE)) return;
+            if (!self.loginState.hasPermission(self.access.permissions.TIMELAPSE_DELETE))
+                return;
 
             var perform = function () {
-                self._bulkRemove(self.markedForUnrenderedDeletion(), "unrendered").done(function () {
-                    self.markedForUnrenderedDeletion.removeAll();
-                });
+                self._bulkRemove(self.markedForUnrenderedDeletion(), "unrendered").done(
+                    function () {
+                        self.markedForUnrenderedDeletion.removeAll();
+                    }
+                );
             };
 
             showConfirmationDialog(
-                _.sprintf(gettext("You are about to delete %(count)d unrendered timelapses."), {
-                    count: self.markedForUnrenderedDeletion().length
-                }),
+                _.sprintf(
+                    gettext("You are about to delete %(count)d unrendered timelapses."),
+                    {count: self.markedForUnrenderedDeletion().length}
+                ),
                 perform
             );
         };
@@ -440,19 +483,26 @@ $(function () {
                             );
                         })
                         .fail(function (jqXHR) {
-                            var short = _.sprintf(gettext("Deletion of %(filename)s failed, continuing..."), {
-                                filename: _.escape(filename)
-                            });
-                            var long = _.sprintf(gettext("Deletion of %(filename)s failed: %(error)s"), {
-                                filename: _.escape(filename),
-                                error: _.escape(jqXHR.responseText)
-                            });
+                            var short = _.sprintf(
+                                gettext("Deletion of %(filename)s failed, continuing..."),
+                                {filename: _.escape(filename)}
+                            );
+                            var long = _.sprintf(
+                                gettext("Deletion of %(filename)s failed: %(error)s"),
+                                {
+                                    filename: _.escape(filename),
+                                    error: _.escape(jqXHR.responseText)
+                                }
+                            );
                             deferred.notify(short, long, false);
                         });
                 };
             } else if (type === "unrendered") {
                 title = gettext("Deleting unrendered timelapses");
-                message = _.sprintf(gettext("Deleting %(count)d unrendered timelapses..."), {count: files.length});
+                message = _.sprintf(
+                    gettext("Deleting %(count)d unrendered timelapses..."),
+                    {count: files.length}
+                );
                 handler = function (filename) {
                     return OctoPrint.timelapse
                         .deleteUnrendered(filename)
@@ -466,9 +516,12 @@ $(function () {
                         })
                         .fail(function () {
                             deferred.notify(
-                                _.sprintf(gettext("Deletion of %(filename)s failed, continuing..."), {
-                                    filename: _.escape(filename)
-                                }),
+                                _.sprintf(
+                                    gettext(
+                                        "Deletion of %(filename)s failed, continuing..."
+                                    ),
+                                    {filename: _.escape(filename)}
+                                ),
                                 false
                             );
                         });
@@ -503,13 +556,15 @@ $(function () {
         };
 
         self.renderUnrendered = function (name) {
-            if (!self.loginState.hasPermission(self.access.permissions.TIMELAPSE_ADMIN)) return;
+            if (!self.loginState.hasPermission(self.access.permissions.TIMELAPSE_ADMIN))
+                return;
 
             OctoPrint.timelapse.renderUnrendered(name).done(self.requestData);
         };
 
         self.save = function () {
-            if (!self.loginState.hasPermission(self.access.permissions.TIMELAPSE_ADMIN)) return;
+            if (!self.loginState.hasPermission(self.access.permissions.TIMELAPSE_ADMIN))
+                return;
 
             var payload = {
                 type: self.timelapseType(),
@@ -562,7 +617,11 @@ $(function () {
 
             var text;
             if (!payload.postroll_duration) {
-                text = _.sprintf(gettext("Now capturing timelapse post roll, this will take only a moment..."));
+                text = _.sprintf(
+                    gettext(
+                        "Now capturing timelapse post roll, this will take only a moment..."
+                    )
+                );
             } else {
                 var format = {
                     time: moment().add(payload.postroll_duration, "s").format("LT")
@@ -583,7 +642,9 @@ $(function () {
                         seconds: payload.postroll_duration
                     });
                     text = _.sprintf(
-                        gettext("Now capturing timelapse post roll, this will take approximately %(duration)s..."),
+                        gettext(
+                            "Now capturing timelapse post roll, this will take approximately %(duration)s..."
+                        ),
                         format
                     );
                 }
@@ -679,14 +740,18 @@ $(function () {
                 html =
                     "<p>" +
                     _.sprintf(
-                        gettext("Rendering of timelapse %(movie_prefix)s failed with return code %(returncode)s"),
+                        gettext(
+                            "Rendering of timelapse %(movie_prefix)s failed with return code %(returncode)s"
+                        ),
                         {
                             movie_prefix: _.escape(payload.movie_prefix),
                             returncode: _.escape(payload.returncode)
                         }
                     ) +
                     "</p>";
-                html += pnotifyAdditionalInfo('<pre style="overflow: auto">' + payload.error + "</pre>");
+                html += pnotifyAdditionalInfo(
+                    '<pre style="overflow: auto">' + payload.error + "</pre>"
+                );
             } else {
                 title = gettext("Rendering timelapse failed");
                 html =
@@ -715,9 +780,10 @@ $(function () {
         self.onEventMovieDone = function (payload) {
             self.displayTimelapsePopup({
                 title: gettext("Timelapse ready"),
-                text: _.sprintf(gettext("New timelapse %(movie_prefix)s is done rendering."), {
-                    movie_prefix: _.escape(payload.movie_prefix)
-                }),
+                text: _.sprintf(
+                    gettext("New timelapse %(movie_prefix)s is done rendering."),
+                    {movie_prefix: _.escape(payload.movie_prefix)}
+                ),
                 type: "success",
                 callbacks: {
                     before_close: function (notice) {

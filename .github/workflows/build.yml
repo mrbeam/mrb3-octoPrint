@@ -213,6 +213,7 @@ jobs:
           client-payload: '{"version": "${{ env.OCTOPRINT_VERSION }}"}'
 
 
+  # for local debugging of CI tests with $> act -j debug-e2e-local --reuse
   # debug-e2e-local:
   #   runs-on: ubuntu-22.04
   #   steps:

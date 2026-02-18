@@ -10,7 +10,9 @@ $(function () {
 
         self.showLoadingError = function (error) {
             log.error(
-                "Loading error: " + error + " Please check prior messages and 'octoprint.log' for possible reasons."
+                "Loading error: " +
+                    error +
+                    " Please check prior messages and 'octoprint.log' for possible reasons."
             );
 
             // we can't do this with bindings since the bindings are not initialized yet if we need this

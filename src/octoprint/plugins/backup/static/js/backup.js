@@ -116,9 +116,12 @@ $(function () {
                 OctoPrint.plugins.backup.restoreBackup(backup);
             };
             showConfirmationDialog(
-                _.sprintf(gettext('You are about to restore the backup file "%(name)s". This cannot be undone.'), {
-                    name: _.escape(backup)
-                }),
+                _.sprintf(
+                    gettext(
+                        'You are about to restore the backup file "%(name)s". This cannot be undone.'
+                    ),
+                    {name: _.escape(backup)}
+                ),
                 perform
             );
         };
@@ -144,7 +147,9 @@ $(function () {
             };
             showConfirmationDialog(
                 _.sprintf(
-                    gettext('You are about to upload and restore the backup file "%(name)s". This cannot be undone.'),
+                    gettext(
+                        'You are about to upload and restore the backup file "%(name)s". This cannot be undone.'
+                    ),
                     {name: _.escape(self.backupUploadName())}
                 ),
                 perform
@@ -158,14 +163,20 @@ $(function () {
                 });
             };
             showConfirmationDialog(
-                gettext("You are about to delete the record of plugins unknown during the last restore."),
+                gettext(
+                    "You are about to delete the record of plugins unknown during the last restore."
+                ),
                 perform
             );
         };
 
         self.markFilesOnPage = function () {
             self.markedForBackupDeletion(
-                _.uniq(self.markedForBackupDeletion().concat(_.map(self.backups.paginatedItems(), "name")))
+                _.uniq(
+                    self
+                        .markedForBackupDeletion()
+                        .concat(_.map(self.backups.paginatedItems(), "name"))
+                )
             );
         };
 
@@ -236,14 +247,18 @@ $(function () {
             } else if (data.type === "restore_failed") {
                 self.loglines.push({line: " ", stream: "message"});
                 self.loglines.push({
-                    line: gettext("Restore failed! Check the above output and octoprint.log for reasons as to why."),
+                    line: gettext(
+                        "Restore failed! Check the above output and octoprint.log for reasons as to why."
+                    ),
                     stream: "error"
                 });
                 self.restoreInProgress(false);
             } else if (data.type === "restore_done") {
                 self.loglines.push({line: " ", stream: "message"});
                 self.loglines.push({
-                    line: gettext("Restore successful! The server will now be restarted!"),
+                    line: gettext(
+                        "Restore successful! The server will now be restarted!"
+                    ),
                     stream: "message"
                 });
                 self.restoreInProgress(false);
@@ -288,13 +303,17 @@ $(function () {
                     self.unknownPlugins(data.plugins);
                 }
             } else if (data.type === "logline") {
-                self.loglines.push(self._preprocessLine({line: data.line, stream: data.stream}));
+                self.loglines.push(
+                    self._preprocessLine({line: data.line, stream: data.stream})
+                );
                 self._scrollRestoreOutputToEnd();
             }
         };
 
         self._scrollRestoreOutputToEnd = function () {
-            self.restoreOutput.scrollTop(self.restoreOutput[0].scrollHeight - self.restoreOutput.height());
+            self.restoreOutput.scrollTop(
+                self.restoreOutput[0].scrollHeight - self.restoreOutput.height()
+            );
         };
 
         self._forcedStdoutLine = /You are using pip version .*?, however version .*? is available\.|You should consider upgrading via the '.*?' command\./;
@@ -324,13 +343,17 @@ $(function () {
                         );
                     })
                     .fail(function (jqXHR) {
-                        var short = _.sprintf(gettext("Deletion of %(filename)s failed, continuing..."), {
-                            filename: _.escape(filename)
-                        });
-                        var long = _.sprintf(gettext("Deletion of %(filename)s failed: %(error)s"), {
-                            filename: _.escape(filename),
-                            error: _.escape(jqXHR.responseText)
-                        });
+                        var short = _.sprintf(
+                            gettext("Deletion of %(filename)s failed, continuing..."),
+                            {filename: _.escape(filename)}
+                        );
+                        var long = _.sprintf(
+                            gettext("Deletion of %(filename)s failed: %(error)s"),
+                            {
+                                filename: _.escape(filename),
+                                error: _.escape(jqXHR.responseText)
+                            }
+                        );
                         deferred.notify(short, long, false);
                     });
             };

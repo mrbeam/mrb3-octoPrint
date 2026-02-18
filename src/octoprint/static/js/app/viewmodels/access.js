@@ -17,8 +17,10 @@ $(function () {
                 {
                     name: function (a, b) {
                         // sorts ascending
-                        if (a["name"].toLocaleLowerCase() < b["name"].toLocaleLowerCase()) return -1;
-                        if (a["name"].toLocaleLowerCase() > b["name"].toLocaleLowerCase()) return 1;
+                        if (a["name"].toLocaleLowerCase() < b["name"].toLocaleLowerCase())
+                            return -1;
+                        if (a["name"].toLocaleLowerCase() > b["name"].toLocaleLowerCase())
+                            return 1;
                         return 0;
                     }
                 },
@@ -94,7 +96,9 @@ $(function () {
                 dangerRestricted: function () {
                     return false;
                 },
-                dangerRestrictedText: gettext("This user may not have dangerous permissions.")
+                dangerRestrictedText: gettext(
+                    "This user may not have dangerous permissions."
+                )
             };
 
             self.userEditorDialog = undefined;
@@ -116,7 +120,9 @@ $(function () {
                     self.editor.permissions(newValue.permissions.slice(0));
                     self.editor.active(newValue.active);
                     self.editor.apikey(newValue.apikey);
-                    self.editor.header(_.sprintf(gettext('Edit user "%(name)s"'), {name: newValue.name}));
+                    self.editor.header(
+                        _.sprintf(gettext('Edit user "%(name)s"'), {name: newValue.name})
+                    );
                     self.editor.new(false);
                     self.editor.confirm = self.confirmEditUser;
                 }
@@ -140,7 +146,9 @@ $(function () {
 
                 self.currentUser(undefined);
 
-                $('ul.nav-pills a[data-toggle="tab"]:first', self.userEditorDialog).tab("show");
+                $('ul.nav-pills a[data-toggle="tab"]:first', self.userEditorDialog).tab(
+                    "show"
+                );
                 self.userEditorDialog
                     .modal({
                         minHeight: function () {
@@ -178,11 +186,17 @@ $(function () {
                 var process = function (user) {
                     self.currentUser(user);
 
-                    $('ul.nav-pills a[data-toggle="tab"]:first', self.userEditorDialog).tab("show");
+                    $(
+                        'ul.nav-pills a[data-toggle="tab"]:first',
+                        self.userEditorDialog
+                    ).tab("show");
                     self.userEditorDialog
                         .modal({
                             minHeight: function () {
-                                return Math.max($.fn.modal.defaults.maxHeight() - 80, 250);
+                                return Math.max(
+                                    $.fn.modal.defaults.maxHeight() - 80,
+                                    250
+                                );
                             }
                         })
                         .css({
@@ -198,7 +212,9 @@ $(function () {
                         process(data);
                     })
                     .fail(function () {
-                        log.warn("Could not fetch current user data, proceeding with client side data copy");
+                        log.warn(
+                            "Could not fetch current user data, proceeding with client side data copy"
+                        );
                         process(user);
                     });
             };
@@ -228,11 +244,13 @@ $(function () {
             self.confirmChangePassword = function () {
                 if (!CONFIG_ACCESS_CONTROL) return;
 
-                self.updatePassword(self.currentUser().name, self.editor.password()).done(function () {
-                    // close dialog
-                    self.currentUser(undefined);
-                    self.changePasswordDialog.modal("hide");
-                });
+                self.updatePassword(self.currentUser().name, self.editor.password()).done(
+                    function () {
+                        // close dialog
+                        self.currentUser(undefined);
+                        self.changePasswordDialog.modal("hide");
+                    }
+                );
             };
 
             self.confirmGenerateApikey = function () {
@@ -274,7 +292,9 @@ $(function () {
                     throw OctoPrint.InvalidArgumentError("user must be set");
                 }
                 if (!access.loginState.hasPermissionKo(access.permissions.ADMIN))
-                    return $.Deferred().reject("You are not authorized to perform this action").promise();
+                    return $.Deferred()
+                        .reject("You are not authorized to perform this action")
+                        .promise();
 
                 return OctoPrint.access.users.add(user).done(self.fromResponse);
             };
@@ -284,7 +304,9 @@ $(function () {
                     throw OctoPrint.InvalidArgumentError("user must be set");
                 }
                 if (!access.loginState.hasPermissionKo(access.permissions.ADMIN))
-                    return $.Deferred().reject("You are not authorized to perform this action").promise();
+                    return $.Deferred()
+                        .reject("You are not authorized to perform this action")
+                        .promise();
 
                 if (user.name === access.loginState.username()) {
                     // we do not allow to delete ourselves
@@ -293,12 +315,17 @@ $(function () {
                         text: gettext("You may not delete your own account."),
                         type: "error"
                     });
-                    return $.Deferred().reject("You may not delete your own account").promise();
+                    return $.Deferred()
+                        .reject("You may not delete your own account")
+                        .promise();
                 }
 
                 showConfirmationDialog({
                     title: gettext("Are you sure?"),
-                    message: _.sprintf(gettext('You are about to delete the user "%(name)s".'), {name: user.name}),
+                    message: _.sprintf(
+                        gettext('You are about to delete the user "%(name)s".'),
+                        {name: user.name}
+                    ),
                     proceed: gettext("Delete"),
                     onproceed: function () {
                         OctoPrint.access.users.delete(user.name).done(self.fromResponse);
@@ -312,7 +339,13 @@ $(function () {
                 }
 
                 return OctoPrint.access.users
-                    .update(user.name, user.active, user.admin, user.permissions, user.groups)
+                    .update(
+                        user.name,
+                        user.active,
+                        user.admin,
+                        user.permissions,
+                        user.groups
+                    )
                     .done(self.fromResponse);
             };
 
@@ -343,8 +376,10 @@ $(function () {
                 {
                     name: function (a, b) {
                         // sorts ascending
-                        if (a["name"].toLocaleLowerCase() < b["name"].toLocaleLowerCase()) return -1;
-                        if (a["name"].toLocaleLowerCase() > b["name"].toLocaleLowerCase()) return 1;
+                        if (a["name"].toLocaleLowerCase() < b["name"].toLocaleLowerCase())
+                            return -1;
+                        if (a["name"].toLocaleLowerCase() > b["name"].toLocaleLowerCase())
+                            return 1;
                         return 0;
                     }
                 },
@@ -421,7 +456,9 @@ $(function () {
                 dangerRestricted: function () {
                     return self.editor.key() === GROUP_GUESTS;
                 },
-                dangerRestrictedText: gettext("This group may not have dangerous permissions or subgroups.")
+                dangerRestrictedText: gettext(
+                    "This group may not have dangerous permissions or subgroups."
+                )
             };
 
             self.groupEditorDialog = undefined;
@@ -488,7 +525,9 @@ $(function () {
                     self.editor.permissions(newValue.permissions.slice(0));
                     self.editor.subgroups(newValue.subgroups.slice(0));
                     self.editor.default(newValue.default);
-                    self.editor.header(_.sprintf(gettext('Edit group "%(name)s"'), {name: newValue.name}));
+                    self.editor.header(
+                        _.sprintf(gettext('Edit group "%(name)s"'), {name: newValue.name})
+                    );
                     self.editor.new(false);
                     self.editor.confirm = self.confirmEditGroup;
                 }
@@ -514,7 +553,9 @@ $(function () {
 
             self.showAddGroupDialog = function () {
                 self.currentGroup(undefined);
-                $('ul.nav-pills a[data-toggle="tab"]:first', self.groupEditorDialog).tab("show");
+                $('ul.nav-pills a[data-toggle="tab"]:first', self.groupEditorDialog).tab(
+                    "show"
+                );
                 self.groupEditorDialog
                     .modal({
                         minHeight: function () {
@@ -553,7 +594,9 @@ $(function () {
                 if (!group.changeable) return;
 
                 self.currentGroup(group);
-                $('ul.nav-pills a[data-toggle="tab"]:first', self.groupEditorDialog).tab("show");
+                $('ul.nav-pills a[data-toggle="tab"]:first', self.groupEditorDialog).tab(
+                    "show"
+                );
                 self.groupEditorDialog
                     .modal({
                         minHeight: function () {
@@ -611,13 +654,18 @@ $(function () {
 
                 showConfirmationDialog({
                     title: gettext("Are you sure?"),
-                    message: _.sprintf(gettext('You are about to delete the group "%(name)s".'), {name: group.name}),
+                    message: _.sprintf(
+                        gettext('You are about to delete the group "%(name)s".'),
+                        {name: group.name}
+                    ),
                     proceed: gettext("Delete"),
                     onproceed: function () {
-                        OctoPrint.access.groups.delete(group.key).done(function (response) {
-                            self.fromResponse(response);
-                            access.users.requestData();
-                        });
+                        OctoPrint.access.groups
+                            .delete(group.key)
+                            .done(function (response) {
+                                self.fromResponse(response);
+                                access.users.requestData();
+                            });
                     }
                 });
             };
@@ -795,7 +843,9 @@ $(function () {
             access.permissions.initialize();
         };
 
-        access.onUserPermissionsChanged = access.onUserLoggedIn = access.onUserLoggedOut = function (user) {
+        access.onUserPermissionsChanged = access.onUserLoggedIn = access.onUserLoggedOut = function (
+            user
+        ) {
             if (access.loginState.hasPermission(access.permissions.SETTINGS)) {
                 access.groups.requestData().done(function () {
                     access.users.requestData();

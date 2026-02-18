@@ -35,14 +35,19 @@ QUnit.cases(
         var param, i;
         for (i = 0; i < params.length; i++) {
             param = params[i];
-            param["title"] = param.input != undefined ? '"' + String(param.input) + '"' : "undefined";
+            param["title"] =
+                param.input != undefined ? '"' + String(param.input) + '"' : "undefined";
             cases.push(param);
         }
 
         return cases;
     })()
 ).test("bytesFromSize", function (params, assert) {
-    assert.equal(params.expected, bytesFromSize(params.input), "As expected: " + String(params.expected));
+    assert.equal(
+        params.expected,
+        bytesFromSize(params.input),
+        "As expected: " + String(params.expected)
+    );
 });
 
 QUnit.module("formatSize");
@@ -74,5 +79,9 @@ QUnit.cases(
         return cases;
     })()
 ).test("formatSize", function (params, assert) {
-    assert.equal(params.expected, formatSize(params.input), "As expected: " + String(params.expected));
+    assert.equal(
+        params.expected,
+        formatSize(params.input),
+        "As expected: " + String(params.expected)
+    );
 });

@@ -27,8 +27,10 @@ $(function () {
             {
                 name: function (a, b) {
                     // sorts ascending
-                    if (a["name"].toLocaleLowerCase() < b["name"].toLocaleLowerCase()) return -1;
-                    if (a["name"].toLocaleLowerCase() > b["name"].toLocaleLowerCase()) return 1;
+                    if (a["name"].toLocaleLowerCase() < b["name"].toLocaleLowerCase())
+                        return -1;
+                    if (a["name"].toLocaleLowerCase() > b["name"].toLocaleLowerCase())
+                        return 1;
                     return 0;
                 },
                 modification: function (a, b) {
@@ -52,7 +54,11 @@ $(function () {
         );
 
         self.requestData = function () {
-            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_LOGGING_MANAGE)) {
+            if (
+                !self.loginState.hasPermission(
+                    self.access.permissions.PLUGIN_LOGGING_MANAGE
+                )
+            ) {
                 return;
             }
             OctoPrint.plugins.logging.get().done(self.fromResponse);
@@ -162,7 +168,11 @@ $(function () {
         };
 
         self.addLogger = function () {
-            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_LOGGING_MANAGE)) {
+            if (
+                !self.loginState.hasPermission(
+                    self.access.permissions.PLUGIN_LOGGING_MANAGE
+                )
+            ) {
                 return;
             }
 
@@ -182,7 +192,11 @@ $(function () {
         };
 
         self.removeLogger = function (logger) {
-            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_LOGGING_MANAGE)) {
+            if (
+                !self.loginState.hasPermission(
+                    self.access.permissions.PLUGIN_LOGGING_MANAGE
+                )
+            ) {
                 return;
             }
 
@@ -193,7 +207,11 @@ $(function () {
         };
 
         self.removeFile = function (filename) {
-            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_LOGGING_MANAGE)) {
+            if (
+                !self.loginState.hasPermission(
+                    self.access.permissions.PLUGIN_LOGGING_MANAGE
+                )
+            ) {
                 return;
             }
             var perform = function () {
@@ -210,7 +228,11 @@ $(function () {
 
         self.markFilesOnPage = function () {
             self.markedForDeletion(
-                _.uniq(self.markedForDeletion().concat(_.map(self.listHelper.paginatedItems(), "name")))
+                _.uniq(
+                    self
+                        .markedForDeletion()
+                        .concat(_.map(self.listHelper.paginatedItems(), "name"))
+                )
             );
         };
 
@@ -219,14 +241,22 @@ $(function () {
         };
 
         self.clearMarkedFiles = function () {
-            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_LOGGING_MANAGE)) {
+            if (
+                !self.loginState.hasPermission(
+                    self.access.permissions.PLUGIN_LOGGING_MANAGE
+                )
+            ) {
                 return;
             }
             self.markedForDeletion.removeAll();
         };
 
         self.removeMarkedFiles = function () {
-            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_LOGGING_MANAGE)) {
+            if (
+                !self.loginState.hasPermission(
+                    self.access.permissions.PLUGIN_LOGGING_MANAGE
+                )
+            ) {
                 return;
             }
             var perform = function () {
@@ -265,14 +295,22 @@ $(function () {
         };
 
         self.onServerReconnect = self.onUserLoggedIn = self.onEventSettingsUpdated = self.onSettingsShown = function () {
-            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_LOGGING_MANAGE)) {
+            if (
+                !self.loginState.hasPermission(
+                    self.access.permissions.PLUGIN_LOGGING_MANAGE
+                )
+            ) {
                 return;
             }
             self.requestData();
         };
 
         self.onSettingsBeforeSave = function () {
-            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_LOGGING_MANAGE)) {
+            if (
+                !self.loginState.hasPermission(
+                    self.access.permissions.PLUGIN_LOGGING_MANAGE
+                )
+            ) {
                 return;
             }
             if (self.configuredLoggersChanged) {
@@ -288,7 +326,11 @@ $(function () {
         };
 
         self._bulkRemove = function (files) {
-            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_LOGGING_MANAGE)) {
+            if (
+                !self.loginState.hasPermission(
+                    self.access.permissions.PLUGIN_LOGGING_MANAGE
+                )
+            ) {
                 return;
             }
             var title = gettext("Deleting log files");
@@ -307,13 +349,17 @@ $(function () {
                         );
                     })
                     .fail(function (jqXHR) {
-                        var short = _.sprintf(gettext("Deletion of %(filename)s failed, continuing..."), {
-                            filename: _.escape(filename)
-                        });
-                        var long = _.sprintf(gettext("Deletion of %(filename)s failed: %(error)s"), {
-                            filename: _.escape(filename),
-                            error: _.escape(jqXHR.responseText)
-                        });
+                        var short = _.sprintf(
+                            gettext("Deletion of %(filename)s failed, continuing..."),
+                            {filename: _.escape(filename)}
+                        );
+                        var long = _.sprintf(
+                            gettext("Deletion of %(filename)s failed: %(error)s"),
+                            {
+                                filename: _.escape(filename),
+                                error: _.escape(jqXHR.responseText)
+                            }
+                        );
                         deferred.notify(short, long, false);
                     });
             };

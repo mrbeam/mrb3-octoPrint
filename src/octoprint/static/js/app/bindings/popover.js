@@ -1,7 +1,13 @@
 ko.bindingHandlers.popover = {
     keys: ["title", "animation", "placement", "trigger", "delay", "content", "html"],
 
-    init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+    init: function (
+        element,
+        valueAccessor,
+        allBindingsAccessor,
+        viewModel,
+        bindingContext
+    ) {
         var val = ko.utils.unwrapObservable(valueAccessor());
 
         var keys = ko.bindingHandlers.popover.keys;
@@ -13,7 +19,13 @@ ko.bindingHandlers.popover = {
         $(element).popover(options);
     },
 
-    update: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+    update: function (
+        element,
+        valueAccessor,
+        allBindingsAccessor,
+        viewModel,
+        bindingContext
+    ) {
         var val = ko.utils.unwrapObservable(valueAccessor());
 
         var keys = ko.bindingHandlers.popover.keys;

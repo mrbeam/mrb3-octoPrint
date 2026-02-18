@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 In this module the slicing support of OctoPrint is encapsulated.
 

@@ -11,8 +11,16 @@ $(function () {
             {
                 channel: function (a, b) {
                     // sorts ascending
-                    if (a["channel"].toLocaleLowerCase() < b["channel"].toLocaleLowerCase()) return -1;
-                    if (a["channel"].toLocaleLowerCase() > b["channel"].toLocaleLowerCase()) return 1;
+                    if (
+                        a["channel"].toLocaleLowerCase() <
+                        b["channel"].toLocaleLowerCase()
+                    )
+                        return -1;
+                    if (
+                        a["channel"].toLocaleLowerCase() >
+                        b["channel"].toLocaleLowerCase()
+                    )
+                        return 1;
                     return 0;
                 }
             },
@@ -71,7 +79,12 @@ $(function () {
         };
 
         self.markRead = function (channel, until, reload) {
-            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_ANNOUNCEMENTS_READ)) return;
+            if (
+                !self.loginState.hasPermission(
+                    self.access.permissions.PLUGIN_ANNOUNCEMENTS_READ
+                )
+            )
+                return;
 
             reload = !!reload;
 
@@ -97,7 +110,12 @@ $(function () {
         };
 
         self.toggleChannel = function (channel) {
-            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_ANNOUNCEMENTS_MANAGE)) return;
+            if (
+                !self.loginState.hasPermission(
+                    self.access.permissions.PLUGIN_ANNOUNCEMENTS_MANAGE
+                )
+            )
+                return;
 
             var url = PLUGIN_BASEURL + "announcements/channels/" + channel;
 
@@ -122,7 +140,12 @@ $(function () {
         };
 
         self.retrieveData = function (force) {
-            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_ANNOUNCEMENTS_READ)) return;
+            if (
+                !self.loginState.hasPermission(
+                    self.access.permissions.PLUGIN_ANNOUNCEMENTS_READ
+                )
+            )
+                return;
 
             var url = PLUGIN_BASEURL + "announcements/channels";
             if (force) {
@@ -140,7 +163,12 @@ $(function () {
         };
 
         self.fromResponse = function (data) {
-            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_ANNOUNCEMENTS_READ)) return;
+            if (
+                !self.loginState.hasPermission(
+                    self.access.permissions.PLUGIN_ANNOUNCEMENTS_READ
+                )
+            )
+                return;
 
             var currentTab = $("li.active a", self.announcementDialogTabs).attr("href");
 
@@ -161,7 +189,12 @@ $(function () {
         };
 
         self.showAnnouncementDialog = function (channel) {
-            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_ANNOUNCEMENTS_READ)) return;
+            if (
+                !self.loginState.hasPermission(
+                    self.access.permissions.PLUGIN_ANNOUNCEMENTS_READ
+                )
+            )
+                return;
 
             // lazy load images that still need lazy-loading
             $("#plugin_announcements_dialog_content article img").lazyload();
@@ -203,7 +236,12 @@ $(function () {
         };
 
         self.displayAnnouncements = function (channels) {
-            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_ANNOUNCEMENTS_READ)) return;
+            if (
+                !self.loginState.hasPermission(
+                    self.access.permissions.PLUGIN_ANNOUNCEMENTS_READ
+                )
+            )
+                return;
 
             var displayLimit = self.settings.settings.plugins.announcements.display_limit();
             var maxLength = self.settings.settings.plugins.announcements.summary_limit();
@@ -259,12 +297,17 @@ $(function () {
 
                 var text = "<ul style='margin-top: 10px; margin-bottom: 10px'>";
                 _.each(displayedItems, function (item) {
-                    var limitedSummary = stripParagraphs(item.summary_without_images.trim());
+                    var limitedSummary = stripParagraphs(
+                        item.summary_without_images.trim()
+                    );
                     if (limitedSummary.length > maxLength) {
                         limitedSummary = limitedSummary.substr(0, maxLength);
                         limitedSummary = limitedSummary.substr(
                             0,
-                            Math.min(limitedSummary.length, limitedSummary.lastIndexOf(" "))
+                            Math.min(
+                                limitedSummary.length,
+                                limitedSummary.lastIndexOf(" ")
+                            )
                         );
                         limitedSummary += "...";
                     }
@@ -283,12 +326,17 @@ $(function () {
                 text += "</ul>";
 
                 if (rest) {
-                    text += "<p>" + gettext(_.sprintf("... and %(rest)d more.", {rest: rest})) + "</p>";
+                    text +=
+                        "<p>" +
+                        gettext(_.sprintf("... and %(rest)d more.", {rest: rest})) +
+                        "</p>";
                 }
 
                 text +=
                     "<small>" +
-                    gettext("You can edit your announcement subscriptions under Settings > Announcements.") +
+                    gettext(
+                        "You can edit your announcement subscriptions under Settings > Announcements."
+                    ) +
                     "</small>";
 
                 var options = {
@@ -352,7 +400,11 @@ $(function () {
         };
 
         self.onUserPermissionsChanged = self.onUserLoggedIn = self.onUserLoggedOut = function () {
-            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_ANNOUNCEMENTS_READ)) {
+            if (
+                !self.loginState.hasPermission(
+                    self.access.permissions.PLUGIN_ANNOUNCEMENTS_READ
+                )
+            ) {
                 self.hideAnnouncements();
             } else {
                 self.retrieveData();
@@ -374,6 +426,10 @@ $(function () {
     OCTOPRINT_VIEWMODELS.push({
         construct: AnnouncementsViewModel,
         dependencies: ["loginStateViewModel", "settingsViewModel", "accessViewModel"],
-        elements: ["#plugin_announcements_dialog", "#settings_plugin_announcements", "#navbar_plugin_announcements"]
+        elements: [
+            "#plugin_announcements_dialog",
+            "#settings_plugin_announcements",
+            "#navbar_plugin_announcements"
+        ]
     });
 });

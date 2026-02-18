@@ -265,8 +265,10 @@ function DataUpdater(allViewModels, connectCallback, disconnectCallback) {
             // if the version, the plugin hash or the config hash changed, we
             // want the user to reload the UI since it might be stale now
             var versionChanged = oldVersion !== VERSION;
-            var pluginsChanged = oldPluginHash !== undefined && oldPluginHash !== self._pluginHash;
-            var configChanged = oldConfigHash !== undefined && oldConfigHash !== self._configHash;
+            var pluginsChanged =
+                oldPluginHash !== undefined && oldPluginHash !== self._pluginHash;
+            var configChanged =
+                oldConfigHash !== undefined && oldConfigHash !== self._configHash;
             if (versionChanged || pluginsChanged || configChanged) {
                 showReloadOverlay();
             }
@@ -368,7 +370,9 @@ function DataUpdater(allViewModels, connectCallback, disconnectCallback) {
                     case "connection": {
                         title = gettext("Error connecting to printer");
                         text = _.sprintf(
-                            gettext("There was an error while trying to connect to your printer. Error: %(error)s"),
+                            gettext(
+                                "There was an error while trying to connect to your printer. Error: %(error)s"
+                            ),
                             {error: _.escape(payload.error)}
                         );
                         break;
@@ -376,7 +380,9 @@ function DataUpdater(allViewModels, connectCallback, disconnectCallback) {
                     case "start_print": {
                         title = gettext("Error starting a print");
                         text = _.sprintf(
-                            gettext("There was an error while trying to start a print job. Error: %(error)s"),
+                            gettext(
+                                "There was an error while trying to start a print job. Error: %(error)s"
+                            ),
                             {error: _.escape(payload.error)}
                         );
                         break;
@@ -473,23 +479,32 @@ function DataUpdater(allViewModels, connectCallback, disconnectCallback) {
 
     self._onPluginMessage = function (event) {
         self._ifInitialized(function () {
-            callViewModels(self.allViewModels, "onDataUpdaterPluginMessage", [event.data.plugin, event.data.data]);
+            callViewModels(self.allViewModels, "onDataUpdaterPluginMessage", [
+                event.data.plugin,
+                event.data.data
+            ]);
         });
     };
 
     self._onReauthMessage = function (event) {
         self._ifInitialized(function () {
-            callViewModels(self.allViewModels, "onDataUpdaterReauthRequired", [event.data.reason]);
+            callViewModels(self.allViewModels, "onDataUpdaterReauthRequired", [
+                event.data.reason
+            ]);
         });
     };
 
     self._onIncreaseRate = function (measurement, minimum) {
-        log.debug("We are fast (" + measurement + " < " + minimum + "), increasing refresh rate");
+        log.debug(
+            "We are fast (" + measurement + " < " + minimum + "), increasing refresh rate"
+        );
         OctoPrint.socket.increaseRate();
     };
 
     self._onDecreaseRate = function (measurement, maximum) {
-        log.debug("We are slow (" + measurement + " > " + maximum + "), reducing refresh rate");
+        log.debug(
+            "We are slow (" + measurement + " > " + maximum + "), reducing refresh rate"
+        );
         OctoPrint.socket.decreaseRate();
     };
 

@@ -15,11 +15,19 @@ $(function () {
             var text = "";
             switch (self.ui_progress_type()) {
                 case "loading": {
-                    text = gettext("Loading...") + " (" + self.ui_progress_percentage().toFixed(0) + "%)";
+                    text =
+                        gettext("Loading...") +
+                        " (" +
+                        self.ui_progress_percentage().toFixed(0) +
+                        "%)";
                     break;
                 }
                 case "analyzing": {
-                    text = gettext("Analyzing...") + " (" + self.ui_progress_percentage().toFixed(0) + "%)";
+                    text =
+                        gettext("Analyzing...") +
+                        " (" +
+                        self.ui_progress_percentage().toFixed(0) +
+                        "%)";
                     break;
                 }
                 case "done": {
@@ -72,12 +80,18 @@ $(function () {
         self.layerUpEnabled = ko.observable(false);
         self.layerDownEnabled = ko.observable(false);
 
-        self.synchronizeOptionsAndReload = function (additionalRendererOptions, additionalReaderOptions) {
+        self.synchronizeOptionsAndReload = function (
+            additionalRendererOptions,
+            additionalReaderOptions
+        ) {
             self.synchronizeOptions(additionalRendererOptions, additionalReaderOptions);
             self.reload();
         };
 
-        self.synchronizeOptions = function (additionalRendererOptions, additionalReaderOptions) {
+        self.synchronizeOptions = function (
+            additionalRendererOptions,
+            additionalReaderOptions
+        ) {
             var renderer = {
                 moveModel: self.renderer_centerModel(),
                 centerViewport: self.renderer_centerViewport(),
@@ -90,7 +104,9 @@ $(function () {
                 showBoundingBox: self.renderer_showBoundingBox(),
                 showLayerBoundingBox: self.renderer_showLayerBoundingBox(),
                 showFullSize: self.renderer_showFullSize(),
-                extrusionWidth: self.renderer_extrusionWidthEnabled() ? self.renderer_extrusionWidth() : 1,
+                extrusionWidth: self.renderer_extrusionWidthEnabled()
+                    ? self.renderer_extrusionWidth()
+                    : 1,
                 showNextLayer: self.renderer_showNext(),
                 showCurrentLayer: self.renderer_showCurrent(),
                 showPreviousLayer: self.renderer_showPrevious(),
@@ -277,7 +293,10 @@ $(function () {
 
             if (currentProfileData && currentProfileData.extruder) {
                 var offsets = [];
-                if (currentProfileData.extruder.offsets() && !currentProfileData.extruder.sharedNozzle()) {
+                if (
+                    currentProfileData.extruder.offsets() &&
+                    !currentProfileData.extruder.sharedNozzle()
+                ) {
                     _.each(currentProfileData.extruder.offsets(), function (offset) {
                         offsets.push({x: offset[0], y: offset[1]});
                     });
@@ -329,7 +348,9 @@ $(function () {
         self.maxLayer = undefined;
 
         self.initialize = function () {
-            self.sizeThresholdStr = sizeObservable(self.settings.settings.plugins.gcodeviewer.sizeThreshold);
+            self.sizeThresholdStr = sizeObservable(
+                self.settings.settings.plugins.gcodeviewer.sizeThreshold
+            );
             self.mobileSizeThresholdStr = sizeObservable(
                 self.settings.settings.plugins.gcodeviewer.mobileSizeThreshold
             );
@@ -338,7 +359,13 @@ $(function () {
             var commandSliderElement = $("#gcode_slider_commands");
             var containerElement = $("#gcode_canvas");
 
-            if (!(layerSliderElement.length && commandSliderElement.length && containerElement.length)) {
+            if (
+                !(
+                    layerSliderElement.length &&
+                    commandSliderElement.length &&
+                    containerElement.length
+                )
+            ) {
                 return;
             }
 
@@ -421,7 +448,13 @@ $(function () {
                     value: 0,
                     enabled: false,
                     formatter: function (value) {
-                        return "Layer #" + (value + 1) + " (Z = " + GCODE.renderer.getZ(value) + ")";
+                        return (
+                            "Layer #" +
+                            (value + 1) +
+                            " (Z = " +
+                            GCODE.renderer.getZ(value) +
+                            ")"
+                        );
                     }
                 })
                 .on("slide", self.changeLayer);
@@ -525,7 +558,10 @@ $(function () {
         };
 
         self._processData = function (data) {
-            if (!data.job.file || (!data.job.file.path && (self.loadedFilepath || self.loadedFileDate))) {
+            if (
+                !data.job.file ||
+                (!data.job.file.path && (self.loadedFilepath || self.loadedFileDate))
+            ) {
                 self.waitForApproval(false);
 
                 self.loadedFilepath = undefined;
@@ -538,7 +574,9 @@ $(function () {
                 return;
             }
             if (!self.enabled) return;
-            self.currentlyPrinting = data.state.flags && (data.state.flags.printing || data.state.flags.paused);
+            self.currentlyPrinting =
+                data.state.flags &&
+                (data.state.flags.printing || data.state.flags.paused);
 
             if (
                 self.loadedFilepath &&
@@ -570,9 +608,11 @@ $(function () {
                     self.selectedFile.size(data.job.file.size);
 
                     if (
-                        data.job.file.size > self.settings.settings.plugins.gcodeviewer.sizeThreshold() ||
+                        data.job.file.size >
+                            self.settings.settings.plugins.gcodeviewer.sizeThreshold() ||
                         (OctoPrint.coreui.browser.mobile &&
-                            data.job.file.size > self.settings.settings.plugins.gcodeviewer.mobileSizeThreshold())
+                            data.job.file.size >
+                                self.settings.settings.plugins.gcodeviewer.mobileSizeThreshold())
                     ) {
                         self.waitForApproval(true);
                         self.loadedFilepath = undefined;
@@ -630,9 +670,22 @@ $(function () {
                         model.height.toFixed(2) +
                         "mm"
                 );
-                output.push(gettext("Estimated layer height") + ": " + model.layerHeight.toFixed(2) + gettext("mm"));
-                output.push(gettext("Estimated total print time") + ": " + formatFuzzyPrintTime(model.printTime));
-                output.push(gettext("Layers with extrusion") + ": " + model.layersPrinted.toFixed(0));
+                output.push(
+                    gettext("Estimated layer height") +
+                        ": " +
+                        model.layerHeight.toFixed(2) +
+                        gettext("mm")
+                );
+                output.push(
+                    gettext("Estimated total print time") +
+                        ": " +
+                        formatFuzzyPrintTime(model.printTime)
+                );
+                output.push(
+                    gettext("Layers with extrusion") +
+                        ": " +
+                        model.layersPrinted.toFixed(0)
+                );
 
                 self.ui_modelInfo(output.join("<br>"));
 
@@ -667,7 +720,12 @@ $(function () {
                 output.push(gettext("GCODE commands") + ": " + layer.commands);
                 if (layer.filament !== undefined) {
                     if (layer.filament.length === 1) {
-                        output.push(gettext("Filament") + ": " + layer.filament[0].toFixed(2) + "mm");
+                        output.push(
+                            gettext("Filament") +
+                                ": " +
+                                layer.filament[0].toFixed(2) +
+                                "mm"
+                        );
                     } else {
                         for (var i = 0; i < layer.filament.length; i++) {
                             if (layer.filament[i] !== undefined) {
@@ -685,7 +743,11 @@ $(function () {
                         }
                     }
                 }
-                output.push(gettext("Estimated print time") + ": " + formatDuration(layer.printTime));
+                output.push(
+                    gettext("Estimated print time") +
+                        ": " +
+                        formatDuration(layer.printTime)
+                );
 
                 self.ui_layerInfo(output.join("<br>"));
 
@@ -705,18 +767,28 @@ $(function () {
 
             for (var opt in options) {
                 if (!options.hasOwnProperty(opt)) continue;
-                if (opt === "zoomInOnModel" && options[opt] !== self.renderer_zoomOnModel()) {
+                if (
+                    opt === "zoomInOnModel" &&
+                    options[opt] !== self.renderer_zoomOnModel()
+                ) {
                     self.renderer_zoomOnModel(false);
-                } else if (opt === "centerViewport" && options[opt] !== self.renderer_centerViewport()) {
+                } else if (
+                    opt === "centerViewport" &&
+                    options[opt] !== self.renderer_centerViewport()
+                ) {
                     self.renderer_centerViewport(false);
-                } else if (opt === "moveModel" && options[opt] !== self.renderer_centerModel()) {
+                } else if (
+                    opt === "moveModel" &&
+                    options[opt] !== self.renderer_centerModel()
+                ) {
                     self.renderer_centerModel(false);
                 }
             }
         };
 
         self.changeLayer = function (event) {
-            if (self.currentlyPrinting && self.renderer_syncProgress()) self.renderer_syncProgress(false);
+            if (self.currentlyPrinting && self.renderer_syncProgress())
+                self.renderer_syncProgress(false);
 
             var value = event.value;
             if (self.currentLayer !== undefined && self.currentLayer === value) return;
@@ -734,7 +806,11 @@ $(function () {
             $("#canvas_container").blur();
         };
         self.onKeyDown = function (data, event) {
-            if (!self.settings.feature_keyboardControl() || self.layerSlider === undefined) return;
+            if (
+                !self.settings.feature_keyboardControl() ||
+                self.layerSlider === undefined
+            )
+                return;
 
             var value = self.currentLayer;
             switch (event.which) {
@@ -755,7 +831,8 @@ $(function () {
         };
 
         self.changeCommandRange = function (event) {
-            if (self.currentlyPrinting && self.renderer_syncProgress()) self.renderer_syncProgress(false);
+            if (self.currentlyPrinting && self.renderer_syncProgress())
+                self.renderer_syncProgress(false);
 
             var tuple = event.value;
             if (
@@ -766,7 +843,11 @@ $(function () {
                 return;
             self.currentCommand = tuple;
 
-            GCODE.ui.changeSelectedCommands(self.layerSlider.slider("getValue"), tuple[0], tuple[1]);
+            GCODE.ui.changeSelectedCommands(
+                self.layerSlider.slider("getValue"),
+                tuple[0],
+                tuple[1]
+            );
         };
 
         self.onDataUpdaterReconnect = function () {
@@ -840,24 +921,38 @@ $(function () {
             self.resetOptions();
 
             var current = loadFromLocalStorage(optionsLocalStorageKey);
-            if (current["centerViewPort"] !== undefined) self.renderer_centerViewport(current["centerViewPort"]);
-            if (current["zoomOnModel"] !== undefined) self.renderer_zoomOnModel(current["zoomOnModel"]);
-            if (current["showMoves"] !== undefined) self.renderer_showMoves(current["showMoves"]);
-            if (current["showRetracts"] !== undefined) self.renderer_showRetracts(current["showRetracts"]);
-            if (current["showPrinthead"] !== undefined) self.renderer_showPrinthead(current["showPrinthead"]);
+            if (current["centerViewPort"] !== undefined)
+                self.renderer_centerViewport(current["centerViewPort"]);
+            if (current["zoomOnModel"] !== undefined)
+                self.renderer_zoomOnModel(current["zoomOnModel"]);
+            if (current["showMoves"] !== undefined)
+                self.renderer_showMoves(current["showMoves"]);
+            if (current["showRetracts"] !== undefined)
+                self.renderer_showRetracts(current["showRetracts"]);
+            if (current["showPrinthead"] !== undefined)
+                self.renderer_showPrinthead(current["showPrinthead"]);
             if (current["showSegmentStarts"] !== undefined)
                 self.renderer_showSegmentStarts(current["showSegmentStarts"]);
-            if (current["showDebugArcs"] !== undefined) self.renderer_showDebugArcs(current["showDebugArcs"]);
-            if (current["chromeArcFix"] !== undefined) self.renderer_chromeArcFix(current["chromeArcFix"]);
-            if (current["showPrevious"] !== undefined) self.renderer_showPrevious(current["showPrevious"]);
-            if (current["showCurrent"] !== undefined) self.renderer_showCurrent(current["showCurrent"]);
-            if (current["showNext"] !== undefined) self.renderer_showNext(current["showNext"]);
-            if (current["showFullsize"] !== undefined) self.renderer_showFullSize(current["showFullsize"]);
-            if (current["showBoundingBox"] !== undefined) self.renderer_showBoundingBox(current["showBoundingBox"]);
+            if (current["showDebugArcs"] !== undefined)
+                self.renderer_showDebugArcs(current["showDebugArcs"]);
+            if (current["chromeArcFix"] !== undefined)
+                self.renderer_chromeArcFix(current["chromeArcFix"]);
+            if (current["showPrevious"] !== undefined)
+                self.renderer_showPrevious(current["showPrevious"]);
+            if (current["showCurrent"] !== undefined)
+                self.renderer_showCurrent(current["showCurrent"]);
+            if (current["showNext"] !== undefined)
+                self.renderer_showNext(current["showNext"]);
+            if (current["showFullsize"] !== undefined)
+                self.renderer_showFullSize(current["showFullsize"]);
+            if (current["showBoundingBox"] !== undefined)
+                self.renderer_showBoundingBox(current["showBoundingBox"]);
             if (current["showLayerBoundingBox"] !== undefined)
                 self.renderer_showLayerBoundingBox(current["showLayerBoundingBox"]);
-            if (current["hideEmptyLayers"] !== undefined) self.reader_hideEmptyLayers(current["hideEmptyLayers"]);
-            if (current["sortLayers"] !== undefined) self.reader_sortLayers(current["sortLayers"]);
+            if (current["hideEmptyLayers"] !== undefined)
+                self.reader_hideEmptyLayers(current["hideEmptyLayers"]);
+            if (current["sortLayers"] !== undefined)
+                self.reader_sortLayers(current["sortLayers"]);
         };
     }
 

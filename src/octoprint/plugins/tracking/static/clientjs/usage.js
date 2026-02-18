@@ -10,7 +10,12 @@
     };
 
     OctoPrintTrackingClient.prototype.track = function (event, payload, opts) {
-        return this.base.simpleApiCommand("tracking", "track", {event: event, payload: payload}, opts);
+        return this.base.simpleApiCommand(
+            "tracking",
+            "track",
+            {event: event, payload: payload},
+            opts
+        );
     };
 
     OctoPrintClient.registerPluginComponent("tracking", OctoPrintTrackingClient);

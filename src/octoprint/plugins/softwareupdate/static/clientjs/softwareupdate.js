@@ -15,7 +15,11 @@
         this.updatelogUrl = url + "updatelog";
     };
 
-    OctoPrintSoftwareUpdateClient.prototype.checkEntries = function (entries, force, opts) {
+    OctoPrintSoftwareUpdateClient.prototype.checkEntries = function (
+        entries,
+        force,
+        opts
+    ) {
         if (arguments.length == 1 && _.isObject(arguments[0])) {
             var params = arguments[0];
             entries = params.entries;
@@ -89,6 +93,9 @@
         return this.base.get(this.updatelogUrl, opts);
     };
 
-    OctoPrintClient.registerPluginComponent("softwareupdate", OctoPrintSoftwareUpdateClient);
+    OctoPrintClient.registerPluginComponent(
+        "softwareupdate",
+        OctoPrintSoftwareUpdateClient
+    );
     return OctoPrintSoftwareUpdateClient;
 });

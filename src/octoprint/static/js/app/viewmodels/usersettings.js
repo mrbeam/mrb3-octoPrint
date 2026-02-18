@@ -69,7 +69,9 @@ $(function () {
                     process(data);
                 })
                 .fail(function () {
-                    log.warn("Could not fetch current user data, proceeding with client side data copy");
+                    log.warn(
+                        "Could not fetch current user data, proceeding with client side data copy"
+                    );
                     process(user);
                 });
         };
@@ -80,7 +82,11 @@ $(function () {
             self.userSettingsDialog.trigger("beforeSave");
 
             if (self.access_password() && !self.passwordMismatch()) {
-                self.users.updatePassword(self.currentUser().name, self.access_password(), function () {});
+                self.users.updatePassword(
+                    self.currentUser().name,
+                    self.access_password(),
+                    function () {}
+                );
             }
 
             var settings = {
@@ -104,14 +110,18 @@ $(function () {
             if (!CONFIG_ACCESS_CONTROL) return;
 
             var generate = function () {
-                self.users.generateApikey(self.currentUser().name).done(function (response) {
-                    self.access_apikey(response.apikey);
-                });
+                self.users
+                    .generateApikey(self.currentUser().name)
+                    .done(function (response) {
+                        self.access_apikey(response.apikey);
+                    });
             };
 
             if (self.access_apikey()) {
                 showConfirmationDialog(
-                    gettext("This will generate a new API Key. The old API Key will cease to function immediately."),
+                    gettext(
+                        "This will generate a new API Key. The old API Key will cease to function immediately."
+                    ),
                     generate
                 );
             } else {
@@ -124,7 +134,9 @@ $(function () {
             if (!self.access_apikey()) return;
 
             showConfirmationDialog(
-                gettext("This will delete the API Key. It will cease to to function immediately."),
+                gettext(
+                    "This will delete the API Key. It will cease to to function immediately."
+                ),
                 function () {
                     self.users.deleteApikey(self.currentUser().name).done(function () {
                         self.access_apikey(undefined);

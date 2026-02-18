@@ -28,7 +28,10 @@ $(function () {
                     action.actionSource = "core";
                     actions.push(action);
                 });
-                if ((response.custom && response.custom.length) || (response.plugin && response.plugin.length)) {
+                if (
+                    (response.custom && response.custom.length) ||
+                    (response.plugin && response.plugin.length)
+                ) {
                     actions.push({action: "divider"});
                 }
             }
@@ -62,9 +65,13 @@ $(function () {
                     .done(function () {
                         var text;
                         if (commandSpec.async) {
-                            text = gettext('The command "%(command)s" was triggered asynchronously');
+                            text = gettext(
+                                'The command "%(command)s" was triggered asynchronously'
+                            );
                         } else {
-                            text = gettext('The command "%(command)s" executed successfully');
+                            text = gettext(
+                                'The command "%(command)s" executed successfully'
+                            );
                         }
 
                         new PNotify({
@@ -75,14 +82,22 @@ $(function () {
                         deferred.resolve(["success", arguments]);
                     })
                     .fail(function (jqXHR, textStatus, errorThrown) {
-                        if (!commandSpec.hasOwnProperty("ignore") || !commandSpec.ignore) {
+                        if (
+                            !commandSpec.hasOwnProperty("ignore") ||
+                            !commandSpec.ignore
+                        ) {
                             var error =
                                 "<p>" +
-                                _.sprintf(gettext('The command "%(command)s" could not be executed.'), {
-                                    command: _.escape(commandSpec.name)
-                                }) +
+                                _.sprintf(
+                                    gettext(
+                                        'The command "%(command)s" could not be executed.'
+                                    ),
+                                    {command: _.escape(commandSpec.name)}
+                                ) +
                                 "</p>";
-                            error += pnotifyAdditionalInfo("<pre>" + _.escape(jqXHR.responseText) + "</pre>");
+                            error += pnotifyAdditionalInfo(
+                                "<pre>" + _.escape(jqXHR.responseText) + "</pre>"
+                            );
                             new PNotify({
                                 title: gettext("Error"),
                                 text: error,
@@ -113,7 +128,9 @@ $(function () {
             return deferred.promise();
         };
 
-        self.onUserPermissionsChanged = self.onUserLoggedIn = self.onUserLoggedOut = function (user) {
+        self.onUserPermissionsChanged = self.onUserLoggedIn = self.onUserLoggedOut = function (
+            user
+        ) {
             if (self.loginState.hasPermission(self.access.permissions.SYSTEM)) {
                 self.requestData();
             } else {

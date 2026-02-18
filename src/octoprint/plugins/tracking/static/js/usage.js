@@ -34,7 +34,11 @@ $(function () {
         self.onBeforeWizardTabChange = function (next, current) {
             if (!self.required) return true;
 
-            if (!current || !_.startsWith(current, "wizard_plugin_tracking") || self.setup()) {
+            if (
+                !current ||
+                !_.startsWith(current, "wizard_plugin_tracking") ||
+                self.setup()
+            ) {
                 return true;
             }
 
@@ -107,5 +111,9 @@ $(function () {
         };
     }
 
-    OCTOPRINT_VIEWMODELS.push([UsageViewModel, ["settingsViewModel"], "#wizard_plugin_tracking"]);
+    OCTOPRINT_VIEWMODELS.push([
+        UsageViewModel,
+        ["settingsViewModel"],
+        "#wizard_plugin_tracking"
+    ]);
 });

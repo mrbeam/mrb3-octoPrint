@@ -182,9 +182,12 @@ $(function () {
                 OctoPrint.plugins.backup.restoreBackup(backup);
             };
             showConfirmationDialog(
-                _.sprintf(gettext('You are about to restore the backup file "%(name)s". This cannot be undone.'), {
-                    name: _.escape(backup.name)
-                }),
+                _.sprintf(
+                    gettext(
+                        'You are about to restore the backup file "%(name)s". This cannot be undone.'
+                    ),
+                    {name: _.escape(backup.name)}
+                ),
                 perform
             );
         };
@@ -232,7 +235,9 @@ $(function () {
                     case "backup_failed": {
                         self.workLoglines.push({line: " ", stream: "message"});
                         self.workLoglines.push({
-                            line: gettext("Backup creation failed! Check octoprint.log for reasons as to why."),
+                            line: gettext(
+                                "Backup creation failed! Check octoprint.log for reasons as to why."
+                            ),
                             stream: "error"
                         });
                         self.workInProgress(false);
@@ -271,7 +276,9 @@ $(function () {
                     case "restore_done": {
                         self.workLoglines.push({line: " ", stream: "message"});
                         self.workLoglines.push({
-                            line: gettext("Restore successful! The server will now be restarted!"),
+                            line: gettext(
+                                "Restore successful! The server will now be restarted!"
+                            ),
                             stream: "message"
                         });
                         self.workInProgress(false);
@@ -280,9 +287,10 @@ $(function () {
                     case "installing_plugin": {
                         self.workLoglines.push({line: " ", stream: "message"});
                         self.workLoglines.push({
-                            line: _.sprintf(gettext('Installing plugin "%(plugin)s"...'), {
-                                plugin: _.escape(data.data.plugin)
-                            }),
+                            line: _.sprintf(
+                                gettext('Installing plugin "%(plugin)s"...'),
+                                {plugin: _.escape(data.data.plugin)}
+                            ),
                             stream: "message"
                         });
                         break;

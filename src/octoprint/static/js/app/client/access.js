@@ -119,7 +119,9 @@
 
     OctoPrintAccessUsersClient.prototype.add = function (user, opts) {
         if (!user.name || !user.password) {
-            throw new OctoPrintClient.InvalidArgumentError("Both user's name and password need to be set");
+            throw new OctoPrintClient.InvalidArgumentError(
+                "Both user's name and password need to be set"
+            );
         }
 
         var data = {
@@ -142,7 +144,14 @@
         return this.base.get(this.url(name), opts);
     };
 
-    OctoPrintAccessUsersClient.prototype.update = function (name, active, admin, permissions, groups, opts) {
+    OctoPrintAccessUsersClient.prototype.update = function (
+        name,
+        active,
+        admin,
+        permissions,
+        groups,
+        opts
+    ) {
         if (!name) {
             throw new OctoPrintClient.InvalidArgumentError("user name must be set");
         }
@@ -164,9 +173,15 @@
         return this.base.delete(this.url(name), opts);
     };
 
-    OctoPrintAccessUsersClient.prototype.changePassword = function (name, password, opts) {
+    OctoPrintAccessUsersClient.prototype.changePassword = function (
+        name,
+        password,
+        opts
+    ) {
         if (!name || !password) {
-            throw new OctoPrintClient.InvalidArgumentError("user name and password must be set");
+            throw new OctoPrintClient.InvalidArgumentError(
+                "user name and password must be set"
+            );
         }
 
         var data = {

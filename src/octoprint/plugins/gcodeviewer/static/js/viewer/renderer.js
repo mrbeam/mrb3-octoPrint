@@ -135,13 +135,28 @@ GCODE.renderer = (function () {
         if (model && model.length) {
             if (layerNumStore < model.length) {
                 if (renderOptions["showNextLayer"] && layerNumStore < model.length - 1) {
-                    drawLayer(layerNumStore + 1, 0, GCODE.renderer.getLayerNumSegments(layerNumStore + 1), true);
+                    drawLayer(
+                        layerNumStore + 1,
+                        0,
+                        GCODE.renderer.getLayerNumSegments(layerNumStore + 1),
+                        true
+                    );
                 }
                 if (renderOptions["showCurrentLayer"] && layerNumStore < model.length) {
-                    drawLayer(layerNumStore, 0, GCODE.renderer.getLayerNumSegments(layerNumStore), true);
+                    drawLayer(
+                        layerNumStore,
+                        0,
+                        GCODE.renderer.getLayerNumSegments(layerNumStore),
+                        true
+                    );
                 }
                 if (renderOptions["showPreviousLayer"] && layerNumStore > 0) {
-                    drawLayer(layerNumStore - 1, 0, GCODE.renderer.getLayerNumSegments(layerNumStore - 1), true);
+                    drawLayer(
+                        layerNumStore - 1,
+                        0,
+                        GCODE.renderer.getLayerNumSegments(layerNumStore - 1),
+                        true
+                    );
                 }
                 drawLayer(layerNumStore, progressStore.from, progressStore.to);
             } else {
@@ -211,7 +226,10 @@ GCODE.renderer = (function () {
 
                     // from now on we only think in clockwise direction
                     var intersectsAngle = function (sA, eA, angle) {
-                        return (sA >= angle && (eA <= angle || eA > sA)) || (sA <= angle && eA <= angle && eA > sA);
+                        return (
+                            (sA >= angle && (eA <= angle || eA > sA)) ||
+                            (sA <= angle && eA <= angle && eA > sA)
+                        );
                     };
 
                     if (intersectsAngle(startAngle, endAngle, deg0)) {
@@ -365,7 +383,11 @@ GCODE.renderer = (function () {
 
         // Draw the circle
         this.lineTo(x + radius * Math.cos(startAngle), y + radius * Math.sin(startAngle));
-        for (var i = 0, a = startAngle + step, a2 = startAngle + step / 2; i < numCurves; ++i, a += step, a2 += step)
+        for (
+            var i = 0, a = startAngle + step, a2 = startAngle + step / 2;
+            i < numCurves;
+            ++i, a += step, a2 += step
+        )
             this.quadraticCurveTo(
                 x + cpRadius * Math.cos(a2),
                 y + cpRadius * Math.sin(a2),
@@ -423,7 +445,11 @@ GCODE.renderer = (function () {
                 lastY = (event.offsetY || event.pageY - canvas.offsetTop) * pixelRatio;
 
                 var pt = ctx.transformedPoint(lastX, lastY);
-                if (!renderOptions["onDragStart"] || renderOptions["onDragStart"](pt) !== false) dragStart = pt;
+                if (
+                    !renderOptions["onDragStart"] ||
+                    renderOptions["onDragStart"](pt) !== false
+                )
+                    dragStart = pt;
             },
             false
         );
@@ -440,7 +466,8 @@ GCODE.renderer = (function () {
                     // translate
                     var pt = ctx.transformedPoint(lastX, lastY);
 
-                    if (renderOptions["onDrag"] && renderOptions["onDrag"](pt) === false) return;
+                    if (renderOptions["onDrag"] && renderOptions["onDrag"](pt) === false)
+                        return;
 
                     ctx.translate(pt.x - dragStart.x, pt.y - dragStart.y);
                     reRender();
@@ -475,8 +502,10 @@ GCODE.renderer = (function () {
                 dragStart = undefined;
 
                 if (renderOptions["onDragStop"]) {
-                    var x = (event.offsetX || event.pageX - canvas.offsetLeft) * pixelRatio;
-                    var y = (event.offsetY || event.pageY - canvas.offsetTop) * pixelRatio;
+                    var x =
+                        (event.offsetX || event.pageX - canvas.offsetLeft) * pixelRatio;
+                    var y =
+                        (event.offsetY || event.pageY - canvas.offsetTop) * pixelRatio;
                     renderOptions["onDragStop"](ctx.transformedPoint(x, y));
                 }
             },
@@ -873,7 +902,11 @@ GCODE.renderer = (function () {
                 var lineColor = renderOptions["colorLine"][tool];
                 if (lineColor === undefined) lineColor = renderOptions["colorLine"][0];
                 var shade = tool * 0.15;
-                rv = colorLine[tool] = pusher.color(lineColor).shade(shade).alpha(alpha).html();
+                rv = colorLine[tool] = pusher
+                    .color(lineColor)
+                    .shade(shade)
+                    .alpha(alpha)
+                    .html();
             }
             return rv;
         }
@@ -882,7 +915,11 @@ GCODE.renderer = (function () {
             var rv = colorMove[tool];
             if (rv === undefined) {
                 var shade = tool * 0.15;
-                rv = colorMove[tool] = pusher.color(renderOptions["colorMove"]).shade(shade).alpha(alpha).html();
+                rv = colorMove[tool] = pusher
+                    .color(renderOptions["colorMove"])
+                    .shade(shade)
+                    .alpha(alpha)
+                    .html();
             }
             return rv;
         }
@@ -891,7 +928,11 @@ GCODE.renderer = (function () {
             var rv = colorRetract[tool];
             if (rv === undefined) {
                 var shade = tool * 0.15;
-                rv = colorRetract[tool] = pusher.color(renderOptions["colorRetract"]).shade(shade).alpha(alpha).html();
+                rv = colorRetract[tool] = pusher
+                    .color(renderOptions["colorRetract"])
+                    .shade(shade)
+                    .alpha(alpha)
+                    .html();
             }
             return rv;
         }
@@ -900,7 +941,11 @@ GCODE.renderer = (function () {
             var rv = colorRestart[tool];
             if (rv === undefined) {
                 var shade = tool * 0.15;
-                rv = colorRestart[tool] = pusher.color(renderOptions["colorRestart"]).shade(shade).alpha(alpha).html();
+                rv = colorRestart[tool] = pusher
+                    .color(renderOptions["colorRestart"])
+                    .shade(shade)
+                    .alpha(alpha)
+                    .html();
             }
             return rv;
         }
@@ -1027,9 +1072,14 @@ GCODE.renderer = (function () {
         }
 
         if (renderOptions["showHead"] && !isNotCurrentLayer) {
-            var sizeHeadSpot = renderOptions["sizeHeadSpot"] * lineWidthFactor + lineWidthFactor / 2;
+            var sizeHeadSpot =
+                renderOptions["sizeHeadSpot"] * lineWidthFactor + lineWidthFactor / 2;
             var shade = tool * 0.15;
-            ctx.fillStyle = pusher.color(renderOptions["colorHead"]).shade(shade).alpha(alpha).html();
+            ctx.fillStyle = pusher
+                .color(renderOptions["colorHead"])
+                .shade(shade)
+                .alpha(alpha)
+                .html();
             ctx.beginPath();
             ctx.circle(prevX, prevY, sizeHeadSpot);
             ctx.fill();
@@ -1057,10 +1107,20 @@ GCODE.renderer = (function () {
         } else if (renderOptions["moveModel"]) {
             layerBounds = getLayerBounds(layerNum);
             if (layerBounds) {
-                offsetModelX = renderOptions["bed"]["x"] / 2 - (layerBounds.minX + layerBounds.maxX) / 2;
-                offsetModelY = renderOptions["bed"]["y"] / 2 - (layerBounds.minY + layerBounds.maxY) / 2;
-                offsetBedX = -1 * (renderOptions["bed"]["x"] / 2 - (layerBounds.minX + layerBounds.maxX) / 2);
-                offsetBedY = -1 * (renderOptions["bed"]["y"] / 2 - (layerBounds.minY + layerBounds.maxY) / 2);
+                offsetModelX =
+                    renderOptions["bed"]["x"] / 2 -
+                    (layerBounds.minX + layerBounds.maxX) / 2;
+                offsetModelY =
+                    renderOptions["bed"]["y"] / 2 -
+                    (layerBounds.minY + layerBounds.maxY) / 2;
+                offsetBedX =
+                    -1 *
+                    (renderOptions["bed"]["x"] / 2 -
+                        (layerBounds.minX + layerBounds.maxX) / 2);
+                offsetBedY =
+                    -1 *
+                    (renderOptions["bed"]["y"] / 2 -
+                        (layerBounds.minY + layerBounds.maxY) / 2);
             }
         } else {
             offsetModelX = 0;
@@ -1091,13 +1151,26 @@ GCODE.renderer = (function () {
             if (layerBounds) {
                 // if we need to zoom in on model, scale factor is calculated by longer side of object in relation to that axis of canvas
                 // limited arbitrarily to 50 x extrusion width, to prevent extreme disorienting zoom
-                var width = Math.max(layerBounds.maxX - layerBounds.minX, renderOptions["extrusionWidth"] * 50);
-                var length = Math.max(layerBounds.maxY - layerBounds.minY, renderOptions["extrusionWidth"] * 50);
+                var width = Math.max(
+                    layerBounds.maxX - layerBounds.minX,
+                    renderOptions["extrusionWidth"] * 50
+                );
+                var length = Math.max(
+                    layerBounds.maxY - layerBounds.minY,
+                    renderOptions["extrusionWidth"] * 50
+                );
 
-                var scaleF = width > length ? (canvas.width - 10) / width : (canvas.height - 10) / length;
+                var scaleF =
+                    width > length
+                        ? (canvas.width - 10) / width
+                        : (canvas.height - 10) / length;
                 if (transform.a && transform.d) {
-                    scaleX = (scaleF / transform.a) * (renderOptions["invertAxes"]["x"] ? -1 : 1);
-                    scaleY = (scaleF / transform.d) * (renderOptions["invertAxes"]["y"] ? 1 : -1);
+                    scaleX =
+                        (scaleF / transform.a) *
+                        (renderOptions["invertAxes"]["x"] ? -1 : 1);
+                    scaleY =
+                        (scaleF / transform.d) *
+                        (renderOptions["invertAxes"]["y"] ? 1 : -1);
                     ctx.translate(pt.x, pt.y);
                     ctx.scale(scaleX, scaleY);
                     ctx.translate(-pt.x, -pt.y);
@@ -1142,7 +1215,10 @@ GCODE.renderer = (function () {
         }
 
         // Ratio of bed to canvas viewport
-        var viewportRatio = Math.min((canvas.width - 10) / bedWidth, (canvas.height - 10) / bedHeight);
+        var viewportRatio = Math.min(
+            (canvas.width - 10) / bedWidth,
+            (canvas.height - 10) / bedHeight
+        );
 
         // Apply initial translation to center the bed in the viewport
         var translationX, translationY;
@@ -1151,7 +1227,9 @@ GCODE.renderer = (function () {
             translationY = canvas.height / 2;
         } else {
             translationX = (canvas.width - bedWidth * viewportRatio) / 2;
-            translationY = bedHeight * viewportRatio + (canvas.height - bedHeight * viewportRatio) / 2;
+            translationY =
+                bedHeight * viewportRatio +
+                (canvas.height - bedHeight * viewportRatio) / 2;
         }
 
         ctx.translate(translationX, -translationY);
@@ -1179,7 +1257,8 @@ GCODE.renderer = (function () {
             var mustReapplyPatches = false;
             var dirty = false;
             for (var opt in options) {
-                if (!renderOptions.hasOwnProperty(opt) || !options.hasOwnProperty(opt)) continue;
+                if (!renderOptions.hasOwnProperty(opt) || !options.hasOwnProperty(opt))
+                    continue;
                 if (options[opt] === undefined) continue;
                 if (renderOptions[opt] == options[opt]) continue;
 

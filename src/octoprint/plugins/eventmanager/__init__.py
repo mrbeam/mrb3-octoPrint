@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from flask_babel import gettext
 
 import octoprint.events

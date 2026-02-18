@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 This module bundles platform specific flags and implementations.
 """

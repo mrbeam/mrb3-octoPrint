@@ -16,7 +16,11 @@
         return this.base.get(customUrl, opts);
     };
 
-    OctoPrintControlClient.prototype.sendGcodeWithParameters = function (commands, parameters, opts) {
+    OctoPrintControlClient.prototype.sendGcodeWithParameters = function (
+        commands,
+        parameters,
+        opts
+    ) {
         commands = commands || [];
         parameters = parameters || {};
 
@@ -34,7 +38,12 @@
         );
     };
 
-    OctoPrintControlClient.prototype.sendGcodeScriptWithParameters = function (script, context, parameters, opts) {
+    OctoPrintControlClient.prototype.sendGcodeScriptWithParameters = function (
+        script,
+        context,
+        parameters,
+        opts
+    ) {
         script = script || "";
         context = context || {};
         parameters = parameters || {};

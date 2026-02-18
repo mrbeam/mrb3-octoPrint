@@ -108,7 +108,9 @@ function ItemListHelper(
         }
     });
     self.lastPage = ko.dependentObservable(function () {
-        return self.pageSize() === 0 ? 1 : Math.ceil(self.items().length / self.pageSize()) - 1;
+        return self.pageSize() === 0
+            ? 1
+            : Math.ceil(self.items().length / self.pageSize()) - 1;
     });
     self.pages = ko.dependentObservable(function () {
         var pages = [];
@@ -293,7 +295,10 @@ function ItemListHelper(
         // determine comparator
         var comparator = undefined;
         var currentSorting = self.currentSorting();
-        if (typeof currentSorting !== "undefined" && typeof self.supportedSorting[currentSorting] !== "undefined") {
+        if (
+            typeof currentSorting !== "undefined" &&
+            typeof self.supportedSorting[currentSorting] !== "undefined"
+        ) {
             comparator = self.supportedSorting[currentSorting];
         }
 
@@ -306,7 +311,10 @@ function ItemListHelper(
         if (!hasSearch || self.filterSearch()) {
             var filters = self.currentFilters();
             _.each(filters, function (filter) {
-                if (typeof filter !== "undefined" && typeof supportedFilters[filter] !== "undefined")
+                if (
+                    typeof filter !== "undefined" &&
+                    typeof supportedFilters[filter] !== "undefined"
+                )
                     result = _.filter(result, supportedFilters[filter]);
             });
         }
@@ -328,14 +336,20 @@ function ItemListHelper(
     self._saveCurrentSortingToLocalStorage = function () {
         if (self._initializeLocalStorage()) {
             var currentSorting = self.currentSorting();
-            if (currentSorting !== undefined) localStorage[self.storageIds.currentSorting] = currentSorting;
+            if (currentSorting !== undefined)
+                localStorage[self.storageIds.currentSorting] = currentSorting;
             else localStorage[self.storageIds.currentSorting] = undefined;
         }
     };
 
     self._loadCurrentSortingFromLocalStorage = function () {
         if (self._initializeLocalStorage()) {
-            if (_.contains(_.keys(supportedSorting), localStorage[self.storageIds.currentSorting]))
+            if (
+                _.contains(
+                    _.keys(supportedSorting),
+                    localStorage[self.storageIds.currentSorting]
+                )
+            )
                 self.currentSorting(localStorage[self.storageIds.currentSorting]);
             else self.currentSorting(defaultSorting);
         }
@@ -343,7 +357,10 @@ function ItemListHelper(
 
     self._saveCurrentFiltersToLocalStorage = function () {
         if (self._initializeLocalStorage()) {
-            var filters = _.intersection(_.keys(self.supportedFilters), self.currentFilters());
+            var filters = _.intersection(
+                _.keys(self.supportedFilters),
+                self.currentFilters()
+            );
             localStorage[self.storageIds.currentFilters] = JSON.stringify(filters);
         }
     };
@@ -351,7 +368,10 @@ function ItemListHelper(
     self._loadCurrentFiltersFromLocalStorage = function () {
         if (self._initializeLocalStorage()) {
             self.currentFilters(
-                _.intersection(_.keys(self.supportedFilters), JSON.parse(localStorage[self.storageIds.currentFilters]))
+                _.intersection(
+                    _.keys(self.supportedFilters),
+                    JSON.parse(localStorage[self.storageIds.currentFilters])
+                )
             );
         }
     };
@@ -382,7 +402,9 @@ function ItemListHelper(
             return true;
 
         localStorage[self.storageIds.currentSorting] = self.defaultSorting;
-        localStorage[self.storageIds.currentFilters] = JSON.stringify(self.defaultFilters);
+        localStorage[self.storageIds.currentFilters] = JSON.stringify(
+            self.defaultFilters
+        );
         localStorage[self.storageIds.pageSize] = self.defaultPageSize;
 
         return true;
@@ -449,11 +471,10 @@ function formatDuration(seconds) {
     var m = (seconds % 3600) / 60;
     var h = seconds / 3600;
 
-    return _.sprintf(gettext(/* L10N: duration format */ "%(hour)02d:%(minute)02d:%(second)02d"), {
-        hour: h,
-        minute: m,
-        second: s
-    });
+    return _.sprintf(
+        gettext(/* L10N: duration format */ "%(hour)02d:%(minute)02d:%(second)02d"),
+        {hour: h, minute: m, second: s}
+    );
 }
 
 function formatFuzzyEstimation(seconds, base) {
@@ -727,7 +748,9 @@ function showMessageDialog(msg, options) {
     );
     var modalBody = $(message);
     var modalFooter = $(
-        '<a href="javascript:void(0)" class="btn" data-dismiss="modal" aria-hidden="true">' + close + "</a>"
+        '<a href="javascript:void(0)" class="btn" data-dismiss="modal" aria-hidden="true">' +
+            close +
+            "</a>"
     );
 
     var modal = $("<div></div>").addClass("modal hide");
@@ -814,7 +837,9 @@ function showConfirmationDialog(msg, onacknowledge, options) {
     var proceedButtons = [];
     _.each(proceed, function (text) {
         proceedButtons.push(
-            $('<a href="javascript:void(0)" class="btn">' + text + "</a>").addClass("btn-" + proceedClass)
+            $('<a href="javascript:void(0)" class="btn">' + text + "</a>").addClass(
+                "btn-" + proceedClass
+            )
         );
     });
 
@@ -1049,11 +1074,16 @@ function showProgressModal(options, promise) {
         .attr("data-dismiss", "modal")
         .attr("aria-hidden", "true");
 
-    var modalBody = $("<div></div>").addClass("modal-body").append(paragraph).append(progress);
+    var modalBody = $("<div></div>")
+        .addClass("modal-body")
+        .append(paragraph)
+        .append(progress);
 
     var pre;
     if (output) {
-        pre = $("<pre class='pre-scrollable pre-output' style='height: 70px; font-size: 0.8em'></pre>");
+        pre = $(
+            "<pre class='pre-scrollable pre-output' style='height: 70px; font-size: 0.8em'></pre>"
+        );
         modalBody.append(pre);
     }
 
@@ -1095,9 +1125,13 @@ function showProgressModal(options, promise) {
             progressBar.width(String(value) + "%");
             progressText.text(short);
             if (value < 50 && progressText.hasClass("progress-text-front")) {
-                progressText.removeClass("progress-text-front").addClass("progress-text-back");
+                progressText
+                    .removeClass("progress-text-front")
+                    .addClass("progress-text-back");
             } else if (value >= 50 && progressText.hasClass("progress-text-back")) {
-                progressText.removeClass("progress-text-back").addClass("progress-text-front");
+                progressText
+                    .removeClass("progress-text-back")
+                    .addClass("progress-text-front");
             }
 
             // if not successful, apply failure class
@@ -1107,9 +1141,13 @@ function showProgressModal(options, promise) {
 
             if (output && pre) {
                 if (success) {
-                    pre.append($("<span class='" + outputClassSuccess + "'>" + long + "</span>"));
+                    pre.append(
+                        $("<span class='" + outputClassSuccess + "'>" + long + "</span>")
+                    );
                 } else {
-                    pre.append($("<span class='" + outputClassFailure + "'>" + long + "</span>"));
+                    pre.append(
+                        $("<span class='" + outputClassFailure + "'>" + long + "</span>")
+                    );
                 }
                 pre.scrollTop(pre[0].scrollHeight - pre.height());
             }
@@ -1260,7 +1298,10 @@ function getOnlyChangedData(data, oldData) {
                 }
             } else {
                 // noinspection EqualityComparisonWithCoercionJS
-                if (!(value == oldValue && value == undefined) && !_.isEqual(value, oldValue)) {
+                if (
+                    !(value == oldValue && value == undefined) &&
+                    !_.isEqual(value, oldValue)
+                ) {
                     retval[key] = value;
                 }
             }
@@ -1330,7 +1371,14 @@ function callViewModelsIf(allViewModels, method, condition, callback) {
             if (typeof Sentry !== "undefined") {
                 Sentry.captureException(exc);
             }
-            log.error("Error calling", method, "on view model", viewModel.constructor.name, ":", exc.stack || exc);
+            log.error(
+                "Error calling",
+                method,
+                "on view model",
+                viewModel.constructor.name,
+                ":",
+                exc.stack || exc
+            );
         }
     });
 }
@@ -1363,7 +1411,12 @@ function callViewModelIf(viewModel, method, condition, callback, raiseErrors) {
         } else if (_.isArray(callback)) {
             // directly call view model method with these parameters
             parameters = callback;
-            log.trace("Calling method", method, "on view model with specified parameters", parameters);
+            log.trace(
+                "Calling method",
+                method,
+                "on view model with specified parameters",
+                parameters
+            );
         } else {
             // ok, this doesn't make sense, callback is neither undefined nor
             // an array, we'll return without doing anything
@@ -1374,7 +1427,12 @@ function callViewModelIf(viewModel, method, condition, callback, raiseErrors) {
         // the method directly
         callback = undefined;
     } else {
-        log.trace("Providing method", method, "on view model to specified callback", callback);
+        log.trace(
+            "Providing method",
+            method,
+            "on view model to specified callback",
+            callback
+        );
     }
 
     try {
@@ -1397,7 +1455,14 @@ function callViewModelIf(viewModel, method, condition, callback, raiseErrors) {
         if (raiseErrors) {
             throw exc;
         } else {
-            log.error("Error calling", method, "on view model", viewModel.constructor.name, ":", exc.stack || exc);
+            log.error(
+                "Error calling",
+                method,
+                "on view model",
+                viewModel.constructor.name,
+                ":",
+                exc.stack || exc
+            );
         }
     }
 }
@@ -1491,7 +1556,10 @@ var determineWebcamStreamType = function (streamUrl) {
         // If we have found a dot, try to extract the extension.
         if (lastDotPosition > -1) {
             if (firstQuotationSignPosition > -1) {
-                var extension = streamUrl.slice(lastDotPosition + 1, firstQuotationSignPosition - 1);
+                var extension = streamUrl.slice(
+                    lastDotPosition + 1,
+                    firstQuotationSignPosition - 1
+                );
             } else {
                 var extension = streamUrl.slice(lastDotPosition + 1);
             }
@@ -1538,7 +1606,11 @@ var deepMerge = function (target, source) {
     }
 
     _.forOwn(source, function (value, key) {
-        if (target.hasOwnProperty(key) && _.isPlainObject(target[key]) && _.isPlainObject(value)) {
+        if (
+            target.hasOwnProperty(key) &&
+            _.isPlainObject(target[key]) &&
+            _.isPlainObject(value)
+        ) {
             target[key] = deepMerge(target[key], value);
         } else {
             target[key] = value;
