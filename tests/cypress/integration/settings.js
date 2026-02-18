@@ -1,5 +1,3 @@
-// Disabled test as it does not apply after octoprint ui is not loaded in this fork
-
 // import {prepare_server, login, disconnect, await_coreui} from "../util/util";
 //
 // context("Test settings dialog opens and closes", () => {

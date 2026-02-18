@@ -31,8 +31,7 @@
         if (refresh_orphans) query.push("refresh_orphans=true");
 
         return this.base.get(
-            this.base.getSimpleApiUrl("pluginmanager") +
-                (query.length ? "?" + query.join("&") : ""),
+            this.base.getSimpleApiUrl("pluginmanager") + (query.length ? "?" + query.join("&") : ""),
             opts
         );
     };
@@ -73,11 +72,7 @@
         return this.base.get(url + (refresh ? "?refresh=true" : ""), opts);
     };
 
-    OctoPrintPluginManagerClient.prototype.install = function (
-        pluginUrl,
-        dependencyLinks,
-        opts
-    ) {
+    OctoPrintPluginManagerClient.prototype.install = function (pluginUrl, dependencyLinks, opts) {
         var data = {
             url: pluginUrl,
             dependency_links: !!dependencyLinks
@@ -85,12 +80,7 @@
         return this.base.simpleApiCommand("pluginmanager", "install", data, opts);
     };
 
-    OctoPrintPluginManagerClient.prototype.reinstall = function (
-        plugin,
-        pluginUrl,
-        dependencyLinks,
-        opts
-    ) {
+    OctoPrintPluginManagerClient.prototype.reinstall = function (plugin, pluginUrl, dependencyLinks, opts) {
         var data = {
             url: pluginUrl,
             dependency_links: !!dependencyLinks,
@@ -141,15 +131,9 @@
     };
 
     OctoPrintPluginManagerClient.prototype.upload = function (file) {
-        return this.base.upload(
-            this.base.getBlueprintUrl("pluginmanager") + "upload_archive",
-            file
-        );
+        return this.base.upload(this.base.getBlueprintUrl("pluginmanager") + "upload_archive", file);
     };
 
-    OctoPrintClient.registerPluginComponent(
-        "pluginmanager",
-        OctoPrintPluginManagerClient
-    );
+    OctoPrintClient.registerPluginComponent("pluginmanager", OctoPrintPluginManagerClient);
     return OctoPrintPluginManagerClient;
 });

@@ -19,8 +19,7 @@ $(function () {
 
                 // ignored?
                 try {
-                    var ignoredString =
-                        localStorage["plugin.errortracking.notification_ignored"];
+                    var ignoredString = localStorage["plugin.errortracking.notification_ignored"];
                     var ignored = false;
 
                     if (ignoredString) {
@@ -29,9 +28,7 @@ $(function () {
 
                     if (ignored) return;
                 } catch (ex) {
-                    log.error(
-                        "Error while reading plugin.errortracking.notification_ignored from local storage"
-                    );
+                    log.error("Error while reading plugin.errortracking.notification_ignored from local storage");
                 }
 
                 // show notification
@@ -60,9 +57,9 @@ $(function () {
                                     });
 
                                     if (Modernizr.localstorage) {
-                                        localStorage[
-                                            "plugin.errortracking.notification_ignored"
-                                        ] = JSON.stringify(true);
+                                        localStorage["plugin.errortracking.notification_ignored"] = JSON.stringify(
+                                            true
+                                        );
                                     }
                                 }
                             },
@@ -111,9 +108,7 @@ $(function () {
                 !subbed
             ) {
                 subbed = true;
-                self.settings.settings.plugins.softwareupdate.octoprint_release_channel.subscribe(
-                    performCheck
-                );
+                self.settings.settings.plugins.softwareupdate.octoprint_release_channel.subscribe(performCheck);
             }
         };
     }

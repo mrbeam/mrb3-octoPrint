@@ -25,9 +25,7 @@ $(function () {
         });
 
         self.validData = ko.pureComputed(function () {
-            return (
-                !self.passwordMismatch() && self.validUsername() && self.validPassword()
-            );
+            return !self.passwordMismatch() && self.validUsername() && self.validPassword();
         });
 
         self.createAccount = function () {
@@ -68,11 +66,7 @@ $(function () {
         self.onBeforeWizardTabChange = function (next, current) {
             if (!self.required) return true;
 
-            if (
-                !current ||
-                !_.startsWith(current, "wizard_plugin_corewizard_acl_") ||
-                self.setup()
-            ) {
+            if (!current || !_.startsWith(current, "wizard_plugin_corewizard_acl_") || self.setup()) {
                 return true;
             }
 
@@ -119,8 +113,7 @@ $(function () {
             if (!self.required) return;
             if (
                 self.settingsViewModel.webcam_streamUrl() ||
-                (self.settingsViewModel.webcam_snapshotUrl() &&
-                    self.settingsViewModel.webcam_ffmpegPath())
+                (self.settingsViewModel.webcam_snapshotUrl() && self.settingsViewModel.webcam_ffmpegPath())
             ) {
                 return "reload";
             }
@@ -159,11 +152,7 @@ $(function () {
         self.onBeforeWizardTabChange = function (next, current) {
             if (!self.required) return true;
 
-            if (
-                !current ||
-                !_.startsWith(current, "wizard_plugin_corewizard_onlinecheck_") ||
-                self.setup()
-            ) {
+            if (!current || !_.startsWith(current, "wizard_plugin_corewizard_onlinecheck_") || self.setup()) {
                 return true;
             }
 
@@ -246,11 +235,7 @@ $(function () {
         self.onBeforeWizardTabChange = function (next, current) {
             if (!self.required) return true;
 
-            if (
-                !current ||
-                !_.startsWith(current, "wizard_plugin_corewizard_pluginblacklist_") ||
-                self.setup()
-            ) {
+            if (!current || !_.startsWith(current, "wizard_plugin_corewizard_pluginblacklist_") || self.setup()) {
                 return true;
             }
 
@@ -338,11 +323,9 @@ $(function () {
         self.onWizardFinish = function () {
             if (!self.required) return;
 
-            OctoPrint.printerprofiles
-                .update("_default", self.editor.toProfileData())
-                .done(function () {
-                    self.printerProfiles.requestData();
-                });
+            OctoPrint.printerprofiles.update("_default", self.editor.toProfileData()).done(function () {
+                self.printerProfiles.requestData();
+            });
         };
     }
 
