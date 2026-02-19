@@ -1648,7 +1648,7 @@ def _get_all_assets():
 
 
 def _get_all_translationfiles(locale, domain):
-    from flask import _request_ctx_stack
+    from flask import current_app
 
     def get_po_path(basedir, locale, domain):
         return os.path.join(
@@ -1673,8 +1673,7 @@ def _get_all_translationfiles(locale, domain):
             po_files.append(get_po_path(dirname, locale, domain))
 
     # core translations
-    ctx = _request_ctx_stack.top
-    base_path = os.path.join(ctx.app.root_path, "translations")
+    base_path = os.path.join(current_app.root_path, "translations")
 
     dirs = [user_base_path, base_path]
     for dirname in dirs:
