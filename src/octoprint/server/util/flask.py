@@ -15,6 +15,7 @@ import time
 
 import flask
 import flask.json
+from flask.json.provider import DefaultJSONProvider
 import flask.sessions
 import flask_assets
 import flask_login
@@ -49,7 +50,7 @@ def enable_additional_translations(default_locale="en", additional_folders=None)
 
     import flask_babel
     from babel import Locale, support
-    from flask import _request_ctx_stack
+    from flask import g, has_request_context, current_app
 
     if additional_folders is None:
         additional_folders = []
@@ -96,10 +97,10 @@ def enable_additional_translations(default_locale="en", additional_folders=None)
         object if used outside of the request or if a translation cannot be
         found.
         """
-        ctx = _request_ctx_stack.top
-        if ctx is None:
+        if not has_request_context():
             return None
-        translations = getattr(ctx, "babel_translations", None)
+
+        translations = getattr(g, "babel_translations", None)
         if translations is None:
             locale = flask_babel.get_locale()
             translations = support.Translations()
@@ -146,7 +147,7 @@ def enable_additional_translations(default_locale="en", additional_folders=None)
 
                 # core translations
                 dirs = additional_folders + [
-                    os.path.join(ctx.app.root_path, "translations")
+                    os.path.join(current_app.root_path, "translations")
                 ]
                 for dirname in dirs:
                     core_translations = support.Translations.load(dirname, [locale])
@@ -162,7 +163,7 @@ def enable_additional_translations(default_locale="en", additional_folders=None)
                     )
                 translations = translations.merge(core_translations)
 
-            ctx.babel_translations = translations
+            g.babel_translations = translations
         return translations
 
     flask_babel.Babel.list_translations = fixed_list_translations
@@ -290,7 +291,7 @@ def fix_flask_jsonify():
         indent = None
         separators = (",", ":")
 
-        if current_app.config["JSONIFY_PRETTYPRINT_REGULAR"] or current_app.debug:
+        if not current_app.json.compact or current_app.debug:
             indent = 2
             separators = (", ", ": ")
 
@@ -1882,9 +1883,9 @@ def collect_plugin_assets(preferred_stylesheet="css"):
 ##~~ JSON encoding
 
 
-class OctoPrintJsonEncoder(flask.json.JSONEncoder):
+class OctoPrintJsonProvider(flask.json.provider.DefaultJSONProvider):
     def default(self, obj):
         try:
             return JsonEncoding.encode(obj)
         except TypeError:
-            return flask.json.JSONEncoder.default(self, obj)
+            return super().default(obj)

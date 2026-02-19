@@ -638,8 +638,7 @@ class Server(object):
 
         ## Tornado initialization starts here
 
-        ioloop = IOLoop()
-        ioloop.install()
+        ioloop = IOLoop().current()
 
         enable_cors = settings().getBoolean(["api", "allowCrossOrigin"])
 
@@ -1341,19 +1340,19 @@ class Server(object):
         from octoprint.server.util.flask import (
             OctoPrintFlaskRequest,
             OctoPrintFlaskResponse,
-            OctoPrintJsonEncoder,
+            OctoPrintJsonProvider,
             OctoPrintSessionInterface,
             ReverseProxiedEnvironment,
         )
 
         app.config["TEMPLATES_AUTO_RELOAD"] = True
-        app.config["JSONIFY_PRETTYPRINT_REGULAR"] = False
+        app.json.compact = True
 
         # we must not set this before TEMPLATES_AUTO_RELOAD is set to True or that won't take
         app.debug = self._debug
 
         # setup octoprint's flask json serialization/deserialization
-        app.json_encoder = OctoPrintJsonEncoder
+        app.json = OctoPrintJsonProvider(app)
 
         s = settings()
 
