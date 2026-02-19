@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
@@ -16,7 +15,6 @@ from builtins import bytes, range
 import wrapt
 import yaml
 from flask_login import AnonymousUserMixin, UserMixin
-from past.builtins import basestring
 from werkzeug.local import LocalProxy
 
 from octoprint.access.groups import Group, GroupChangeListener
@@ -304,7 +302,7 @@ class UserManager(GroupChangeListener, object):
                 )
 
     def _trigger_on_user_modified(self, user):
-        if isinstance(user, basestring):
+        if isinstance(user, str):
             # user id
             users = []
             try:

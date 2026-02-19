@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 __author__ = "Gina Häußge <osd@foosel.net>"
@@ -22,7 +21,6 @@ import tornado.iostream
 import tornado.tcpserver
 import tornado.util
 import tornado.web
-from past.builtins import basestring, unicode
 
 import octoprint.util
 
@@ -762,7 +760,7 @@ class WsgiInputContainer(object):
 
         # determine the request_body to supply as wsgi.input
         if body is not None:
-            if isinstance(body, (bytes, str, unicode)):
+            if isinstance(body, (bytes, str, str)):
                 request_body = io.BytesIO(tornado.escape.utf8(body))
             else:
                 request_body = body
@@ -1436,7 +1434,7 @@ class StaticZipBundleHandler(CorsSupportMixin, tornado.web.RequestHandler):
     def normalize_files(self, files):
         result = []
         for f in files:
-            if isinstance(f, basestring):
+            if isinstance(f, str):
                 result.append({"path": f})
             elif isinstance(f, dict) and ("path" in f or "iter" in f or "content" in f):
                 result.append(f)

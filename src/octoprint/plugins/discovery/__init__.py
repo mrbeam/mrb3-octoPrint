@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 PRODUCT_NAME = "Mr Beam"
@@ -757,7 +756,7 @@ class DiscoveryPlugin(
                         interface_address = octoprint.util.address_for_client(
                             *address,
                             addresses=self._settings.get(["addresses"]),
-                            interfaces=self._settings.get(["interfaces"])
+                            interfaces=self._settings.get(["interfaces"]),
                         )
                         if not interface_address:
                             continue

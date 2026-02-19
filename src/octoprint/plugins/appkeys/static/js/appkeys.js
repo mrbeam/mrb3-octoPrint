@@ -33,10 +33,7 @@ $(function () {
                 .click(function () {
                     copyToClipboard(data.api_key);
                 });
-            self.dialog
-                .find("#plugin_appkeys_keygenerated_key_qrcode")
-                .empty()
-                .qrcode(qrcode);
+            self.dialog.find("#plugin_appkeys_keygenerated_key_qrcode").empty().qrcode(qrcode);
 
             self.dialog.modal("show");
         };
@@ -95,10 +92,7 @@ $(function () {
             };
 
             showConfirmationDialog(
-                _.sprintf(
-                    gettext('You are about to revoke the application key "%(key)s".'),
-                    {key: _.escape(key)}
-                ),
+                _.sprintf(gettext('You are about to revoke the application key "%(key)s".'), {key: _.escape(key)}),
                 perform
             );
         };
@@ -120,9 +114,7 @@ $(function () {
                 "<p>" +
                 message +
                 "</p><p>" +
-                gettext(
-                    "Do you want to allow access to this application with your user account?"
-                ) +
+                gettext("Do you want to allow access to this application with your user account?") +
                 "</p>";
             return new PNotify({
                 title: gettext("Access Request"),
@@ -286,10 +278,7 @@ $(function () {
             };
 
             showConfirmationDialog(
-                _.sprintf(
-                    gettext('You are about to revoke the application key "%(key)s".'),
-                    {key: _.escape(key)}
-                ),
+                _.sprintf(gettext('You are about to revoke the application key "%(key)s".'), {key: _.escape(key)}),
                 perform
             );
         };
@@ -302,21 +291,16 @@ $(function () {
             };
 
             showConfirmationDialog(
-                _.sprintf(
-                    gettext("You are about to revoke %(count)d application keys."),
-                    {count: self.markedForDeletion().length}
-                ),
+                _.sprintf(gettext("You are about to revoke %(count)d application keys."), {
+                    count: self.markedForDeletion().length
+                }),
                 perform
             );
         };
 
         self.markAllOnPageForDeletion = function () {
             self.markedForDeletion(
-                _.uniq(
-                    self
-                        .markedForDeletion()
-                        .concat(_.map(self.keys.paginatedItems(), "api_key"))
-                )
+                _.uniq(self.markedForDeletion().concat(_.map(self.keys.paginatedItems(), "api_key")))
             );
         };
 
@@ -338,11 +322,7 @@ $(function () {
 
         self.markAllByFilterForDeletion = function (filter) {
             self.markedForDeletion(
-                _.uniq(
-                    self
-                        .markedForDeletion()
-                        .concat(_.map(_.filter(self.keys.allItems, filter), "api_key"))
-                )
+                _.uniq(self.markedForDeletion().concat(_.map(_.filter(self.keys.allItems, filter), "api_key")))
             );
         };
 
@@ -369,14 +349,13 @@ $(function () {
                         );
                     })
                     .fail(function (jqXHR) {
-                        var short = _.sprintf(
-                            gettext("Revocation of %(key)s failed, continuing..."),
-                            {key: _.escape(key)}
-                        );
-                        var long = _.sprintf(
-                            gettext("Deletion of %(key)s failed: %(error)s"),
-                            {key: _.escape(key), error: _.escape(jqXHR.responseText)}
-                        );
+                        var short = _.sprintf(gettext("Revocation of %(key)s failed, continuing..."), {
+                            key: _.escape(key)
+                        });
+                        var long = _.sprintf(gettext("Deletion of %(key)s failed: %(error)s"), {
+                            key: _.escape(key),
+                            error: _.escape(jqXHR.responseText)
+                        });
                         deferred.notify(short, long, false);
                     });
             };

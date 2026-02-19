@@ -1,4 +1,4 @@
-import {prepare_server, await_coreui, await_loginui, login} from "../util/util";
+import {prepare_server, await_support_info_page, await_loginui, login, logout} from "../util/util";
 
 context("Login tests", () => {
     const username = "admin";
@@ -24,14 +24,11 @@ context("Login tests", () => {
             cy.get("[data-test-id=login-submit]").click({force: true});
             cy.wait("@login");
 
-            await_coreui();
+            await_support_info_page();
 
-            cy.get("[data-test-id=login-menu-title]").should("contain", username);
             cy.getCookie("session_P5000").should("exist");
             cy.getCookie("remember_token_P5000").should("not.exist");
-            cy.location().should((loc) => {
-                expect(loc.hash).to.eq("#temp");
-            });
+
         });
 
         it("logs in with remember me", () => {
@@ -42,34 +39,31 @@ context("Login tests", () => {
             cy.get("[data-test-id=login-submit]").click({force: true});
             cy.wait("@login");
 
-            await_coreui();
+            await_support_info_page();
 
-            cy.get("[data-test-id=login-menu-title]").should("contain", username);
             cy.getCookie("session_P5000").should("exist");
             cy.getCookie("remember_token_P5000").should(($cookie) => {
                 expect($cookie).to.have.property("value");
                 expect($cookie.value).to.match(new RegExp("^" + username + "|"));
             });
-            cy.location().should((loc) => {
-                expect(loc.hash).to.eq("#temp");
-            });
+
         });
     });
 
     context("Successful logout", () => {
         it("logs out", () => {
-            Cypress.currentTest.retries(3);
 
             // login
             login(username, password);
 
             cy.visit("/?l10n=en");
 
-            await_coreui();
+            await_support_info_page();
 
-            cy.get("[data-test-id=login-menu]").click();
-            cy.get("[data-test-id=logout-submit]").click();
-            cy.wait("@logout");
+            // LOGOUT VIA API (Bypasses missing UI buttons of mrb support info page)
+            // This sends POST /api/logout
+            logout();
+            cy.visit("/?l10n=en");
 
             await_loginui();
             cy.location().should((loc) => {
@@ -100,9 +94,7 @@ context("Login tests", () => {
         });
 
         afterEach(() => {
-            cy.get("[data-test-id=login-title]")
-                .should("be.visible")
-                .should("contain", "Please log in");
+            cy.get("[data-test-id=login-title]").should("be.visible").should("contain", "Please log in");
             cy.get("[data-test-id=login-error]")
                 .should("be.visible")
                 .should("contain", "Incorrect username or password");

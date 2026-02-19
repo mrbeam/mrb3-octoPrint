@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 __author__ = "Gina Häußge <osd@foosel.net>"
@@ -27,7 +26,6 @@ except ImportError:
 # noinspection PyCompatibility
 from typing import Any
 
-from past.builtins import basestring
 from serial import SerialTimeoutException
 
 from octoprint.plugin import plugin_manager
@@ -462,7 +460,7 @@ class VirtualPrinter(object):
                     if callable(prepared):
                         prepared(linenumber, self.lastN, data)
                         continue
-                    elif isinstance(prepared, basestring):
+                    elif isinstance(prepared, str):
                         self._send(prepared)
                         continue
                 elif self._rerequest_last:

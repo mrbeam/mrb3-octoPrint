@@ -135,11 +135,7 @@ $(function () {
             var existingProfile = self.profiles.getItem(function (item) {
                 return item.id == data;
             });
-            return (
-                !data ||
-                !validCharacters ||
-                (self.isNew() && existingProfile != undefined)
-            );
+            return !data || !validCharacters || (self.isNew() && existingProfile != undefined);
         });
 
         self.identifierInvalidText = ko.pureComputed(function () {
@@ -150,9 +146,7 @@ $(function () {
             if (!self.identifier() && !self.identifierPlaceholder()) {
                 return gettext("Identifier must be set");
             } else if (self.identifier() != self._sanitize(self.identifier())) {
-                return gettext(
-                    "Invalid characters, only a-z, A-Z, 0-9, -, ., _, ( and ) are allowed"
-                );
+                return gettext("Invalid characters, only a-z, A-Z, 0-9, -, ., _, ( and ) are allowed");
             } else {
                 return gettext("A profile with such an identifier already exists");
             }
@@ -294,10 +288,7 @@ $(function () {
                 extruder: {
                     count: parseInt(self.extruders()),
                     offsets: [[0.0, 0.0]],
-                    nozzleDiameter: validFloat(
-                        self.nozzleDiameter(),
-                        defaultProfile.extruder.nozzleDiameter
-                    ),
+                    nozzleDiameter: validFloat(self.nozzleDiameter(), defaultProfile.extruder.nozzleDiameter),
                     sharedNozzle: self.sharedNozzle()
                 },
                 axes: {
@@ -455,10 +446,8 @@ $(function () {
             {
                 name: function (a, b) {
                     // sorts ascending
-                    if (a["name"].toLocaleLowerCase() < b["name"].toLocaleLowerCase())
-                        return -1;
-                    if (a["name"].toLocaleLowerCase() > b["name"].toLocaleLowerCase())
-                        return 1;
+                    if (a["name"].toLocaleLowerCase() < b["name"].toLocaleLowerCase()) return -1;
+                    if (a["name"].toLocaleLowerCase() > b["name"].toLocaleLowerCase()) return 1;
                     return 0;
                 }
             },
@@ -522,10 +511,7 @@ $(function () {
                 }
                 if (entry.current) {
                     currentProfile = entry.id;
-                    currentProfileData = ko.mapping.fromJS(
-                        entry,
-                        self.currentProfileData
-                    );
+                    currentProfileData = ko.mapping.fromJS(entry, self.currentProfileData);
                 }
                 entry["isdefault"] = ko.observable(entry.default);
                 entry["iscurrent"] = ko.observable(entry.current);
@@ -539,13 +525,9 @@ $(function () {
                 self.currentProfileData(currentProfileData);
             } else {
                 // shouldn't normally happen, but just to not have anything else crash...
-                log.warn(
-                    "Current printer profile could not be detected, using default values"
-                );
+                log.warn("Current printer profile could not be detected, using default values");
                 self.currentProfile("");
-                self.currentProfileData(
-                    ko.mapping.fromJS(cleanProfile(), self.currentProfileData)
-                );
+                self.currentProfileData(ko.mapping.fromJS(cleanProfile(), self.currentProfileData));
             }
         };
 
@@ -589,9 +571,7 @@ $(function () {
                     .fail(function (xhr) {
                         var text;
                         if (xhr.status == 409) {
-                            text = gettext(
-                                "Cannot delete the default profile or the currently active profile."
-                            );
+                            text = gettext("Cannot delete the default profile or the currently active profile.");
                         } else {
                             text = gettext(
                                 "There was unexpected error while removing the printer profile, please consult the logs."
@@ -608,10 +588,9 @@ $(function () {
             };
 
             showConfirmationDialog(
-                _.sprintf(
-                    gettext('You are about to delete the printer profile "%(name)s".'),
-                    {name: _.escape(data.name)}
-                ),
+                _.sprintf(gettext('You are about to delete the printer profile "%(name)s".'), {
+                    name: _.escape(data.name)
+                }),
                 perform
             );
         };

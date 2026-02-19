@@ -18,10 +18,6 @@ ko.bindingHandlers.toggle = {
     },
 
     update: function (element, valueAccessor) {
-        ko.utils.toggleDomNodeCssClass(
-            element,
-            "active",
-            ko.utils.unwrapObservable(valueAccessor())
-        );
+        ko.utils.toggleDomNodeCssClass(element, "active", ko.utils.unwrapObservable(valueAccessor()));
     }
 };

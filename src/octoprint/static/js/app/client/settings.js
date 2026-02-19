@@ -33,11 +33,7 @@
         });
     };
 
-    OctoPrintSettingsClient.prototype.savePluginSettings = function (
-        plugin,
-        settings,
-        opts
-    ) {
+    OctoPrintSettingsClient.prototype.savePluginSettings = function (plugin, settings, opts) {
         var data = {};
         data["plugins"] = {};
         data["plugins"][plugin] = settings;

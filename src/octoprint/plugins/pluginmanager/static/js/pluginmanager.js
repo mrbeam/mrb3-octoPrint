@@ -20,19 +20,15 @@ $(function () {
         self.config_confirmUninstall = ko.observable();
         self.config_confirmDisable = ko.observable();
 
-        self.configurationDialog = $(
-            "#settings_plugin_pluginmanager_configurationdialog"
-        );
+        self.configurationDialog = $("#settings_plugin_pluginmanager_configurationdialog");
 
         self.plugins = new ItemListHelper(
             "plugin.pluginmanager.installedplugins",
             {
                 name: function (a, b) {
                     // sorts ascending
-                    if (a["name"].toLocaleLowerCase() < b["name"].toLocaleLowerCase())
-                        return -1;
-                    if (a["name"].toLocaleLowerCase() > b["name"].toLocaleLowerCase())
-                        return 1;
+                    if (a["name"].toLocaleLowerCase() < b["name"].toLocaleLowerCase()) return -1;
+                    if (a["name"].toLocaleLowerCase() > b["name"].toLocaleLowerCase()) return 1;
                     return 0;
                 }
             },
@@ -64,26 +60,20 @@ $(function () {
             {
                 title: function (a, b) {
                     // sorts ascending
-                    if (a.title.toLocaleLowerCase() < b.title.toLocaleLowerCase())
-                        return -1;
-                    if (a.title.toLocaleLowerCase() > b.title.toLocaleLowerCase())
-                        return 1;
+                    if (a.title.toLocaleLowerCase() < b.title.toLocaleLowerCase()) return -1;
+                    if (a.title.toLocaleLowerCase() > b.title.toLocaleLowerCase()) return 1;
                     return 0;
                 },
                 published: function (a, b) {
                     // sorts descending
-                    if (a.published.toLocaleLowerCase() > b.published.toLocaleLowerCase())
-                        return -1;
-                    if (a.published.toLocaleLowerCase() < b.published.toLocaleLowerCase())
-                        return 1;
+                    if (a.published.toLocaleLowerCase() > b.published.toLocaleLowerCase()) return -1;
+                    if (a.published.toLocaleLowerCase() < b.published.toLocaleLowerCase()) return 1;
                     return 0;
                 },
                 popularity: function (a, b) {
                     // sorts descending
-                    var countA =
-                        a.stats && a.stats.instances_month ? a.stats.instances_month : 0;
-                    var countB =
-                        b.stats && b.stats.instances_month ? b.stats.instances_month : 0;
+                    var countA = a.stats && a.stats.instances_month ? a.stats.instances_month : 0;
+                    var countB = b.stats && b.stats.instances_month ? b.stats.instances_month : 0;
 
                     if (countA > countB) return -1;
                     if (countA < countB) return 1;
@@ -92,13 +82,9 @@ $(function () {
                 release_date: function (a, b) {
                     // sorts descending
                     var valA =
-                        a.github && a.github.latest_release
-                            ? a.github.latest_release.date.toLocaleLowerCase()
-                            : "";
+                        a.github && a.github.latest_release ? a.github.latest_release.date.toLocaleLowerCase() : "";
                     var valB =
-                        b.github && b.github.latest_release
-                            ? b.github.latest_release.date.toLocaleLowerCase()
-                            : "";
+                        b.github && b.github.latest_release ? b.github.latest_release.date.toLocaleLowerCase() : "";
 
                     if (valA > valB) return -1;
                     if (valA < valB) return 1;
@@ -128,11 +114,7 @@ $(function () {
                     return !self.installed(plugin);
                 },
                 filter_incompatible: function (plugin) {
-                    return (
-                        plugin.is_compatible.octoprint &&
-                        plugin.is_compatible.os &&
-                        plugin.is_compatible.python
-                    );
+                    return plugin.is_compatible.octoprint && plugin.is_compatible.os && plugin.is_compatible.python;
                 },
                 filter_abandoned: function (plugin) {
                     return !plugin.abandoned;
@@ -149,16 +131,8 @@ $(function () {
             {
                 identifier: function (a, b) {
                     // sorts ascending
-                    if (
-                        a["identifier"].toLocaleLowerCase() <
-                        b["identifier"].toLocaleLowerCase()
-                    )
-                        return -1;
-                    if (
-                        a["identifier"].toLocaleLowerCase() >
-                        b["identifier"].toLocaleLowerCase()
-                    )
-                        return 1;
+                    if (a["identifier"].toLocaleLowerCase() < b["identifier"].toLocaleLowerCase()) return -1;
+                    if (a["identifier"].toLocaleLowerCase() > b["identifier"].toLocaleLowerCase()) return 1;
                     return 0;
                 }
             },
@@ -170,9 +144,7 @@ $(function () {
         );
 
         self.uploadElement = $("#settings_plugin_pluginmanager_repositorydialog_upload");
-        self.uploadButton = $(
-            "#settings_plugin_pluginmanager_repositorydialog_upload_start"
-        );
+        self.uploadButton = $("#settings_plugin_pluginmanager_repositorydialog_upload_start");
 
         self.repositoryAvailable = ko.observable(undefined);
 
@@ -232,10 +204,7 @@ $(function () {
             var restartSpec = _.filter(lastResponse.core, function (spec) {
                 return spec.action == "restart";
             });
-            self.restartCommandSpec =
-                restartSpec != undefined && restartSpec.length > 0
-                    ? restartSpec[0]
-                    : undefined;
+            self.restartCommandSpec = restartSpec != undefined && restartSpec.length > 0 ? restartSpec[0] : undefined;
         });
 
         self.noticeNotifications = [];
@@ -257,14 +226,10 @@ $(function () {
             if (count === 0) {
                 return gettext("There are no plugin notices. Great!");
             } else if (count === 1) {
-                return gettext(
-                    "There is a plugin notice for one of your installed plugins."
-                );
+                return gettext("There is a plugin notice for one of your installed plugins.");
             } else {
                 return _.sprintf(
-                    gettext(
-                        "There are %(count)d plugin notices for one or more of your installed plugins."
-                    ),
+                    gettext("There are %(count)d plugin notices for one or more of your installed plugins."),
                     {count: count}
                 );
             }
@@ -282,8 +247,7 @@ $(function () {
             return (
                 self.enableManagement() &&
                 !self.toggling() &&
-                (command === "disable" ||
-                    (not_safemode_victim && not_blacklisted && not_incompatible)) &&
+                (command === "disable" || (not_safemode_victim && not_blacklisted && not_incompatible)) &&
                 data.key !== "pluginmanager"
             );
         };
@@ -300,11 +264,7 @@ $(function () {
         };
 
         self.enableCleanup = function (data) {
-            return (
-                self.enableManagement() &&
-                data.key !== "pluginmanager" &&
-                !data.pending_uninstall
-            );
+            return self.enableManagement() && data.key !== "pluginmanager" && !data.pending_uninstall;
         };
 
         self.enableRepoInstall = function (data) {
@@ -360,11 +320,7 @@ $(function () {
                 return _.startsWith(lowerUrl, scheme + "://");
             };
 
-            return (
-                url !== undefined &&
-                url.trim() !== "" &&
-                !_.any(allowedUrlSchemes, lowerUrlStartsWithScheme)
-            );
+            return url !== undefined && url.trim() !== "" && !_.any(allowedUrlSchemes, lowerUrlStartsWithScheme);
         });
 
         self.enableUrlInstall = ko.pureComputed(function () {
@@ -391,9 +347,7 @@ $(function () {
                 return _.endsWith(lowerName, extension);
             };
 
-            return (
-                name !== undefined && !_.any(allowedFileExtensions, lowerNameHasExtension)
-            );
+            return name !== undefined && !_.any(allowedFileExtensions, lowerNameHasExtension);
         });
 
         self.enableFileInstall = ko.pureComputed(function () {
@@ -472,9 +426,7 @@ $(function () {
                     return (
                         entry &&
                         (entry["name"].toLocaleLowerCase().indexOf(query) > -1 ||
-                            (entry.description &&
-                                entry.description.toLocaleLowerCase().indexOf(query) >
-                                    -1))
+                            (entry.description && entry.description.toLocaleLowerCase().indexOf(query) > -1))
                     );
                 });
             } else {
@@ -514,21 +466,9 @@ $(function () {
                 if (evalNotices && plugin.notifications && plugin.notifications.length) {
                     _.each(plugin.notifications, function (notification) {
                         noticeCount++;
-                        if (
-                            !ignoreNoticeIgnored &&
-                            self._isNoticeNotificationIgnored(
-                                plugin.key,
-                                notification.date
-                            )
-                        )
+                        if (!ignoreNoticeIgnored && self._isNoticeNotificationIgnored(plugin.key, notification.date))
                             return;
-                        if (
-                            !ignoreNoticeHidden &&
-                            self._isNoticeNotificationHidden(
-                                plugin.key,
-                                notification.date
-                            )
-                        )
+                        if (!ignoreNoticeHidden && self._isNoticeNotificationHidden(plugin.key, notification.date))
                             return;
                         self._showPluginNotification(plugin, notification);
                     });
@@ -584,11 +524,7 @@ $(function () {
                 options = {};
             }
 
-            if (
-                self.dataPluginsDeferred &&
-                self.dataPluginsDeferred.state() === "pending" &&
-                !!!options.refresh
-            ) {
+            if (self.dataPluginsDeferred && self.dataPluginsDeferred.state() === "pending" && !!!options.refresh) {
                 return self.dataPluginsDeferred.promise();
             }
 
@@ -597,11 +533,7 @@ $(function () {
                 self.dataPluginsDeferred = deferred;
             }
 
-            if (
-                !self.loginState.hasPermission(
-                    self.access.permissions.PLUGIN_PLUGINMANAGER_MANAGE
-                )
-            ) {
+            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_PLUGINMANAGER_MANAGE)) {
                 deferred.fail();
                 return deferred.promise();
             }
@@ -629,11 +561,7 @@ $(function () {
                 options = {};
             }
 
-            if (
-                self.dataOrphansDeferred &&
-                self.dataOrphansDeferred.state() === "pending" &&
-                !!!options.refresh
-            ) {
+            if (self.dataOrphansDeferred && self.dataOrphansDeferred.state() === "pending" && !!!options.refresh) {
                 return self.dataOrphansDeferred.promise();
             }
 
@@ -642,11 +570,7 @@ $(function () {
                 self.dataOrphansDeferred = deferred;
             }
 
-            if (
-                !self.loginState.hasPermission(
-                    self.access.permissions.PLUGIN_PLUGINMANAGER_MANAGE
-                )
-            ) {
+            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_PLUGINMANAGER_MANAGE)) {
                 deferred.fail();
                 return deferred.promise();
             }
@@ -683,11 +607,7 @@ $(function () {
                 self.dataRepositoryDeferred = deferred;
             }
 
-            if (
-                !self.loginState.hasPermission(
-                    self.access.permissions.PLUGIN_PLUGINMANAGER_MANAGE
-                )
-            ) {
+            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_PLUGINMANAGER_MANAGE)) {
                 deferred.fail();
                 return deferred.promise();
             }
@@ -711,11 +631,7 @@ $(function () {
         };
 
         self.togglePlugin = function (data) {
-            if (
-                !self.loginState.hasPermission(
-                    self.access.permissions.PLUGIN_PLUGINMANAGER_MANAGE
-                )
-            ) {
+            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_PLUGINMANAGER_MANAGE)) {
                 return;
             }
 
@@ -744,10 +660,7 @@ $(function () {
                 if (self.toggling()) return;
                 self.toggling(true);
 
-                OctoPrint.plugins.pluginmanager
-                    .disable(data.key)
-                    .done(onSuccess)
-                    .fail(onError);
+                OctoPrint.plugins.pluginmanager.disable(data.key).done(onSuccess).fail(onError);
             };
             var performEnabling = function () {
                 if (data.safe_mode_victim) return;
@@ -755,10 +668,7 @@ $(function () {
                 if (self.toggling()) return;
                 self.toggling(true);
 
-                OctoPrint.plugins.pluginmanager
-                    .enable(data.key)
-                    .done(onSuccess)
-                    .fail(onError);
+                OctoPrint.plugins.pluginmanager.enable(data.key).done(onSuccess).fail(onError);
             };
 
             if (self._getToggleCommand(data) === "enable") {
@@ -782,14 +692,9 @@ $(function () {
                     });
                 }
                 // warn if global "warn disabling" setting is set"
-                else if (
-                    self.settingsViewModel.settings.plugins.pluginmanager.confirm_disable()
-                ) {
+                else if (self.settingsViewModel.settings.plugins.pluginmanager.confirm_disable()) {
                     showConfirmationDialog({
-                        message: _.sprintf(
-                            gettext('You are about to disable "%(name)s"'),
-                            {name: _.escape(data.name)}
-                        ),
+                        message: _.sprintf(gettext('You are about to disable "%(name)s"'), {name: _.escape(data.name)}),
                         cancel: gettext("Keep enabled"),
                         proceed: gettext("Disable plugin"),
                         onproceed: performDisabling,
@@ -816,11 +721,7 @@ $(function () {
         };
 
         self.installFromRepository = function (data) {
-            if (
-                !self.loginState.hasPermission(
-                    self.access.permissions.PLUGIN_PLUGINMANAGER_INSTALL
-                )
-            ) {
+            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_PLUGINMANAGER_INSTALL)) {
                 return;
             }
 
@@ -837,11 +738,7 @@ $(function () {
         };
 
         self.installPlugin = function (url, name, reinstall, followDependencyLinks) {
-            if (
-                !self.loginState.hasPermission(
-                    self.access.permissions.PLUGIN_PLUGINMANAGER_INSTALL
-                )
-            ) {
+            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_PLUGINMANAGER_INSTALL)) {
                 return;
             }
 
@@ -866,10 +763,10 @@ $(function () {
             if (!reinstall) {
                 workTitle = gettext("Installing plugin...");
                 if (name) {
-                    workText = _.sprintf(
-                        gettext('Installing plugin "%(name)s" from %(url)s...'),
-                        {url: _.escape(url), name: _.escape(name)}
-                    );
+                    workText = _.sprintf(gettext('Installing plugin "%(name)s" from %(url)s...'), {
+                        url: _.escape(url),
+                        name: _.escape(name)
+                    });
                 } else {
                     workText = _.sprintf(gettext("Installing plugin from %(url)s..."), {
                         url: _.escape(url)
@@ -877,10 +774,10 @@ $(function () {
                 }
             } else {
                 workTitle = gettext("Reinstalling plugin...");
-                workText = _.sprintf(
-                    gettext('Reinstalling plugin "%(name)s" from %(url)s...'),
-                    {url: _.escape(url), name: _.escape(name)}
-                );
+                workText = _.sprintf(gettext('Reinstalling plugin "%(name)s" from %(url)s...'), {
+                    url: _.escape(url),
+                    name: _.escape(name)
+                });
             }
             self._markWorking(workTitle, workText);
 
@@ -890,9 +787,7 @@ $(function () {
                 onError = function (jqXHR) {
                     if (jqXHR.status === 409) {
                         // there's already a plugin being installed
-                        self._markDone(
-                            "There's already another plugin install in progress."
-                        );
+                        self._markDone("There's already another plugin install in progress.");
                     } else {
                         self._markDone(
                             "Could not install plugin, unknown error, please consult octoprint.log for details"
@@ -912,19 +807,12 @@ $(function () {
                     .done(onSuccess)
                     .fail(onError);
             } else {
-                OctoPrint.plugins.pluginmanager
-                    .install(url, followDependencyLinks)
-                    .done(onSuccess)
-                    .fail(onError);
+                OctoPrint.plugins.pluginmanager.install(url, followDependencyLinks).done(onSuccess).fail(onError);
             }
         };
 
         self.uninstallPlugin = function (data) {
-            if (
-                !self.loginState.hasPermission(
-                    self.access.permissions.PLUGIN_PLUGINMANAGER_MANAGE
-                )
-            ) {
+            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_PLUGINMANAGER_MANAGE)) {
                 return;
             }
 
@@ -964,10 +852,9 @@ $(function () {
             };
 
             showConfirmationDialog({
-                message: _.sprintf(
-                    gettext('You are about to uninstall the plugin "%(name)s"'),
-                    {name: _.escape(data.name)}
-                ),
+                message: _.sprintf(gettext('You are about to uninstall the plugin "%(name)s"'), {
+                    name: _.escape(data.name)
+                }),
                 cancel: gettext("Keep installed"),
                 proceed: [gettext("Uninstall"), gettext("Uninstall & clean up data")],
                 onproceed: function (button) {
@@ -1069,11 +956,7 @@ $(function () {
         };
 
         self.refreshRepository = function () {
-            if (
-                !self.loginState.hasPermission(
-                    self.access.permissions.PLUGIN_PLUGINMANAGER_INSTALL
-                )
-            ) {
+            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_PLUGINMANAGER_INSTALL)) {
                 return;
             }
             self.requestRepositoryData({refresh: true});
@@ -1168,27 +1051,13 @@ $(function () {
         };
 
         self._copyConfig = function () {
-            self.config_repositoryUrl(
-                self.settingsViewModel.settings.plugins.pluginmanager.repository()
-            );
-            self.config_repositoryTtl(
-                self.settingsViewModel.settings.plugins.pluginmanager.repository_ttl()
-            );
-            self.config_noticesUrl(
-                self.settingsViewModel.settings.plugins.pluginmanager.notices()
-            );
-            self.config_noticesTtl(
-                self.settingsViewModel.settings.plugins.pluginmanager.notices_ttl()
-            );
-            self.config_pipAdditionalArgs(
-                self.settingsViewModel.settings.plugins.pluginmanager.pip_args()
-            );
-            self.config_pipForceUser(
-                self.settingsViewModel.settings.plugins.pluginmanager.pip_force_user()
-            );
-            self.config_confirmDisable(
-                self.settingsViewModel.settings.plugins.pluginmanager.confirm_disable()
-            );
+            self.config_repositoryUrl(self.settingsViewModel.settings.plugins.pluginmanager.repository());
+            self.config_repositoryTtl(self.settingsViewModel.settings.plugins.pluginmanager.repository_ttl());
+            self.config_noticesUrl(self.settingsViewModel.settings.plugins.pluginmanager.notices());
+            self.config_noticesTtl(self.settingsViewModel.settings.plugins.pluginmanager.notices_ttl());
+            self.config_pipAdditionalArgs(self.settingsViewModel.settings.plugins.pluginmanager.pip_args());
+            self.config_pipForceUser(self.settingsViewModel.settings.plugins.pluginmanager.pip_force_user());
+            self.config_confirmDisable(self.settingsViewModel.settings.plugins.pluginmanager.confirm_disable());
         };
 
         self.installed = function (data) {
@@ -1196,11 +1065,7 @@ $(function () {
         };
 
         self.isCompatible = function (data) {
-            return (
-                data.is_compatible.octoprint &&
-                data.is_compatible.os &&
-                data.is_compatible.python
-            );
+            return data.is_compatible.octoprint && data.is_compatible.os && data.is_compatible.python;
         };
 
         self.installButtonText = function (data) {
@@ -1224,12 +1089,9 @@ $(function () {
         };
 
         self._displayPluginManagementNotification = function (response, action, plugin) {
-            self.logContents.action.restart =
-                self.logContents.action.restart || response.needs_restart;
-            self.logContents.action.refresh =
-                self.logContents.action.refresh || response.needs_refresh;
-            self.logContents.action_reconnect =
-                self.logContents.action.reconnect || response.needs_reconnect;
+            self.logContents.action.restart = self.logContents.action.restart || response.needs_restart;
+            self.logContents.action.refresh = self.logContents.action.refresh || response.needs_refresh;
+            self.logContents.action_reconnect = self.logContents.action.reconnect || response.needs_reconnect;
             self.logContents.steps.push({
                 action: action,
                 plugin: plugin,
@@ -1291,14 +1153,10 @@ $(function () {
                     "<li>" +
                     _.sprintf(line, {
                         plugin: _.escape(step.plugin),
-                        result: step.result
-                            ? '<i class="fa fa-check"></i>'
-                            : '<i class="fa fa-remove"></i>'
+                        result: step.result ? '<i class="fa fa-check"></i>' : '<i class="fa fa-remove"></i>'
                     }) +
                     (step.result === false && step.faq
-                        ? ' (<a href="" target="_blank" rel="noopener noreferer">' +
-                          gettext("Why?") +
-                          "</a>)"
+                        ? ' (<a href="" target="_blank" rel="noopener noreferer">' + gettext("Why?") + "</a>)"
                         : "") +
                     "</li>";
 
@@ -1309,10 +1167,7 @@ $(function () {
             var confirm = undefined;
             var type = "success";
             if (self.logContents.action.restart) {
-                text +=
-                    "<p>" +
-                    gettext("A restart is needed for the changes to take effect.") +
-                    "</p>";
+                text += "<p>" + gettext("A restart is needed for the changes to take effect.") + "</p>";
                 type = "warning";
 
                 if (self.restartCommandSpec) {
@@ -1335,9 +1190,7 @@ $(function () {
                                                 .done(function () {
                                                     notice.remove();
                                                     new PNotify({
-                                                        title: gettext(
-                                                            "Restart in progress"
-                                                        ),
+                                                        title: gettext("Restart in progress"),
                                                         text: gettext(
                                                             "The server is now being restarted in the background"
                                                         )
@@ -1345,9 +1198,7 @@ $(function () {
                                                 })
                                                 .fail(function () {
                                                     new PNotify({
-                                                        title: gettext(
-                                                            "Something went wrong"
-                                                        ),
+                                                        title: gettext("Something went wrong"),
                                                         text: gettext(
                                                             "Trying to restart the server produced an error, please check octoprint.log for details. You'll have to restart manually."
                                                         )
@@ -1364,10 +1215,7 @@ $(function () {
                     };
                 }
             } else if (self.logContents.action.refresh) {
-                text +=
-                    "<p>" +
-                    gettext("A refresh is needed for the changes to take effect.") +
-                    "</p>";
+                text += "<p>" + gettext("A refresh is needed for the changes to take effect.") + "</p>";
                 type = "warning";
 
                 var refreshClicked = false;
@@ -1386,11 +1234,7 @@ $(function () {
                 };
             } else if (self.logContents.action_reconnect) {
                 text +=
-                    "<p>" +
-                    gettext(
-                        "A reconnect to the printer is needed for the changes to take effect."
-                    ) +
-                    "</p>";
+                    "<p>" + gettext("A reconnect to the printer is needed for the changes to take effect.") + "</p>";
                 type = "warning";
             }
 
@@ -1410,10 +1254,7 @@ $(function () {
                     self.logNotification = PNotify.singleButtonNotify(options);
                 } else {
                     self.logNotification.update(options);
-                    self.logNotification = PNotify.fixSingleButton(
-                        self.logNotification,
-                        options
-                    );
+                    self.logNotification = PNotify.fixSingleButton(self.logNotification, options);
                 }
             } else {
                 if (self.logNotification === undefined) {
@@ -1424,10 +1265,7 @@ $(function () {
             }
 
             // make sure the notification is visible
-            if (
-                self.logNotification.state !== "open" &&
-                self.logNotification.state !== "opening"
-            ) {
+            if (self.logNotification.state !== "open" && self.logNotification.state !== "opening") {
                 self.logNotification.open();
             }
         };
@@ -1450,12 +1288,9 @@ $(function () {
                 self.loglines.push({line: error, stream: "error"});
                 if (faq) {
                     self.loglines.push({
-                        line: _.sprintf(
-                            gettext(
-                                "You can find more info on this issue in the FAQ at %(url)s"
-                            ),
-                            {url: faq}
-                        ),
+                        line: _.sprintf(gettext("You can find more info on this issue in the FAQ at %(url)s"), {
+                            url: faq
+                        }),
                         stream: "error"
                     });
                 }
@@ -1466,16 +1301,12 @@ $(function () {
         };
 
         self._scrollWorkingOutputToEnd = function () {
-            self.workingOutput.scrollTop(
-                self.workingOutput[0].scrollHeight - self.workingOutput.height()
-            );
+            self.workingOutput.scrollTop(self.workingOutput[0].scrollHeight - self.workingOutput.height());
         };
 
         self._getToggleCommand = function (data) {
             var disable =
-                (data.enabled ||
-                    (data.safe_mode_victim && !data.forced_disabled) ||
-                    data.pending_enable) &&
+                (data.enabled || (data.safe_mode_victim && !data.forced_disabled) || data.pending_enable) &&
                 !data.pending_disable;
             return disable ? "disable" : "enable";
         };
@@ -1487,10 +1318,7 @@ $(function () {
                 icon = "fa fa-spin fa-spinner";
                 disabled = " disabled";
             } else {
-                icon =
-                    self._getToggleCommand(data) === "enable"
-                        ? "fa fa-toggle-off"
-                        : "fa fa-toggle-on";
+                icon = self._getToggleCommand(data) === "enable" ? "fa fa-toggle-off" : "fa fa-toggle-on";
                 disabled = self.enableToggle(data) ? "" : " disabled";
             }
 
@@ -1538,21 +1366,15 @@ $(function () {
                     );
                 } else {
                     return _.sprintf(
-                        gettext(
-                            "There are %(count)d notices available regarding this plugin - click to show!"
-                        ),
+                        gettext("There are %(count)d notices available regarding this plugin - click to show!"),
                         {count: count}
                     );
                 }
             } else {
                 if (importantCount) {
-                    return gettext(
-                        "There is an important notice available regarding this plugin - click to show!"
-                    );
+                    return gettext("There is an important notice available regarding this plugin - click to show!");
                 } else {
-                    return gettext(
-                        "There is a notice available regarding this plugin - click to show!"
-                    );
+                    return gettext("There is a notice available regarding this plugin - click to show!");
                 }
             }
         };
@@ -1566,10 +1388,7 @@ $(function () {
 
             var title;
             if (important) {
-                title = _.sprintf(
-                    gettext('Important notice regarding plugin "%(name)s"'),
-                    {name: _.escape(name)}
-                );
+                title = _.sprintf(gettext('Important notice regarding plugin "%(name)s"'), {name: _.escape(name)});
             } else {
                 title = _.sprintf(gettext('Notice regarding plugin "%(name)s"'), {
                     name: _.escape(name)
@@ -1580,9 +1399,7 @@ $(function () {
 
             if (notification.versions && notification.versions.length > 0) {
                 var versions = _.map(notification.versions, function (v) {
-                    return v === version
-                        ? "<strong>" + _.escape(v) + "</strong>"
-                        : _.escape(v);
+                    return v === version ? "<strong>" + _.escape(v) + "</strong>" : _.escape(v);
                 }).join(", ");
                 text +=
                     "<small>" +
@@ -1596,20 +1413,12 @@ $(function () {
 
             text += "<p>" + notification.text + "</p>";
             if (link) {
-                text +=
-                    "<p><a href='" +
-                    link +
-                    "' target='_blank'>" +
-                    gettext("Read more...") +
-                    "</a></p>";
+                text += "<p><a href='" + link + "' target='_blank'>" + gettext("Read more...") + "</a></p>";
             }
 
             var beforeClose = function (notification) {
                 if (!self.noticeNotifications[plugin.key]) return;
-                self.noticeNotifications[plugin.key] = _.without(
-                    self.noticeNotifications[plugin.key],
-                    notification
-                );
+                self.noticeNotifications[plugin.key] = _.without(self.noticeNotifications[plugin.key], notification);
             };
 
             var options = {
@@ -1624,10 +1433,7 @@ $(function () {
                         {
                             text: gettext("Later"),
                             click: function (notice) {
-                                self._hideNoticeNotification(
-                                    plugin.key,
-                                    notification.date
-                                );
+                                self._hideNoticeNotification(plugin.key, notification.date);
                                 notice.remove();
                                 notice.get().trigger("pnotify.cancel", notice);
                             }
@@ -1635,10 +1441,7 @@ $(function () {
                         {
                             text: gettext("Mark read"),
                             click: function (notice) {
-                                self._ignoreNoticeNotification(
-                                    plugin.key,
-                                    notification.date
-                                );
+                                self._ignoreNoticeNotification(plugin.key, notification.date);
                                 notice.remove();
                                 notice.get().trigger("pnotify.cancel", notice);
                             }
@@ -1664,8 +1467,7 @@ $(function () {
         };
 
         self._removeAllNoticeNotificationsForPlugin = function (key) {
-            if (!self.noticeNotifications[key] || !self.noticeNotifications[key].length)
-                return;
+            if (!self.noticeNotifications[key] || !self.noticeNotifications[key].length) return;
             _.each(self.noticeNotifications[key], function (notification) {
                 notification.remove();
             });
@@ -1734,11 +1536,7 @@ $(function () {
         };
 
         self.onUserPermissionsChanged = self.onUserLoggedIn = self.onUserLoggedOut = function () {
-            if (
-                self.loginState.hasPermission(
-                    self.access.permissions.PLUGIN_PLUGINMANAGER_MANAGE
-                )
-            ) {
+            if (self.loginState.hasPermission(self.access.permissions.PLUGIN_PLUGINMANAGER_MANAGE)) {
                 self.requestPluginData({eval_notices: true});
             } else {
                 self._resetNotifications();
@@ -1746,11 +1544,7 @@ $(function () {
         };
 
         self.onSettingsShown = function () {
-            if (
-                self.loginState.hasPermission(
-                    self.access.permissions.PLUGIN_PLUGINMANAGER_MANAGE
-                )
-            ) {
+            if (self.loginState.hasPermission(self.access.permissions.PLUGIN_PLUGINMANAGER_MANAGE)) {
                 self.requestRepositoryData();
                 self.requestOrphanData();
             }
@@ -1788,11 +1582,7 @@ $(function () {
                 return;
             }
 
-            if (
-                !self.loginState.hasPermission(
-                    self.access.permissions.PLUGIN_PLUGINMANAGER_MANAGE
-                )
-            ) {
+            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_PLUGINMANAGER_MANAGE)) {
                 return;
             }
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 """
@@ -21,7 +20,6 @@ except ImportError:
     # Python 2
     from frozendict import frozendict as immutabledict
 
-from past.builtins import basestring, long
 
 import octoprint.util.json
 from octoprint import util as util
@@ -490,14 +488,14 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
         eventManager().fire(event_end, payload)
 
     def jog(self, axes, relative=True, speed=None, *args, **kwargs):
-        if isinstance(axes, basestring):
+        if isinstance(axes, str):
             # legacy parameter format, there should be an amount as first anonymous positional arguments too
             axis = axes
 
             if not len(args) >= 1:
                 raise ValueError("amount not set")
             amount = args[0]
-            if not isinstance(amount, (int, long, float)):
+            if not isinstance(amount, (int, float)):
                 raise ValueError(
                     "amount must be a valid number: {amount}".format(amount=amount)
                 )
@@ -536,7 +534,7 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
 
     def home(self, axes, *args, **kwargs):
         if not isinstance(axes, (list, tuple)):
-            if isinstance(axes, basestring):
+            if isinstance(axes, str):
                 axes = [axes]
             else:
                 raise ValueError(
@@ -561,7 +559,7 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
         )
 
     def extrude(self, amount, speed=None, *args, **kwargs):
-        if not isinstance(amount, (int, long, float)):
+        if not isinstance(amount, (int, float)):
             raise ValueError(
                 "amount must be a valid number: {amount}".format(amount=amount)
             )
@@ -601,7 +599,7 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
                 )
             )
 
-        if not isinstance(value, (int, long, float)) or value < 0:
+        if not isinstance(value, (int, float)) or value < 0:
             raise ValueError(
                 "value must be a valid number >= 0: {value}".format(value=value)
             )
@@ -635,7 +633,7 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
             filter(lambda x: PrinterInterface.valid_heater_regex.match(x), offsets.keys())
         )
         validated_values = list(
-            filter(lambda x: isinstance(x, (int, long, float)), offsets.values())
+            filter(lambda x: isinstance(x, (int, float)), offsets.values())
         )
 
         if len(validated_keys) != len(offsets):
@@ -654,7 +652,7 @@ class Printer(PrinterInterface, comm.MachineComPrintCallback):
         self._setOffsets(self._comm.getOffsets())
 
     def _convert_rate_value(self, factor, min_val=None, max_val=None):
-        if not isinstance(factor, (int, float, long)):
+        if not isinstance(factor, (int, float, int)):
             raise ValueError("factor is not a number")
 
         if isinstance(factor, float):

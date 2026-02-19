@@ -1,24 +1,30 @@
 export const prepare_server = () => {
-    cy.server();
-    cy.route("POST", "/api/login").as("login");
-    cy.route("POST", "/api/logout").as("logout");
-    cy.route("GET", "/api/settings").as("settings");
-    cy.route("GET", "/api/files?recursive=true").as("files");
-    cy.route("GET", "/plugin/softwareupdate/check").as("softwareupdate");
-    cy.route("GET", "/plugin/pluginmanager/plugins").as("pluginmanager");
-    cy.route("POST", "/api/connection").as("connectionCommand");
-    cy.route("GET", "/api/connection").as("connectionDetails");
+    cy.intercept("POST", "/api/login").as("login");
+    cy.intercept("POST", "/api/logout").as("logout");
+    cy.intercept("GET", "/api/settings").as("settings");
+    cy.intercept("GET", "/api/files?recursive=true").as("files");
+    cy.intercept("GET", "/plugin/softwareupdate/check").as("softwareupdate");
+    cy.intercept("GET", "/plugin/pluginmanager/plugins").as("pluginmanager");
+    cy.intercept("POST", "/api/connection").as("connectionCommand");
+    cy.intercept("GET", "/api/connection").as("connectionDetails");
+};
+
+export const await_support_info_page = () => {
+    cy.get("#crashed_plugin_notice").should("be.visible");
+    cy.contains("h1", "Sorry - Something went wrong").should("be.visible");
+    cy.contains("a", "Please get in touch with us")
+        .should("be.visible")
+        .and("have.attr", "href", "https://support.mr-beam.org");
 };
 
 export const await_loginui = () => {
-    cy.get("[data-test-id=login-title]")
-        .should("be.visible")
-        .should("contain", "Please log in");
+    cy.get("[data-test-id=login-title]").should("be.visible").should("contain", "Please log in");
     cy.window().its("OctoPrint.loginui.startedUp", {timeout: 30000}).should("be.true");
 };
 
 export const await_coreui = () => {
-    cy.wait(["@login", "@settings", "@files", "@softwareupdate", "@pluginmanager"]);
+    // REMOVED "@login"
+    cy.wait(["@settings", "@files", "@softwareupdate", "@pluginmanager"], {timeout: 30000});
     cy.window().its("OctoPrint.coreui.startedUp", {timeout: 30000}).should("be.true");
 };
 

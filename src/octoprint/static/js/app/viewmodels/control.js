@@ -68,16 +68,12 @@ $(function () {
 
         self.settings.printerProfiles.currentProfileData.subscribe(function () {
             self._updateExtruderCount();
-            self.settings.printerProfiles
-                .currentProfileData()
-                .extruder.count.subscribe(self._updateExtruderCount);
+            self.settings.printerProfiles.currentProfileData().extruder.count.subscribe(self._updateExtruderCount);
         });
         self._updateExtruderCount = function () {
             var tools = [];
 
-            var numExtruders = self.settings.printerProfiles
-                .currentProfileData()
-                .extruder.count();
+            var numExtruders = self.settings.printerProfiles.currentProfileData().extruder.count();
             if (numExtruders > 1) {
                 // multiple extruders
                 for (var extruder = 0; extruder < numExtruders; extruder++) {
@@ -172,14 +168,11 @@ $(function () {
                 if (!self.feedbackControlLookup.hasOwnProperty(control.key)) {
                     self.feedbackControlLookup[control.key] = {};
                 }
-                self.feedbackControlLookup[control.key][control.template_key] =
-                    control.output;
+                self.feedbackControlLookup[control.key][control.template_key] = control.output;
             }
 
             if (control.hasOwnProperty("children")) {
-                control.children = ko.observableArray(
-                    self._processControls(control.children)
-                );
+                control.children = ko.observableArray(self._processControls(control.children));
                 if (
                     !control.hasOwnProperty("layout") ||
                     !(
@@ -215,41 +208,22 @@ $(function () {
                 _.each(control.input, function (element) {
                     if (element.hasOwnProperty("slider") && _.isObject(element.slider)) {
                         element.slider["min"] = attributeToInt(element.slider, "min", 0);
-                        element.slider["max"] = attributeToInt(
-                            element.slider,
-                            "max",
-                            255
-                        );
+                        element.slider["max"] = attributeToInt(element.slider, "max", 255);
 
                         // try defaultValue, default to min
-                        var defaultValue = attributeToInt(
-                            element,
-                            "default",
-                            element.slider.min
-                        );
+                        var defaultValue = attributeToInt(element, "default", element.slider.min);
 
                         // if default value is not within range of min and max, correct that
-                        if (
-                            !_.inRange(
-                                defaultValue,
-                                element.slider.min,
-                                element.slider.max
-                            )
-                        ) {
+                        if (!_.inRange(defaultValue, element.slider.min, element.slider.max)) {
                             // use bound closer to configured default value
-                            defaultValue =
-                                defaultValue < element.slider.min
-                                    ? element.slider.min
-                                    : element.slider.max;
+                            defaultValue = defaultValue < element.slider.min ? element.slider.min : element.slider.max;
                         }
 
                         element.value = ko.observable(defaultValue);
                     } else {
                         element.slider = false;
                         element.value = ko.observable(
-                            element.hasOwnProperty("default")
-                                ? element["default"]
-                                : undefined
+                            element.hasOwnProperty("default") ? element["default"] : undefined
                         );
                     }
                 });
@@ -289,10 +263,7 @@ $(function () {
             if (data.hasOwnProperty("enabled")) {
                 return data.enabled(data);
             } else {
-                return (
-                    self.loginState.hasPermission(self.access.permissions.CONTROL) &&
-                    self.isOperational()
-                );
+                return self.loginState.hasPermission(self.access.permissions.CONTROL) && self.isOperational();
             }
         };
 
@@ -322,9 +293,7 @@ $(function () {
                 self.settings.printerProfiles.currentProfileData() &&
                 self.settings.printerProfiles.currentProfileData()["axes"] &&
                 self.settings.printerProfiles.currentProfileData()["axes"][axis] &&
-                self.settings.printerProfiles
-                    .currentProfileData()
-                    ["axes"][axis]["inverted"]()
+                self.settings.printerProfiles.currentProfileData()["axes"][axis]["inverted"]()
             ) {
                 multiplier *= -1;
             }
@@ -431,10 +400,7 @@ $(function () {
             var parameters = {};
             if (command.hasOwnProperty("input")) {
                 _.each(command.input, function (input) {
-                    if (
-                        !input.hasOwnProperty("parameter") ||
-                        !input.hasOwnProperty("value")
-                    ) {
+                    if (!input.hasOwnProperty("parameter") || !input.hasOwnProperty("value")) {
                         return;
                     }
 
@@ -448,11 +414,7 @@ $(function () {
             } else if (command.hasOwnProperty("script")) {
                 var script = command.script;
                 var context = command.context || {};
-                OctoPrint.control.sendGcodeScriptWithParameters(
-                    script,
-                    context,
-                    parameters
-                );
+                OctoPrint.control.sendGcodeScriptWithParameters(script, context, parameters);
             }
         };
 
@@ -502,10 +464,7 @@ $(function () {
         };
 
         self._enableWebcam = function () {
-            if (
-                OctoPrint.coreui.selectedTab != "#control" ||
-                !OctoPrint.coreui.browserTabVisible
-            ) {
+            if (OctoPrint.coreui.selectedTab != "#control" || !OctoPrint.coreui.browserTabVisible) {
                 return;
             }
 

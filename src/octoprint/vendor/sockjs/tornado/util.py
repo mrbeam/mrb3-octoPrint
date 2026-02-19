@@ -6,7 +6,6 @@ import functools
 
 PY3 = sys.version_info[0] == 3
 
-from past.builtins import unicode
 
 if PY3:
     MAXSIZE = sys.maxsize
@@ -48,7 +47,7 @@ else:
         return s
 
     def str_to_bytes(s):
-        if isinstance(s, unicode):
+        if isinstance(s, str):
             return s.encode('utf8')
         return s
 

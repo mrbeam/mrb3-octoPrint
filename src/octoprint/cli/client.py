@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
@@ -8,7 +8,6 @@ import io
 import json
 
 import click
-from past.builtins import unicode
 
 import octoprint_client
 from octoprint import FatalStartupError, init_settings
@@ -194,10 +193,10 @@ def post_from_file(ctx, path, file_path, json_flag, yaml_flag, timeout):
     "str_params",
     multiple=True,
     nargs=2,
-    type=click.Tuple([unicode, unicode]),
+    type=click.Tuple([str, str]),
 )
 @click.option(
-    "--int", "-i", "int_params", multiple=True, nargs=2, type=click.Tuple([unicode, int])
+    "--int", "-i", "int_params", multiple=True, nargs=2, type=click.Tuple([str, int])
 )
 @click.option(
     "--float",
@@ -205,7 +204,7 @@ def post_from_file(ctx, path, file_path, json_flag, yaml_flag, timeout):
     "float_params",
     multiple=True,
     nargs=2,
-    type=click.Tuple([unicode, float]),
+    type=click.Tuple([str, float]),
 )
 @click.option(
     "--bool",
@@ -213,7 +212,7 @@ def post_from_file(ctx, path, file_path, json_flag, yaml_flag, timeout):
     "bool_params",
     multiple=True,
     nargs=2,
-    type=click.Tuple([unicode, bool]),
+    type=click.Tuple([str, bool]),
 )
 @click.option("--timeout", type=float, default=None, help="Request timeout in seconds")
 @click.pass_context
@@ -240,7 +239,7 @@ def command(
     "params",
     multiple=True,
     nargs=2,
-    type=click.Tuple([unicode, unicode]),
+    type=click.Tuple([str, str]),
 )
 @click.option("--file-name", type=click.STRING)
 @click.option("--content-type", type=click.STRING)

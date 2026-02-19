@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from flask import make_response
@@ -24,7 +23,6 @@ import tornado.web
 import webassets.updater
 import webassets.utils
 from cachelib import BaseCache
-from past.builtins import basestring, long
 from werkzeug.local import LocalProxy
 from werkzeug.utils import cached_property
 
@@ -1205,7 +1203,7 @@ def lastmodified(date):
                     if callable(result):
                         result = result(rv)
 
-                    if not isinstance(result, basestring):
+                    if not isinstance(result, str):
                         from werkzeug.http import http_date
 
                         result = http_date(result)
@@ -1324,7 +1322,7 @@ def with_revalidation_checking(
 
             # set last modified header if not already set
             if lm and response.headers.get("Last-Modified", None) is None:
-                if not isinstance(lm, basestring):
+                if not isinstance(lm, str):
                     from werkzeug.http import http_date
 
                     lm = http_date(lm)
@@ -1355,7 +1353,7 @@ def check_lastmodified(lastmodified):
 
     from datetime import datetime
 
-    if isinstance(lastmodified, (int, long, float)):
+    if isinstance(lastmodified, (int, float)):
         # max(86400, lastmodified) is workaround for https://bugs.python.org/issue29097,
         # present in CPython 3.6.x up to 3.7.1.
         #
@@ -1643,13 +1641,41 @@ class PluginAssetResolver(flask_assets.FlaskResolver):
         app = ctx.environment._app
         if item.startswith("plugin/"):
             try:
-                prefix, plugin, name = item.split("/", 2)
-                blueprint = prefix + "." + plugin
+                parts = item.split("/", 2)
+                if len(parts) < 3:
+                    return flask_assets.FlaskResolver.split_prefix(self, ctx, item)
 
-                directory = flask_assets.get_static_folder(app.blueprints[blueprint])
-                item = name
-                endpoint = blueprint + ".static"
-                return directory, item, endpoint
+                prefix, plugin_id, file_path = parts
+
+                # --- NEW LOGIC START ---
+                blueprint_obj = None
+
+                # 1. Search by TAG (The robust way)
+                for bp in app.blueprints.values():
+                    if getattr(bp, "octoprint_plugin_identifier", None) == plugin_id:
+                        blueprint_obj = bp
+                        break
+
+                # 2. Fallback: Search by known name patterns
+                if not blueprint_obj:
+                    safe_id = plugin_id.replace(".", "_")
+                    # Try all possible naming variations
+                    candidates = [
+                        f"plugin_{safe_id}_assets",
+                        f"plugin_{safe_id}_logic",
+                        safe_id,
+                        f"plugin.{plugin_id}"
+                    ]
+                    for name in candidates:
+                        if name in app.blueprints:
+                            blueprint_obj = app.blueprints[name]
+                            break
+                # --- NEW LOGIC END ---
+
+                if blueprint_obj:
+                    directory = flask_assets.get_static_folder(blueprint_obj)
+                    return directory, file_path, f"{blueprint_obj.name}.static"
+
             except (ValueError, KeyError):
                 pass
 
@@ -1657,9 +1683,7 @@ class PluginAssetResolver(flask_assets.FlaskResolver):
 
     def resolve_output_to_path(self, ctx, target, bundle):
         import os
-
         return os.path.normpath(os.path.join(ctx.environment.directory, target))
-
 
 ##~~ Webassets updater that takes changes in the configuration into account
 
