@@ -133,7 +133,6 @@ def params():
         version=version,
         cmdclass=cmdclass,
         python_requires=PYTHON_REQUIRES,
-        setup_requires=SETUP_REQUIRES,
         install_requires=INSTALL_REQUIRES,
         extras_require=EXTRA_REQUIRES,
         description=description,
