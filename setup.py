@@ -43,6 +43,7 @@ INSTALL_REQUIRES = [
     "tornado>=6.2,<7",       # Missing: Required for the web server
     "future>=1.0.0,<2",      # Missing: Required for legacy Py3 compatibility imports
     "frozendict>=2.4.4,<3",  # Missing: Required by internal logic
+    "immuteabledict>=2.0.0,<3", # Missing: Required for internal logic
 
     "feedparser>=6.0.10,<7",
     "unidecode>=1.3.8,<2",
