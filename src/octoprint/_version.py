@@ -50,8 +50,8 @@ def get_config() -> VersioneerConfig:
     # _version.py
     cfg = VersioneerConfig()
     cfg.VCS = "git"
-    cfg.style = "pep440-tag"
-    cfg.tag_prefix = ""
+    cfg.style = "pep440"
+    cfg.tag_prefix = "v"
     cfg.parentdir_prefix = ""
     cfg.versionfile_source = "src/octoprint/_version.py"
     cfg.verbose = False

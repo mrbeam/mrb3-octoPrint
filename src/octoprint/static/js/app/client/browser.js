@@ -12,12 +12,7 @@
         this.base = base;
     };
 
-    OctoPrintBrowserClient.prototype.login = function (
-        username,
-        password,
-        remember,
-        opts
-    ) {
+    OctoPrintBrowserClient.prototype.login = function (username, password, remember, opts) {
         var data = {
             user: username,
             pass: password,

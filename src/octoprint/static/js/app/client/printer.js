@@ -16,19 +16,11 @@
         this.base = base;
     };
 
-    OctoPrintPrinterClient.prototype.issuePrintheadCommand = function (
-        command,
-        payload,
-        opts
-    ) {
+    OctoPrintPrinterClient.prototype.issuePrintheadCommand = function (command, payload, opts) {
         return this.base.issueCommand(printheadUrl, command, payload, opts);
     };
 
-    OctoPrintPrinterClient.prototype.issueToolCommand = function (
-        command,
-        payload,
-        opts
-    ) {
+    OctoPrintPrinterClient.prototype.issueToolCommand = function (command, payload, opts) {
         return this.base.issueCommand(toolUrl, command, payload, opts);
     };
 
@@ -36,11 +28,7 @@
         return this.base.issueCommand(bedUrl, command, payload, opts);
     };
 
-    OctoPrintPrinterClient.prototype.issueChamberCommand = function (
-        command,
-        payload,
-        opts
-    ) {
+    OctoPrintPrinterClient.prototype.issueChamberCommand = function (command, payload, opts) {
         return this.base.issueCommand(chamberUrl, command, payload, opts);
     };
 
@@ -162,10 +150,7 @@
         return this.issuePrintheadCommand("feedrate", payload, opts);
     };
 
-    OctoPrintPrinterClient.prototype.setToolTargetTemperatures = function (
-        targets,
-        opts
-    ) {
+    OctoPrintPrinterClient.prototype.setToolTargetTemperatures = function (targets, opts) {
         targets = targets || {};
 
         var payload = {
@@ -175,10 +160,7 @@
         return this.issueToolCommand("target", payload, opts);
     };
 
-    OctoPrintPrinterClient.prototype.setToolTemperatureOffsets = function (
-        offsets,
-        opts
-    ) {
+    OctoPrintPrinterClient.prototype.setToolTemperatureOffsets = function (offsets, opts) {
         offsets = offsets || {};
 
         var payload = {
@@ -238,10 +220,7 @@
         return this.issueBedCommand("offset", payload, opts);
     };
 
-    OctoPrintPrinterClient.prototype.setChamberTargetTemperature = function (
-        target,
-        opts
-    ) {
+    OctoPrintPrinterClient.prototype.setChamberTargetTemperature = function (target, opts) {
         target = target || 0;
 
         var payload = {
@@ -251,10 +230,7 @@
         return this.issueChamberCommand("target", payload, opts);
     };
 
-    OctoPrintPrinterClient.prototype.setChamberTemperatureOffset = function (
-        offset,
-        opts
-    ) {
+    OctoPrintPrinterClient.prototype.setChamberTemperatureOffset = function (offset, opts) {
         offset = offset || 0;
 
         var payload = {

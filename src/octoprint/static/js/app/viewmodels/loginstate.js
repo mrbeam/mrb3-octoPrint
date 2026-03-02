@@ -53,12 +53,9 @@ $(function () {
                     apikey: gettext("API key based login"),
                     authheader: gettext("Authorization header based login")
                 };
-                return _.sprintf(
-                    gettext(
-                        "Logout not supported for %(method)s, please close the browser instead"
-                    ),
-                    {method: methodMap[mechanism]}
-                );
+                return _.sprintf(gettext("Logout not supported for %(method)s, please close the browser instead"), {
+                    method: methodMap[mechanism]
+                });
             } else {
                 return gettext("Logout of OctoPrint");
             }
@@ -69,9 +66,7 @@ $(function () {
                 return;
             }
 
-            return OctoPrint.access.users
-                .get(self.currentUser().name)
-                .done(self.updateCurrentUserData);
+            return OctoPrint.access.users.get(self.currentUser().name).done(self.updateCurrentUserData);
         };
 
         self.requestData = function () {
@@ -105,14 +100,11 @@ $(function () {
                     }
 
                     // Show warning if connecting from what seems to be an external IP address, unless ignored
-                    var ignorePublicAddressWarning =
-                        localStorage["loginState.ignorePublicAddressWarning"];
+                    var ignorePublicAddressWarning = localStorage["loginState.ignorePublicAddressWarning"];
                     if (ignorePublicAddressWarning === undefined) {
                         ignorePublicAddressWarning = false;
                     } else {
-                        ignorePublicAddressWarning = JSON.parse(
-                            ignorePublicAddressWarning
-                        );
+                        ignorePublicAddressWarning = JSON.parse(ignorePublicAddressWarning);
                     }
 
                     if (response._is_external_client && !ignorePublicAddressWarning) {
@@ -127,8 +119,7 @@ $(function () {
                                 "mistaken since you are in an isolated LAN, feel free to ignore it.</small></p>"
                         );
                         text = _.sprintf(text, {
-                            url:
-                                "https://octoprint.org/blog/2018/09/03/safe-remote-access/"
+                            url: "https://octoprint.org/blog/2018/09/03/safe-remote-access/"
                         });
 
                         if (self.externalAddressNotification !== undefined) {
@@ -148,9 +139,9 @@ $(function () {
                                         addClass: "btn btn-danger",
                                         click: function (notice) {
                                             notice.remove();
-                                            localStorage[
-                                                "loginState.ignorePublicAddressWarning"
-                                            ] = JSON.stringify(true);
+                                            localStorage["loginState.ignorePublicAddressWarning"] = JSON.stringify(
+                                                true
+                                            );
                                         }
                                     },
                                     {
@@ -231,10 +222,9 @@ $(function () {
                     if (notifications) {
                         new PNotify({
                             title: gettext("Login successful"),
-                            text: _.sprintf(
-                                gettext('You are now logged in as "%(username)s"'),
-                                {username: _.escape(response.name)}
-                            ),
+                            text: _.sprintf(gettext('You are now logged in as "%(username)s"'), {
+                                username: _.escape(response.name)
+                            }),
                             type: "success"
                         });
                     }
@@ -245,11 +235,7 @@ $(function () {
                     self.loginRemember(false);
 
                     if (history && history.replaceState) {
-                        history.replaceState(
-                            {success: true},
-                            document.title,
-                            window.location.pathname
-                        );
+                        history.replaceState({success: true}, document.title, window.location.pathname);
                     }
                 })
                 .fail(function (response) {
@@ -261,9 +247,7 @@ $(function () {
                         case 403: {
                             new PNotify({
                                 title: gettext("Login failed"),
-                                text: gettext(
-                                    "User unknown, wrong password or account deactivated"
-                                ),
+                                text: gettext("User unknown, wrong password or account deactivated"),
                                 type: "error"
                             });
                             break;
@@ -345,14 +329,9 @@ $(function () {
                 var dropdown = $("li.dropdown#navbar_login");
                 var anyLastpassButton = $("#__lpform_login_user, #__lpform_login_pass");
 
-                var isLinkOrButton =
-                    anyFormLinkOrButton.is(e.target) ||
-                    anyFormLinkOrButton.has(e.target).length !== 0;
-                var isDropdown =
-                    dropdown.is(e.target) || dropdown.has(e.target).length !== 0;
-                var isLastpass =
-                    anyLastpassButton.is(e.target) ||
-                    anyLastpassButton.has(e.target).length !== 0;
+                var isLinkOrButton = anyFormLinkOrButton.is(e.target) || anyFormLinkOrButton.has(e.target).length !== 0;
+                var isDropdown = dropdown.is(e.target) || dropdown.has(e.target).length !== 0;
+                var isLastpass = anyLastpassButton.is(e.target) || anyLastpassButton.has(e.target).length !== 0;
 
                 if (isLinkOrButton || !(isDropdown || isLastpass)) {
                     toggle.removeClass("open");

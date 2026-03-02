@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import io
@@ -967,3 +966,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+from . import _version
+__version__ = _version.get_versions()['version']

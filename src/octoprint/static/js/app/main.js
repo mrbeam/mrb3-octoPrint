@@ -108,9 +108,7 @@ $(function () {
 
         exports.browser.opera = userAgent.match(/opera|opr/) !== null;
         exports.browser.chrome =
-            !exports.browser.opera &&
-            /google inc/.test(vendor) &&
-            userAgent.match(/chrome|crios/) !== null;
+            !exports.browser.opera && /google inc/.test(vendor) && userAgent.match(/chrome|crios/) !== null;
         exports.browser.firefox = userAgent.match(/firefox|fxios/) !== null;
         exports.browser.ie = userAgent.match(/msie|trident/) !== null;
         exports.browser.edge = userAgent.match(/edge/) !== null;
@@ -143,12 +141,7 @@ $(function () {
         };
         exports.hashFromTabChange = false;
         exports.onTabChange = function (current, previous) {
-            log.debug(
-                "Selected OctoPrint tab changed: previous = " +
-                    previous +
-                    ", current = " +
-                    current
-            );
+            log.debug("Selected OctoPrint tab changed: previous = " + previous + ", current = " + current);
             OctoPrint.coreui.selectedTab = current;
             callViewModels(allViewModels, "onTabChange", [current, previous]);
         };
@@ -282,11 +275,7 @@ $(function () {
 
     // single button notify
     PNotify.singleButtonNotify = function (options) {
-        if (
-            !options.confirm ||
-            !options.confirm.buttons ||
-            !options.confirm.buttons.length
-        ) {
+        if (!options.confirm || !options.confirm.buttons || !options.confirm.buttons.length) {
             return new PNotify(options);
         }
 
@@ -305,11 +294,7 @@ $(function () {
     };
 
     PNotify.fixSingleButton = function (notify, options) {
-        if (
-            !options.confirm ||
-            !options.confirm.buttons ||
-            !options.confirm.buttons.length
-        ) {
+        if (!options.confirm || !options.confirm.buttons || !options.confirm.buttons.length) {
             return notify;
         }
 
@@ -334,24 +319,12 @@ $(function () {
     }
 
     // helper to create a view model instance with injected constructor parameters from the view model map
-    var _createViewModelInstance = function (
-        viewModel,
-        viewModelMap,
-        optionalDependencyPass
-    ) {
+    var _createViewModelInstance = function (viewModel, viewModelMap, optionalDependencyPass) {
         // mirror the requested dependencies with an array of the viewModels
         var viewModelParametersMap = function (parameter) {
             // check if parameter is found within optional array and if all conditions are met return null instead of undefined
-            if (
-                optionalDependencyPass &&
-                viewModel.optional.indexOf(parameter) !== -1 &&
-                !viewModelMap[parameter]
-            ) {
-                log.debug(
-                    "Resolving optional parameter",
-                    [parameter],
-                    "without viewmodel"
-                );
+            if (optionalDependencyPass && viewModel.optional.indexOf(parameter) !== -1 && !viewModelMap[parameter]) {
+                log.debug("Resolving optional parameter", [parameter], "without viewmodel");
                 return null; // null == "optional but not available"
             }
 
@@ -359,20 +332,14 @@ $(function () {
         };
 
         // try to resolve all of the view model's constructor parameters via our view model map
-        var constructorParameters =
-            _.map(viewModel.dependencies, viewModelParametersMap) || [];
+        var constructorParameters = _.map(viewModel.dependencies, viewModelParametersMap) || [];
 
         if (constructorParameters.indexOf(undefined) !== -1) {
             log.debug(
                 "Postponing",
                 viewModel.name,
                 "due to missing parameters:",
-                _.keys(
-                    _.pick(
-                        _.object(viewModel.dependencies, constructorParameters),
-                        _.isUndefined
-                    )
-                )
+                _.keys(_.pick(_.object(viewModel.dependencies, constructorParameters), _.isUndefined))
             );
             return;
         }
@@ -383,12 +350,7 @@ $(function () {
             : constructorParameters;
 
         // if we came this far then we could resolve all constructor parameters, so let's construct that view model
-        log.debug(
-            "Constructing",
-            viewModel.name,
-            "with parameters:",
-            viewModel.dependencies
-        );
+        log.debug("Constructing", viewModel.name, "with parameters:", viewModel.dependencies);
         return new viewModel.construct(constructorParameters);
     };
 
@@ -404,9 +366,7 @@ $(function () {
         if (!additionalBindings.hasOwnProperty(viewModelId)) {
             additionalBindings[viewModelId] = viewModelBindTargets;
         } else {
-            additionalBindings[viewModelId] = additionalBindings[viewModelId].concat(
-                viewModelBindTargets
-            );
+            additionalBindings[viewModelId] = additionalBindings[viewModelId].concat(viewModelBindTargets);
         }
     });
 
@@ -453,23 +413,17 @@ $(function () {
 
             // if name is not set, get name from constructor, if it's an anonymous function generate one
             viewModel.name =
-                viewModel.name ||
-                _getViewModelId(viewModel.construct.name) ||
-                _.uniqueId("unnamedViewModel");
+                viewModel.name || _getViewModelId(viewModel.construct.name) || _.uniqueId("unnamedViewModel");
 
             // no alternative names? empty array
             viewModel.additionalNames = viewModel.additionalNames || [];
 
             // make sure all value's are set and in an array
-            _.each(["dependencies", "elements", "optional", "additionalNames"], function (
-                key
-            ) {
+            _.each(["dependencies", "elements", "optional", "additionalNames"], function (key) {
                 if (viewModel[key] === undefined) {
                     viewModel[key] = [];
                 } else {
-                    viewModel[key] = _.isArray(viewModel[key])
-                        ? viewModel[key]
-                        : [viewModel[key]];
+                    viewModel[key] = _.isArray(viewModel[key]) ? viewModel[key] : [viewModel[key]];
                 }
             });
 
@@ -481,11 +435,7 @@ $(function () {
 
             var viewModelInstance;
             try {
-                viewModelInstance = _createViewModelInstance(
-                    viewModel,
-                    viewModelMap,
-                    optionalDependencyPass
-                );
+                viewModelInstance = _createViewModelInstance(viewModel, viewModelMap, optionalDependencyPass);
             } catch (exc) {
                 if (typeof Sentry !== "undefined") {
                     Sentry.captureException(exc);
@@ -504,9 +454,7 @@ $(function () {
             var viewModelBindTargets = viewModel.elements;
 
             if (additionalBindings.hasOwnProperty(viewModel.name)) {
-                viewModelBindTargets = viewModelBindTargets.concat(
-                    additionalBindings[viewModel.name]
-                );
+                viewModelBindTargets = viewModelBindTargets.concat(additionalBindings[viewModel.name]);
             }
 
             allViewModelData.push([viewModelInstance, viewModelBindTargets]);
@@ -523,12 +471,7 @@ $(function () {
                 });
 
                 if (registeredAdditionalNames.length) {
-                    log.debug(
-                        "Registered",
-                        viewModel.name,
-                        "under these additional names:",
-                        registeredAdditionalNames
-                    );
+                    log.debug("Registered", viewModel.name, "under these additional names:", registeredAdditionalNames);
                 }
             }
         }
@@ -545,9 +488,7 @@ $(function () {
                 log.debug("Resolving next pass with optional dependencies flag enabled");
                 optionalDependencyPass = true;
             } else {
-                log.error(
-                    "Could not instantiate the following view models due to unresolvable dependencies:"
-                );
+                log.error("Could not instantiate the following view models due to unresolvable dependencies:");
                 _.each(unprocessedViewModels, function (entry) {
                     log.error(
                         entry.name +
@@ -713,10 +654,7 @@ $(function () {
         throw new Error("settingsViewModel is missing, can't run UI");
     }
 
-    if (
-        !_.has(viewModelMap, "accessViewModel") ||
-        !viewModelMap["accessViewModel"].permissions
-    ) {
+    if (!_.has(viewModelMap, "accessViewModel") || !viewModelMap["accessViewModel"].permissions) {
         throw new Error("accessViewmodel is missing or incomplete, can't run UI");
     }
 
@@ -757,10 +695,7 @@ $(function () {
                     var targets = viewModelData[1];
 
                     if (targets === undefined) {
-                        log.error(
-                            "No binding targets defined for view model",
-                            viewMode.constructor.name
-                        );
+                        log.error("No binding targets defined for view model", viewMode.constructor.name);
                         return;
                     }
 
@@ -792,10 +727,7 @@ $(function () {
 
                         _.each(targets, function (target) {
                             if (target === undefined) {
-                                log.error(
-                                    "Undefined target for view model",
-                                    viewModel.constructor.name
-                                );
+                                log.error("Undefined target for view model", viewModel.constructor.name);
                                 return;
                             }
 
@@ -848,19 +780,9 @@ $(function () {
                                 ko.applyBindings(viewModel, element);
                                 viewModel._bindings.push(target);
 
-                                callViewModel(
-                                    viewModel,
-                                    "onBoundTo",
-                                    [target, element],
-                                    true
-                                );
+                                callViewModel(viewModel, "onBoundTo", [target, element], true);
 
-                                log.debug(
-                                    "View model",
-                                    viewModel.constructor.name,
-                                    "bound to",
-                                    target
-                                );
+                                log.debug("View model", viewModel.constructor.name, "bound to", target);
                             } catch (exc) {
                                 if (typeof Sentry !== "undefined") {
                                     Sentry.captureException(exc);
@@ -877,11 +799,8 @@ $(function () {
                         });
                     }
 
-                    viewModel._unbound =
-                        viewModel._bindings === undefined ||
-                        viewModel._bindings.length === 0;
-                    viewModel._bound =
-                        viewModel._bindings && viewModel._bindings.length > 0;
+                    viewModel._unbound = viewModel._bindings === undefined || viewModel._bindings.length === 0;
+                    viewModel._bound = viewModel._bindings && viewModel._bindings.length > 0;
 
                     callViewModel(viewModel, "onAfterBinding");
                 } catch (exc) {
@@ -891,12 +810,7 @@ $(function () {
                     } catch (exc) {
                         name = "n/a";
                     }
-                    log.error(
-                        "Error while processing view model",
-                        name,
-                        "for binding:",
-                        exc.stack || exc
-                    );
+                    log.error("Error while processing view model", name, "for binding:", exc.stack || exc);
                 }
             });
 
@@ -920,9 +834,7 @@ $(function () {
             if (typeof Sentry !== "undefined") {
                 Sentry.captureException(exc);
             }
-            viewModelMap["uiStateViewModel"].showLoadingError(
-                "Application startup failed."
-            );
+            viewModelMap["uiStateViewModel"].showLoadingError("Application startup failed.");
             throw exc;
         }
 
@@ -950,20 +862,16 @@ $(function () {
             .requestData()
             .done(function () {
                 var adjustModalDefaultBehaviour = function () {
-                    if (
-                        viewModelMap[
-                            "settingsViewModel"
-                        ].appearance_closeModalsWithClick()
-                    ) {
+                    if (viewModelMap["settingsViewModel"].appearance_closeModalsWithClick()) {
                         $.fn.modal.defaults.backdrop = true;
                     } else {
                         $.fn.modal.defaults.backdrop = "static";
                     }
                 };
                 adjustModalDefaultBehaviour();
-                viewModelMap[
-                    "settingsViewModel"
-                ].appearance_closeModalsWithClick.subscribe(adjustModalDefaultBehaviour);
+                viewModelMap["settingsViewModel"].appearance_closeModalsWithClick.subscribe(
+                    adjustModalDefaultBehaviour
+                );
 
                 // There appears to be an odd race condition either in JQuery's AJAX implementation or
                 // the browser's implementation of XHR, causing a second GET request from inside the
@@ -979,9 +887,7 @@ $(function () {
                 window.setTimeout(bindViewModels, 0);
             })
             .fail(function () {
-                viewModelMap["uiStateViewModel"].showLoadingError(
-                    "Initial settings fetch failed."
-                );
+                viewModelMap["uiStateViewModel"].showLoadingError("Initial settings fetch failed.");
             });
     };
 
@@ -1032,9 +938,7 @@ $(function () {
                 dataUpdater.initialized();
             })
             .fail(function () {
-                viewModelMap["uiStateViewModel"].showLoadingError(
-                    "Passive login failed."
-                );
+                viewModelMap["uiStateViewModel"].showLoadingError("Passive login failed.");
             });
     };
 
@@ -1047,9 +951,7 @@ $(function () {
 
             // we are now connected to the server and need to change the loading message - jquery instead of
             // binding because no bindings yet
-            $("#page-container-loading-header").html(
-                gettext("Loading OctoPrint's UI, please wait...")
-            );
+            $("#page-container-loading-header").html(gettext("Loading OctoPrint's UI, please wait..."));
 
             // perform passive login first
             onServerConnect().done(function () {
@@ -1058,8 +960,6 @@ $(function () {
             });
         })
         .fail(function () {
-            viewModelMap["uiStateViewModel"].showLoadingError(
-                "Socket connection failed."
-            );
+            viewModelMap["uiStateViewModel"].showLoadingError("Socket connection failed.");
         });
 });

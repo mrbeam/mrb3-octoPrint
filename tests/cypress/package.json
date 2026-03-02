@@ -13,16 +13,14 @@
     "author": "Gina Häußge",
     "license": "AGPL-3.0",
     "bugs": {
-        "url": "https://github.com/OctoPrint/OctoPrint/issues"
+        "url": "https://github.com/mrbeam/mrb3-octoPrint/issues"
     },
-    "homepage": "https://octoprint.org",
+    "homepage": "https://mr-beam.org",
     "dependencies": {
-        "cypress": "^4.12.0",
-        "cypress-commands": "^1.1.0",
-        "cypress-file-upload": "^4.0.7",
-        "cypress-plugin-retries": "^1.5.2",
-        "cypress-terminal-report": "^1.4.1",
-        "cypress-wait-until": "^1.7.1",
-        "ini": "^2.0.0"
+        "cypress": "^13.17.0",
+        "cypress-file-upload": "^5.0.8",
+        "cypress-terminal-report": "^5.3.11",
+        "cypress-wait-until": "^3.0.2",
+        "ini": "^4.1.1"
     }
 }

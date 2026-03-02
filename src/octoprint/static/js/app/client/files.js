@@ -31,8 +31,7 @@
 
     var preProcessList = function (response) {
         var recursiveCheck = function (element, index, list) {
-            if (!element.hasOwnProperty("parent"))
-                element.parent = {children: list, parent: undefined};
+            if (!element.hasOwnProperty("parent")) element.parent = {children: list, parent: undefined};
             if (!element.hasOwnProperty("size")) element.size = undefined;
             if (!element.hasOwnProperty("date")) element.date = undefined;
 
@@ -69,24 +68,14 @@
         return this.base.getWithQuery(url, query, opts).done(preProcessList);
     };
 
-    OctoPrintFilesClient.prototype.listForLocation = function (
-        location,
-        recursively,
-        opts
-    ) {
+    OctoPrintFilesClient.prototype.listForLocation = function (location, recursively, opts) {
         recursively = recursively || false;
         return this.base
             .getWithQuery(resourceForLocation(location), {recursive: recursively}, opts)
             .done(preProcessList);
     };
 
-    OctoPrintFilesClient.prototype.issueEntryCommand = function (
-        location,
-        entryname,
-        command,
-        data,
-        opts
-    ) {
+    OctoPrintFilesClient.prototype.issueEntryCommand = function (location, entryname, command, data, opts) {
         var url = resourceForEntry(location, entryname);
         return this.base.issueCommand(url, command, data, opts);
     };
@@ -114,23 +103,11 @@
     };
 
     OctoPrintFilesClient.prototype.copy = function (location, path, destination, opts) {
-        return this.issueEntryCommand(
-            location,
-            path,
-            "copy",
-            {destination: destination},
-            opts
-        );
+        return this.issueEntryCommand(location, path, "copy", {destination: destination}, opts);
     };
 
     OctoPrintFilesClient.prototype.move = function (location, path, destination, opts) {
-        return this.issueEntryCommand(
-            location,
-            path,
-            "move",
-            {destination: destination},
-            opts
-        );
+        return this.issueEntryCommand(location, path, "move", {destination: destination}, opts);
     };
 
     OctoPrintFilesClient.prototype.createFolder = function (location, name, path, opts) {
@@ -200,21 +177,11 @@
     };
 
     OctoPrintFilesClient.prototype.sanitize = function (location, path, filename, opts) {
-        return this.base.issueCommand(
-            testUrl,
-            "sanitize",
-            {storage: location, path: path, filename: filename},
-            opts
-        );
+        return this.base.issueCommand(testUrl, "sanitize", {storage: location, path: path, filename: filename}, opts);
     };
 
     OctoPrintFilesClient.prototype.exists = function (location, path, filename, opts) {
-        return this.base.issueCommand(
-            testUrl,
-            "exists",
-            {storage: location, path: path, filename: filename},
-            opts
-        );
+        return this.base.issueCommand(testUrl, "exists", {storage: location, path: path, filename: filename}, opts);
     };
 
     OctoPrintClient.registerComponent("files", OctoPrintFilesClient);

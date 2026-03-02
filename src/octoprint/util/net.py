@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
@@ -54,94 +53,92 @@ else:
 
 
 def get_lan_ranges(additional_private=None):
-    logger = logging.getLogger(__name__)
+    import socket
+
+    import netaddr
+    import netifaces
+
+    # 1. Use the clean, version-agnostic list of defaults
+    subnets = [
+        netaddr.IPNetwork("127.0.0.0/8"),
+        netaddr.IPNetwork("10.0.0.0/8"),
+        netaddr.IPNetwork("172.16.0.0/12"),
+        netaddr.IPNetwork("192.168.0.0/16"),
+        netaddr.IPNetwork("169.254.0.0/16"),
+        netaddr.IPNetwork("::1/128"),
+        netaddr.IPNetwork("fe80::/10"),
+        netaddr.IPNetwork("fc00::/7"),
+    ]
 
     if additional_private is None or not isinstance(additional_private, (list, tuple)):
         additional_private = []
 
-    def to_ipnetwork(address):
-        prefix = address["netmask"]
-        if "/" in prefix:
-            # v6 notation in netifaces output, e.g. "ffff:ffff:ffff:ffff::/64"
-            _, prefix = prefix.split("/")
-
-        addr = strip_interface_tag(address["addr"])
-        return netaddr.IPNetwork("{}/{}".format(addr, prefix))
-
-    subnets = []
-
+    # 2. Add subnets from all local network interfaces
     for interface in netifaces.interfaces():
-        addrs = netifaces.ifaddresses(interface)
-        for v4 in addrs.get(socket.AF_INET, ()):
-            try:
-                subnets.append(to_ipnetwork(v4))
-            except Exception:
-                if logger.isEnabledFor(logging.DEBUG):
-                    logger.exception(
-                        "Error while trying to add v4 network to local subnets: {!r}".format(
-                            v4
-                        )
-                    )
+        try:
+            addrs = netifaces.ifaddresses(interface)
+            for family in (socket.AF_INET, socket.AF_INET6):
+                for address in addrs.get(family, ()):
+                    try:
+                        addr = strip_interface_tag(address["addr"])
+                        mask = address["netmask"]
+                        if "/" in mask:
+                            _, mask = mask.split("/")
+                        subnets.append(netaddr.IPNetwork("{}/{}".format(addr, mask)))
+                    except Exception:
+                        continue
+        except (ValueError, KeyError):
+            continue
 
-        if HAS_V6:
-            for v6 in addrs.get(socket.AF_INET6, ()):
-                try:
-                    subnets.append(to_ipnetwork(v6))
-                except Exception:
-                    if logger.isEnabledFor(logging.DEBUG):
-                        logger.exception(
-                            "Error while trying to add v6 network to local subnets: {!r}".format(
-                                v6
-                            )
-                        )
-
+    # 3. Add user-defined additional private ranges
     for additional in additional_private:
         try:
             subnets.append(netaddr.IPNetwork(additional))
         except Exception:
-            if logger.isEnabledFor(logging.DEBUG):
-                logger.exception(
-                    "Error while trying to add additional private network to local subnets: {}".format(
-                        additional
-                    )
-                )
+            # Backwards-compatible shorthand for IPv4 ranges like "11/8".
+            # Recent netaddr versions reject this, but older versions accepted
+            # it and users may still have it in their config.
+            try:
+                if isinstance(additional, str) and "/" in additional:
+                    network, prefix = additional.split("/", 1)
+                    if network and "." not in network and ":" not in network:
+                        octets = network.split(".")
+                        if 1 <= len(octets) <= 4 and all(
+                            octet.isdigit() and 0 <= int(octet) <= 255 for octet in octets
+                        ):
+                            padded_network = ".".join(octets + ["0"] * (4 - len(octets)))
+                            subnets.append(
+                                netaddr.IPNetwork("{}/{}".format(padded_network, prefix))
+                            )
+                            continue
+            except Exception:
+                pass
 
-    subnets += list(netaddr.ip.IPV4_PRIVATE) + [
-        netaddr.ip.IPV4_LOOPBACK,
-        netaddr.ip.IPV4_LINK_LOCAL,
-    ]
-    if HAS_V6:
-        subnets += list(netaddr.ip.IPV6_PRIVATE) + [
-            netaddr.IPNetwork(netaddr.ip.IPV6_LOOPBACK),
-            netaddr.ip.IPV6_LINK_LOCAL,
-        ]
+            continue
 
     return subnets
 
 
 def is_lan_address(address, additional_private=None):
-    if not address:
-        # no address is LAN address
+    if address is None:
         return True
+
+    import netaddr
 
     try:
-        address = sanitize_address(address)
-        ip = netaddr.IPAddress(address)
-        subnets = get_lan_ranges(additional_private=additional_private)
-
-        if any(map(lambda subnet: ip in subnet, subnets)):
-            return True
-
+        # Convert input to IPAddress and normalize mapped IPv4 (::ffff:x.x.x.x)
+        ip = netaddr.IPAddress(strip_interface_tag(address))
+        if ip.is_ipv4_mapped():
+            ip = ip.ipv4()
+    except Exception:
         return False
 
-    except Exception:
-        # we are extra careful here since an unhandled exception in this method will effectively nuke the whole UI
-        logging.getLogger(__name__).exception(
-            "Error while trying to determine whether {} is a local address".format(
-                address
-            )
-        )
-        return True
+    subnets = get_lan_ranges(additional_private=additional_private)
+    for subnet in subnets:
+        # Crucial: comparing IPAddress object against IPNetwork object
+        if ip in subnet:
+            return True
+    return False
 
 
 def sanitize_address(address):

@@ -31,14 +31,14 @@ $(function () {
 
         self.octoprintUnconfigured = ko.pureComputed(function () {
             return (
-                self.settings.settings.plugins.softwareupdate.octoprint_type() ===
-                    "git_commit" && self.error_checkoutFolder()
+                self.settings.settings.plugins.softwareupdate.octoprint_type() === "git_commit" &&
+                self.error_checkoutFolder()
             );
         });
         self.octoprintUnreleased = ko.pureComputed(function () {
             return (
-                self.settings.settings.plugins.softwareupdate.octoprint_type() ===
-                    "github_release" && !self.octoprintReleasedVersion()
+                self.settings.settings.plugins.softwareupdate.octoprint_type() === "github_release" &&
+                !self.octoprintReleasedVersion()
             );
         });
 
@@ -66,8 +66,7 @@ $(function () {
         self.error_checkoutFolder = ko.pureComputed(function () {
             return (
                 self.config_checkType() === "git_commit" &&
-                (!self.config_checkoutFolder() ||
-                    self.config_checkoutFolder().trim() === "")
+                (!self.config_checkoutFolder() || self.config_checkoutFolder().trim() === "")
             );
         });
 
@@ -82,9 +81,7 @@ $(function () {
         });
 
         self.enableUpdateAll = ko.pureComputed(function () {
-            return (
-                self.enableUpdate() && self.availableAndPossibleAndEnabled().length > 0
-            );
+            return self.enableUpdate() && self.availableAndPossibleAndEnabled().length > 0;
         });
 
         self.enable_configSave = ko.pureComputed(function () {
@@ -111,16 +108,8 @@ $(function () {
                     if (a.key.toLocaleLowerCase() === "octoprint") return -1;
                     if (b.key.toLocaleLowerCase() === "octoprint") return 1;
 
-                    if (
-                        a.displayName.toLocaleLowerCase() <
-                        b.displayName.toLocaleLowerCase()
-                    )
-                        return -1;
-                    if (
-                        a.displayName.toLocaleLowerCase() >
-                        b.displayName.toLocaleLowerCase()
-                    )
-                        return 1;
+                    if (a.displayName.toLocaleLowerCase() < b.displayName.toLocaleLowerCase()) return -1;
+                    if (a.displayName.toLocaleLowerCase() > b.displayName.toLocaleLowerCase()) return 1;
                     return 0;
                 }
             },
@@ -160,11 +149,7 @@ $(function () {
         });
 
         self.onUserPermissionsChanged = self.onUserLoggedIn = self.onUserLoggedOut = function () {
-            if (
-                self.loginState.hasPermission(
-                    self.access.permissions.PLUGIN_SOFTWAREUPDATE_CHECK
-                )
-            ) {
+            if (self.loginState.hasPermission(self.access.permissions.PLUGIN_SOFTWAREUPDATE_CHECK)) {
                 self.performCheck();
             } else {
                 self._closePopup();
@@ -254,77 +239,43 @@ $(function () {
             self.config_availableCheckTypes(availableCheckTypes);
 
             var availableReleaseChannels = [];
-            _.each(
-                self.settings.settings.plugins.softwareupdate.octoprint_branch_mappings(),
-                function (mapping) {
-                    availableReleaseChannels.push({
-                        key: mapping.branch(),
-                        name: gettext(mapping.name() || mapping.branch())
-                    });
-                }
-            );
+            _.each(self.settings.settings.plugins.softwareupdate.octoprint_branch_mappings(), function (mapping) {
+                availableReleaseChannels.push({
+                    key: mapping.branch(),
+                    name: gettext(mapping.name() || mapping.branch())
+                });
+            });
             self.config_availableReleaseChannels(availableReleaseChannels);
 
-            self.config_cacheTtl(
-                self.settings.settings.plugins.softwareupdate.cache_ttl()
-            );
-            self.config_notifyUsers(
-                self.settings.settings.plugins.softwareupdate.notify_users()
-            );
+            self.config_cacheTtl(self.settings.settings.plugins.softwareupdate.cache_ttl());
+            self.config_notifyUsers(self.settings.settings.plugins.softwareupdate.notify_users());
 
-            self.config_checkType(
-                self.settings.settings.plugins.softwareupdate.octoprint_type()
-            );
-            self.config_releaseChannel(
-                self.settings.settings.plugins.softwareupdate.octoprint_release_channel()
-            );
-            self.config_checkoutFolder(
-                self.settings.settings.plugins.softwareupdate.octoprint_checkout_folder()
-            );
-            self.config_trackedBranch(
-                self.settings.settings.plugins.softwareupdate.octoprint_tracked_branch()
-            );
-            self.config_pipTarget(
-                self.settings.settings.plugins.softwareupdate.octoprint_pip_target()
-            );
+            self.config_checkType(self.settings.settings.plugins.softwareupdate.octoprint_type());
+            self.config_releaseChannel(self.settings.settings.plugins.softwareupdate.octoprint_release_channel());
+            self.config_checkoutFolder(self.settings.settings.plugins.softwareupdate.octoprint_checkout_folder());
+            self.config_trackedBranch(self.settings.settings.plugins.softwareupdate.octoprint_tracked_branch());
+            self.config_pipTarget(self.settings.settings.plugins.softwareupdate.octoprint_pip_target());
 
-            self.config_pipEnableCheck(
-                self.settings.settings.plugins.softwareupdate.pip_enable_check()
-            );
+            self.config_pipEnableCheck(self.settings.settings.plugins.softwareupdate.pip_enable_check());
 
-            self.config_minimumFreeStorage(
-                self.settings.settings.plugins.softwareupdate.minimum_free_storage()
-            );
+            self.config_minimumFreeStorage(self.settings.settings.plugins.softwareupdate.minimum_free_storage());
         };
 
         self._copyConfigBack = function () {
-            self.settings.settings.plugins.softwareupdate.octoprint_checkout_folder(
-                self.config_checkoutFolder()
-            );
-            self.settings.settings.plugins.softwareupdate.octoprint_type(
-                self.config_checkType()
-            );
+            self.settings.settings.plugins.softwareupdate.octoprint_checkout_folder(self.config_checkoutFolder());
+            self.settings.settings.plugins.softwareupdate.octoprint_type(self.config_checkType());
         };
 
         self._enrichInformation = function (key, information) {
             information["key"] = key;
 
-            if (
-                !information.hasOwnProperty("displayName") ||
-                information.displayName === ""
-            ) {
+            if (!information.hasOwnProperty("displayName") || information.displayName === "") {
                 information.displayName = information.key;
             }
-            if (
-                !information.hasOwnProperty("displayVersion") ||
-                information.displayVersion === ""
-            ) {
+            if (!information.hasOwnProperty("displayVersion") || information.displayVersion === "") {
                 information.displayVersion = information.information.local.name;
             }
-            if (
-                !information.hasOwnProperty("releaseNotes") ||
-                information.releaseNotes === ""
-            ) {
+            if (!information.hasOwnProperty("releaseNotes") || information.releaseNotes === "") {
                 information.releaseNotes = undefined;
             }
 
@@ -343,16 +294,12 @@ $(function () {
                 information.information.hasOwnProperty("remote") &&
                 information.information.remote.hasOwnProperty("name")
             ) {
-                fullNameRemoteVars.version = _.escape(
-                    information.information.remote.name
-                );
+                fullNameRemoteVars.version = _.escape(information.information.remote.name);
             }
             information.fullNameRemote = _.sprintf(fullNameTemplate, fullNameRemoteVars);
 
             if (information.releaseChannels && information.releaseChannels.current) {
-                information.releaseChannels.current = ko.observable(
-                    information.releaseChannels.current
-                );
+                information.releaseChannels.current = ko.observable(information.releaseChannels.current);
                 information.releaseChannels.current.subscribe(function (selected) {
                     var patch = {};
                     patch[key] = {channel: selected};
@@ -393,17 +340,12 @@ $(function () {
             self.storageFree(data.storage.free);
 
             if (data.status === "inProgress") {
-                self._markWorking(
-                    gettext("Updating..."),
-                    gettext("Updating, please wait.")
-                );
+                self._markWorking(gettext("Updating..."), gettext("Updating, please wait."));
                 return;
             }
 
             if (
-                !self.loginState.hasPermission(
-                    self.access.permissions.PLUGIN_SOFTWAREUPDATE_UPDATE
-                ) &&
+                !self.loginState.hasPermission(self.access.permissions.PLUGIN_SOFTWAREUPDATE_UPDATE) &&
                 !self.settings.settings.plugins.softwareupdate.notify_users()
             )
                 return;
@@ -415,17 +357,11 @@ $(function () {
 
                 text += "<ul class='fa-ul'>";
                 _.each(self.versions.items(), function (update_info) {
-                    if (
-                        update_info.updateAvailable &&
-                        !update_info.disabled &&
-                        update_info.compatible
-                    ) {
+                    if (update_info.updateAvailable && !update_info.disabled && update_info.compatible) {
                         text +=
                             "<li>" +
                             "<i class='fa fa-li " +
-                            (update_info.updatePossible &&
-                            self.environmentSupported() &&
-                            self.storageSufficient()
+                            (update_info.updatePossible && self.environmentSupported() && self.storageSufficient()
                                 ? "fa-check"
                                 : "fa-remove") +
                             "'></i>" +
@@ -449,31 +385,21 @@ $(function () {
                 if (!self.environmentSupported()) {
                     text +=
                         "<p><small>" +
-                        gettext(
-                            "This version of the Python environment is not supported for direct updates."
-                        ) +
+                        gettext("This version of the Python environment is not supported for direct updates.") +
                         "</small></p>";
                 } else if (!self.storageSufficient()) {
                     text +=
                         "<p><small>" +
-                        gettext(
-                            "There's currently not enough free disk space available for a direct update."
-                        ) +
+                        gettext("There's currently not enough free disk space available for a direct update.") +
                         "</small></p>";
                 } else {
                     text +=
                         "<p><small>" +
-                        gettext(
-                            'Those components marked with <i class="fa fa-check"></i> can be updated directly.'
-                        ) +
+                        gettext('Those components marked with <i class="fa fa-check"></i> can be updated directly.') +
                         "</small></p>";
                 }
 
-                if (
-                    !self.loginState.hasPermission(
-                        self.access.permissions.PLUGIN_SOFTWAREUPDATE_UPDATE
-                    )
-                ) {
+                if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_SOFTWAREUPDATE_UPDATE)) {
                     text +=
                         "<p><small>" +
                         gettext(
@@ -494,9 +420,7 @@ $(function () {
                 var singleButtonNotify = false;
                 if (
                     data.status === "updatePossible" &&
-                    self.loginState.hasPermission(
-                        self.access.permissions.PLUGIN_SOFTWAREUPDATE_UPDATE
-                    )
+                    self.loginState.hasPermission(self.access.permissions.PLUGIN_SOFTWAREUPDATE_UPDATE)
                 ) {
                     // if update is possible and user is admin, add action buttons for ignore and update
                     options["confirm"] = {
@@ -549,10 +473,7 @@ $(function () {
                     singleButtonNotify = true;
                 }
 
-                if (
-                    (ignoreSeen || !self._hasNotificationBeenSeen(data.information)) &&
-                    !OctoPrint.coreui.wizardOpen
-                ) {
+                if ((ignoreSeen || !self._hasNotificationBeenSeen(data.information)) && !OctoPrint.coreui.wizardOpen) {
                     self._showPopup(options, eventListeners, singleButtonNotify);
                 }
             } else if (data.status === "current") {
@@ -584,19 +505,13 @@ $(function () {
         };
 
         self.requestUpdatelog = function () {
-            OctoPrint.plugins.softwareupdate
-                .getUpdatelog()
-                .done(self.fromUpdatelogResponse);
+            OctoPrint.plugins.softwareupdate.getUpdatelog().done(self.fromUpdatelogResponse);
         };
 
         self.iconTitleForEntry = function (data) {
             if (data.updatePossible) {
                 return "";
-            } else if (
-                !data.online &&
-                data.information &&
-                data.information.needs_online
-            ) {
+            } else if (!data.online && data.information && data.information.needs_online) {
                 return gettext("No internet connection");
             } else if (data.error) {
                 return self.errorTextForEntry(data);
@@ -621,17 +536,13 @@ $(function () {
                     return gettext("Network error while checking for update");
                 }
                 case "ratelimit": {
-                    return gettext(
-                        "Rate limit exceeded while checking for update, please try again later"
-                    );
+                    return gettext("Rate limit exceeded while checking for update, please try again later");
                 }
                 case "check": {
                     return gettext("Check internal error while checking for update");
                 }
                 case "unknown": {
-                    return gettext(
-                        "Unknown error while checking for update, please check the logs"
-                    );
+                    return gettext("Unknown error while checking for update, please check the logs");
                 }
                 default: {
                     return "";
@@ -650,20 +561,15 @@ $(function () {
                 current = JSON.parse(currentString);
             }
             current[self.loginState.username()] = self._informationToRemoteVersions(data);
-            localStorage["plugin.softwareupdate.seen_information"] = JSON.stringify(
-                current
-            );
+            localStorage["plugin.softwareupdate.seen_information"] = JSON.stringify(current);
         };
 
         self._hasNotificationBeenSeen = function (data) {
             if (!Modernizr.localstorage) return false;
 
-            if (localStorage["plugin.softwareupdate.seen_information"] === undefined)
-                return false;
+            if (localStorage["plugin.softwareupdate.seen_information"] === undefined) return false;
 
-            var knownData = JSON.parse(
-                localStorage["plugin.softwareupdate.seen_information"]
-            );
+            var knownData = JSON.parse(localStorage["plugin.softwareupdate.seen_information"]);
 
             var userData = knownData[self.loginState.username()];
             if (userData === undefined) return false;
@@ -709,10 +615,7 @@ $(function () {
                 .update(items, force)
                 .done(function (data) {
                     self.currentlyBeingUpdated = data.checks;
-                    self._markWorking(
-                        gettext("Updating..."),
-                        gettext("Updating, please wait.")
-                    );
+                    self._markWorking(gettext("Updating..."), gettext("Updating, please wait."));
                 })
                 .fail(function (response) {
                     self.updateInProgress = false;
@@ -747,9 +650,7 @@ $(function () {
 
         self.updateAccess = function () {
             return (
-                self.loginState.hasPermission(
-                    self.access.permissions.PLUGIN_SOFTWAREUPDATE_UPDATE
-                ) || CONFIG_FIRST_RUN
+                self.loginState.hasPermission(self.access.permissions.PLUGIN_SOFTWAREUPDATE_UPDATE) || CONFIG_FIRST_RUN
             );
         };
 
@@ -766,9 +667,7 @@ $(function () {
             if (self.printerState.isPrinting()) {
                 self._showPopup({
                     title: gettext("Can't update while printing"),
-                    text: gettext(
-                        "A print job is currently in progress. Updating will be prevented until it is done."
-                    ),
+                    text: gettext("A print job is currently in progress. Updating will be prevented until it is done."),
                     type: "error"
                 });
                 self._updateClicked = false;
@@ -787,12 +686,7 @@ $(function () {
                 return;
             }
 
-            var html =
-                "<p>" +
-                gettext(
-                    "This will update the following components and restart the server:"
-                ) +
-                "</p>";
+            var html = "<p>" + gettext("This will update the following components and restart the server:") + "</p>";
             html += "<ul>";
             _.each(items, function (item) {
                 html +=
@@ -851,9 +745,8 @@ $(function () {
         self._showWorkingDialog = function (title) {
             if (
                 !(
-                    self.loginState.hasPermission(
-                        self.access.permissions.PLUGIN_SOFTWAREUPDATE_CHECK
-                    ) || CONFIG_FIRST_RUN
+                    self.loginState.hasPermission(self.access.permissions.PLUGIN_SOFTWAREUPDATE_CHECK) ||
+                    CONFIG_FIRST_RUN
                 )
             ) {
                 return;
@@ -886,9 +779,7 @@ $(function () {
         };
 
         self._scrollWorkingOutputToEnd = function () {
-            self.workingOutput.scrollTop(
-                self.workingOutput[0].scrollHeight - self.workingOutput.height()
-            );
+            self.workingOutput.scrollTop(self.workingOutput[0].scrollHeight - self.workingOutput.height());
         };
 
         self.onBeforeWizardTabChange = function (next, current) {
@@ -910,12 +801,8 @@ $(function () {
 
         self.onStartup = function () {
             self.workingDialog = $("#settings_plugin_softwareupdate_workingdialog");
-            self.workingOutput = $(
-                "#settings_plugin_softwareupdate_workingdialog_output"
-            );
-            self.configurationDialog = $(
-                "#settings_plugin_softwareupdate_configurationdialog"
-            );
+            self.workingOutput = $("#settings_plugin_softwareupdate_workingdialog_output");
+            self.configurationDialog = $("#settings_plugin_softwareupdate_configurationdialog");
         };
 
         self.onServerDisconnect = function () {
@@ -931,11 +818,7 @@ $(function () {
         };
 
         self.onWizardDetails = function (data) {
-            if (
-                data.softwareupdate &&
-                data.softwareupdate.details &&
-                data.softwareupdate.details.update
-            ) {
+            if (data.softwareupdate && data.softwareupdate.details && data.softwareupdate.details.update) {
                 var value = data.softwareupdate.details.update;
                 self._enrichInformation("octoprint", value);
 
@@ -979,10 +862,7 @@ $(function () {
                 case "success":
                 case "error": {
                     if (!self.working()) {
-                        self._markWorking(
-                            gettext("Updating..."),
-                            gettext("Updating, please wait.")
-                        );
+                        self._markWorking(gettext("Updating..."), gettext("Updating, please wait."));
                     }
                     break;
                 }
@@ -1024,9 +904,7 @@ $(function () {
                 }
                 case "restarting": {
                     title = gettext("Update successful, restarting!");
-                    text = gettext(
-                        "The update finished successfully and the server will now be restarted."
-                    );
+                    text = gettext("The update finished successfully and the server will now be restarted.");
 
                     options = {
                         title: title,
@@ -1066,13 +944,9 @@ $(function () {
                 }
                 case "restart_manually": {
                     restartType = messageData.restart_type;
-                    text = gettext(
-                        "The update finished successfully, please restart OctoPrint now."
-                    );
+                    text = gettext("The update finished successfully, please restart OctoPrint now.");
                     if (restartType === "environment") {
-                        text = gettext(
-                            "The update finished successfully, please reboot the server now."
-                        );
+                        text = gettext("The update finished successfully, please reboot the server now.");
                     }
 
                     title = gettext("Update successful, restart required!");

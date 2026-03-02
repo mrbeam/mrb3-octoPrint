@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 __author__ = "Gina Häußge <osd@foosel.net>"
@@ -12,8 +11,9 @@ import site
 import sys
 import threading
 
-import pkg_resources
 import sarge
+from packaging.requirements import Requirement
+from packaging.version import parse as parse_version
 
 from octoprint.util import to_unicode
 from octoprint.util.platform import CLOSE_FDS
@@ -29,11 +29,11 @@ class UnknownPip(Exception):
 
 
 class PipCaller(CommandlineCaller):
-    process_dependency_links = pkg_resources.Requirement.parse("pip>=1.5")
-    no_cache_dir = pkg_resources.Requirement.parse("pip>=1.6")
-    disable_pip_version_check = pkg_resources.Requirement.parse("pip>=6.0")
-    no_use_wheel = pkg_resources.Requirement.parse("pip==1.5.0")
-    broken = pkg_resources.Requirement.parse("pip>=6.0.1,<=6.0.3")
+    process_dependency_links = Requirement("pip>=1.5")
+    no_cache_dir = Requirement("pip>=1.6")
+    disable_pip_version_check = Requirement("pip>=6.0")
+    no_use_wheel = Requirement("pip==1.5.0")
+    broken = Requirement("pip>=6.0.1,<=6.0.3")
 
     @classmethod
     def clean_install_command(cls, args, pip_version, virtual_env, use_user, force_user):
@@ -42,7 +42,9 @@ class PipCaller(CommandlineCaller):
 
         # strip --process-dependency-links for versions that don't support it
         if (
-            pip_version not in cls.process_dependency_links
+            not cls.process_dependency_links.specifier.contains(
+                str(pip_version), prereleases=True
+            )
             and "--process-dependency-links" in args
         ):
             logger.debug(
@@ -53,7 +55,10 @@ class PipCaller(CommandlineCaller):
             args.remove("--process-dependency-links")
 
         # strip --no-cache-dir for versions that don't support it
-        if pip_version not in cls.no_cache_dir and "--no-cache-dir" in args:
+        if (
+            not cls.no_cache_dir.specifier.contains(str(pip_version), prereleases=True)
+            and "--no-cache-dir" in args
+        ):
             logger.debug(
                 "Found --no-cache-dir flag, version {} doesn't support that yet though, removing.".format(
                     pip_version
@@ -63,7 +68,9 @@ class PipCaller(CommandlineCaller):
 
         # strip --disable-pip-version-check for versions that don't support it
         if (
-            pip_version not in cls.disable_pip_version_check
+            not cls.disable_pip_version_check.specifier.contains(
+                str(pip_version), prereleases=True
+            )
             and "--disable-pip-version-check" in args
         ):
             logger.debug(
@@ -74,7 +81,10 @@ class PipCaller(CommandlineCaller):
             args.remove("--disable-pip-version-check")
 
         # add --no-use-wheel for versions that otherwise break
-        if pip_version in cls.no_use_wheel and "--no-use-wheel" not in args:
+        if (
+            cls.no_use_wheel.specifier.contains(str(pip_version), prereleases=True)
+            and "--no-use-wheel" not in args
+        ):
             logger.debug(
                 "Version {} needs --no-use-wheel to properly work.".format(pip_version)
             )
@@ -220,7 +230,7 @@ class PipCaller(CommandlineCaller):
         if pip_version is None:
             return
 
-        if pip_version in self.__class__.broken:
+        if self.__class__.broken.specifier.contains(str(pip_version), prereleases=True):
             self._logger.error(
                 "This version of pip is known to have bugs that make it incompatible with how it needs "
                 "to be used by OctoPrint. Please upgrade your pip version."
@@ -379,7 +389,7 @@ class PipCaller(CommandlineCaller):
             version_segment = split_output[1]
 
             try:
-                pip_version = pkg_resources.parse_version(version_segment)
+                pip_version = parse_version(version_segment)
             except Exception:
                 self._logger.exception(
                     "Error while trying to parse version string from pip command"

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This module represents OctoPrint's plugin subsystem. This includes management and helper methods as well as the
 registered plugin types.

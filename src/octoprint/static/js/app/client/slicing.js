@@ -27,39 +27,21 @@
         return this.base.get(slicerUrl(slicer) + "/profiles", opts);
     };
 
-    OctoPrintSlicingClient.prototype.getProfileForSlicer = function (
-        slicer,
-        profileId,
-        opts
-    ) {
+    OctoPrintSlicingClient.prototype.getProfileForSlicer = function (slicer, profileId, opts) {
         return this.base.get(profileUrl(slicer, profileId), opts);
     };
 
-    OctoPrintSlicingClient.prototype.addProfileForSlicer = function (
-        slicer,
-        profileId,
-        profile,
-        opts
-    ) {
+    OctoPrintSlicingClient.prototype.addProfileForSlicer = function (slicer, profileId, profile, opts) {
         profile = profile || {};
         return this.base.putJson(profileUrl(slicer, profileId), profile, opts);
     };
 
-    OctoPrintSlicingClient.prototype.updateProfileForSlicer = function (
-        slicer,
-        profileId,
-        profile,
-        opts
-    ) {
+    OctoPrintSlicingClient.prototype.updateProfileForSlicer = function (slicer, profileId, profile, opts) {
         profile = profile || {};
         return this.base.patchJson(profileUrl(slicer, profileId), profile, opts);
     };
 
-    OctoPrintSlicingClient.prototype.deleteProfileForSlicer = function (
-        slicer,
-        profileId,
-        opts
-    ) {
+    OctoPrintSlicingClient.prototype.deleteProfileForSlicer = function (slicer, profileId, opts) {
         return this.base.delete(profileUrl(slicer, profileId), opts);
     };
 
