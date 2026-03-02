@@ -1353,7 +1353,7 @@ def check_lastmodified(lastmodified):
     if lastmodified is None:
         return False
 
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     if isinstance(lastmodified, (int, long, float)):
         # max(86400, lastmodified) is workaround for https://bugs.python.org/issue29097,
@@ -1361,7 +1361,9 @@ def check_lastmodified(lastmodified):
         #
         # I think it's fair to say that we'll never encounter lastmodified values older than
         # 1970-01-02 so this is a safe workaround.
-        lastmodified = datetime.fromtimestamp(max(86400, lastmodified)).replace(
+        lastmodified = datetime.fromtimestamp(
+            max(86400, lastmodified), tz=timezone.utc
+        ).replace(
             microsecond=0
         )
 
@@ -1371,6 +1373,13 @@ def check_lastmodified(lastmodified):
                 lastmodified.__class__
             )
         )
+
+    if (
+        flask.request.if_modified_since is not None
+        and flask.request.if_modified_since.tzinfo is not None
+        and lastmodified.tzinfo is None
+    ):
+        lastmodified = lastmodified.replace(tzinfo=timezone.utc)
 
     return (
         flask.request.method in ("GET", "HEAD")
