@@ -33,9 +33,7 @@ $(function () {
 
         self.addEvent = function () {
             self.selectedCommand(self.eventDetails(false));
-            self.settingsViewModel.settings.plugins.eventmanager.subscriptions.push(
-                self.selectedCommand()
-            );
+            self.settingsViewModel.settings.plugins.eventmanager.subscriptions.push(self.selectedCommand());
             $("#EventManagerEditor").modal("show");
         };
 
@@ -45,9 +43,7 @@ $(function () {
         };
 
         self.removeEvent = function (data) {
-            self.settingsViewModel.settings.plugins.eventmanager.subscriptions.remove(
-                data
-            );
+            self.settingsViewModel.settings.plugins.eventmanager.subscriptions.remove(data);
         };
     }
 

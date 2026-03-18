@@ -107,10 +107,7 @@ $(function () {
 
             var current = self.slicer();
             if (!containsSlicer(current)) {
-                if (
-                    self.defaultSlicer !== undefined &&
-                    containsSlicer(self.defaultSlicer)
-                ) {
+                if (self.defaultSlicer !== undefined && containsSlicer(self.defaultSlicer)) {
                     self.slicer(self.defaultSlicer);
                 } else {
                     self.slicer(undefined);
@@ -150,9 +147,7 @@ $(function () {
             self.target = target;
             self.file(file);
             self.path = path;
-            self.title(
-                _.sprintf(gettext("Slicing %(filename)s"), {filename: _.escape(display)})
-            );
+            self.title(_.sprintf(gettext("Slicing %(filename)s"), {filename: _.escape(display)}));
             self.destinationFilename(destination);
             self.printerProfile(self.printerProfiles.currentProfile());
             self.afterSlicing("none");
@@ -184,17 +179,13 @@ $(function () {
                 self.destinationFilename().trim() != "" &&
                 self.slicer() != undefined &&
                 self.profile() != undefined &&
-                (!(self.printerState.isPrinting() || self.printerState.isPaused()) ||
-                    !self.slicerSameDevice())
+                (!(self.printerState.isPrinting() || self.printerState.isPaused()) || !self.slicerSameDevice())
             );
         });
 
         self.sliceButtonTooltip = ko.pureComputed(function () {
             if (!self.enableSliceButton()) {
-                if (
-                    (self.printerState.isPrinting() || self.printerState.isPaused()) &&
-                    self.slicerSameDevice()
-                ) {
+                if ((self.printerState.isPrinting() || self.printerState.isPaused()) && self.slicerSameDevice()) {
                     return gettext("Cannot slice on the same device while printing");
                 } else {
                     return gettext("Cannot slice, not all parameters specified");
@@ -283,14 +274,10 @@ $(function () {
                     : ["???"];
             if (
                 !_.any(destinationExtensions, function (extension) {
-                    return _.endsWith(
-                        destinationFilename.toLowerCase(),
-                        "." + extension.toLowerCase()
-                    );
+                    return _.endsWith(destinationFilename.toLowerCase(), "." + extension.toLowerCase());
                 })
             ) {
-                destinationFilename =
-                    destinationFilename + "." + destinationExtensions[0];
+                destinationFilename = destinationFilename + "." + destinationExtensions[0];
             }
 
             var data = {
@@ -338,12 +325,7 @@ $(function () {
 
     OCTOPRINT_VIEWMODELS.push({
         construct: SlicingViewModel,
-        dependencies: [
-            "loginStateViewModel",
-            "printerProfilesViewModel",
-            "printerStateViewModel",
-            "accessViewModel"
-        ],
+        dependencies: ["loginStateViewModel", "printerProfilesViewModel", "printerStateViewModel", "accessViewModel"],
         elements: ["#slicing_configuration_dialog"]
     });
 });

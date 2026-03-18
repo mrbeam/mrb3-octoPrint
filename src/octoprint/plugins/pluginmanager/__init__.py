@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 __author__ = "Gina Häußge <osd@foosel.net>"
@@ -18,12 +17,11 @@ import time
 from datetime import datetime
 
 import filetype
-import pkg_resources
 import requests
 import sarge
 from flask import Response, abort, jsonify, request
 from flask_babel import gettext
-from past.builtins import basestring
+from packaging.requirements import Requirement
 
 import octoprint.plugin
 import octoprint.plugin.core
@@ -94,7 +92,7 @@ def map_repository_entry(entry):
         if (
             "python" in entry["compatibility"]
             and entry["compatibility"]["python"] is not None
-            and isinstance(entry["compatibility"]["python"], basestring)
+            and isinstance(entry["compatibility"]["python"], str)
         ):
             result["is_compatible"]["python"] = is_python_compatible(
                 entry["compatibility"]["python"]
@@ -1403,7 +1401,7 @@ class PluginManagerPlugin(
         result_notifications=True,
         settings_save=True,
     ):
-        if isinstance(plugin, basestring):
+        if isinstance(plugin, str):
             key = result_value = plugin
         else:
             key = plugin.key
@@ -1980,9 +1978,7 @@ class PluginManagerPlugin(
             try:
                 result = hook()
                 if isinstance(result, (list, tuple)):
-                    reconnect_hooks.extend(
-                        filter(lambda x: isinstance(x, basestring), result)
-                    )
+                    reconnect_hooks.extend(filter(lambda x: isinstance(x, str), result))
             except Exception:
                 self._logger.exception(
                     "Error while retrieving additional hooks for which a "
@@ -2110,7 +2106,7 @@ def _filter_relevant_notification(notification, plugin_version, octoprint_versio
         is_range = lambda x: "=" in x or ">" in x or "<" in x
         version_ranges = list(
             map(
-                lambda x: pkg_resources.Requirement.parse(notification["plugin"] + x),
+                lambda x: Requirement(notification["plugin"] + x),
                 filter(is_range, pluginversions),
             )
         )
@@ -2128,7 +2124,16 @@ def _filter_relevant_notification(notification, plugin_version, octoprint_versio
             (version_ranges is None and versions is None)
             or (
                 version_ranges
-                and (any(map(lambda v: plugin_version in v, version_ranges)))
+                and (
+                    any(
+                        map(
+                            lambda v: v.specifier.contains(
+                                str(plugin_version), prereleases=True
+                            ),
+                            version_ranges,
+                        )
+                    )
+                )
             )
             or (versions and plugin_version in versions)
         )

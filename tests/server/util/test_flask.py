@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 """
@@ -11,7 +10,9 @@ __copyright__ = "Copyright (C) 2016 The OctoPrint Project - Released under terms
 
 
 import unittest
+from datetime import datetime, timezone
 
+import flask
 import mock
 from ddt import data, ddt, unpack
 
@@ -582,3 +583,33 @@ class OctoPrintFlaskResponseTest(unittest.TestCase):
                             path=expected_path_delete,
                             domain=None,
                         )
+
+
+class LastModifiedTest(unittest.TestCase):
+    def test_check_lastmodified_supports_aware_if_modified_since(self):
+        from octoprint.server.util.flask import check_lastmodified
+
+        app = flask.Flask(__name__)
+        with app.test_request_context(
+            "/",
+            method="GET",
+            headers={"If-Modified-Since": "Mon, 02 Mar 2026 14:09:45 GMT"},
+        ):
+            self.assertTrue(check_lastmodified(1772460585.0))
+
+    def test_check_lastmodified_normalizes_naive_datetime(self):
+        from octoprint.server.util.flask import check_lastmodified
+
+        app = flask.Flask(__name__)
+        with app.test_request_context(
+            "/",
+            method="GET",
+            headers={"If-Modified-Since": "Mon, 02 Mar 2026 14:09:45 GMT"},
+        ):
+            naive_utc = datetime(2026, 3, 2, 14, 9, 45)
+            self.assertTrue(check_lastmodified(naive_utc))
+            self.assertFalse(
+                check_lastmodified(
+                    datetime(2026, 3, 2, 14, 9, 46, tzinfo=timezone.utc)
+                )
+            )

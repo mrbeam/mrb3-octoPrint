@@ -27,11 +27,7 @@ $(function () {
 
     OCTOPRINT_VIEWMODELS.push({
         construct: LoginUiViewModel,
-        dependencies: [
-            "loginStateViewModel",
-            "accessViewModel",
-            "coreWizardAclViewModel"
-        ],
+        dependencies: ["loginStateViewModel", "accessViewModel", "coreWizardAclViewModel"],
         optional: ["coreWizardAclViewModel"]
     });
 });

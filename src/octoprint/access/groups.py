@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 __author__ = "Marc Hannappel <salandora@gmail.com>"
@@ -11,7 +10,6 @@ import os
 from functools import partial
 
 import yaml
-from past.builtins import basestring
 
 from octoprint.access import ADMIN_GROUP, GUEST_GROUP, READONLY_GROUP, USER_GROUP
 from octoprint.access.permissions import OctoPrintPermission, Permissions
@@ -180,7 +178,7 @@ class GroupManager(object):
         # noinspection PyCompatibility
         if isinstance(group, Group):
             return group
-        elif isinstance(group, basestring):
+        elif isinstance(group, str):
             return self.find_group(group)
         elif isinstance(group, dict):
             return self.find_group(group.get("key"))

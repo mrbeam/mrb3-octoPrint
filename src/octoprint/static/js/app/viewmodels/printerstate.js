@@ -37,12 +37,7 @@ $(function () {
         self.isSdReady = ko.observable(undefined);
 
         self.isBusy = ko.pureComputed(function () {
-            return (
-                self.isPrinting() ||
-                self.isCancelling() ||
-                self.isPausing() ||
-                self.isPaused()
-            );
+            return self.isPrinting() || self.isCancelling() || self.isPausing() || self.isPaused();
         });
 
         self.enablePrint = ko.pureComputed(function () {
@@ -97,9 +92,7 @@ $(function () {
 
         self.currentHeight = ko.observable(undefined);
 
-        self.TITLE_PRINT_BUTTON_PAUSED = gettext(
-            "Restarts the print job from the beginning"
-        );
+        self.TITLE_PRINT_BUTTON_PAUSED = gettext("Restarts the print job from the beginning");
         self.TITLE_PRINT_BUTTON_UNPAUSED = gettext("Starts the print job");
         self.TITLE_PAUSE_BUTTON_PAUSED = gettext("Resumes the print job");
         self.TITLE_PAUSE_BUTTON_UNPAUSED = gettext("Pauses the print job");
@@ -114,9 +107,7 @@ $(function () {
         };
         self.estimatedPrintTimeString = ko.pureComputed(function () {
             return estimatedPrintTimeStringHlpr(
-                self.settings.appearance_fuzzyTimes()
-                    ? formatFuzzyPrintTime
-                    : formatDuration
+                self.settings.appearance_fuzzyTimes() ? formatFuzzyPrintTime : formatDuration
             );
         });
         self.estimatedPrintTimeExactString = ko.pureComputed(function () {
@@ -148,9 +139,7 @@ $(function () {
         };
         self.printTimeLeftString = ko.pureComputed(function () {
             return printTimeLeftStringHlpr(
-                self.settings.appearance_fuzzyTimes()
-                    ? formatFuzzyPrintTime
-                    : formatDuration
+                self.settings.appearance_fuzzyTimes() ? formatFuzzyPrintTime : formatDuration
             );
         });
         self.printTimeLeftExactString = ko.pureComputed(function () {
@@ -165,14 +154,10 @@ $(function () {
                     );
                 }
                 case "analysis": {
-                    return gettext(
-                        "Based on the estimate from analysis of file (medium accuracy)"
-                    );
+                    return gettext("Based on the estimate from analysis of file (medium accuracy)");
                 }
                 case "mixed-analysis": {
-                    return gettext(
-                        "Based on a mix of estimate from analysis and calculation (medium accuracy)"
-                    );
+                    return gettext("Based on a mix of estimate from analysis and calculation (medium accuracy)");
                 }
                 case "average": {
                     return gettext(
@@ -234,14 +219,7 @@ $(function () {
             if (type === "zchange") {
                 return gettext("On Z Change");
             } else if (type === "timed") {
-                return (
-                    gettext("Timed") +
-                    " (" +
-                    timelapse["options"]["interval"] +
-                    " " +
-                    gettext("sec") +
-                    ")"
-                );
+                return gettext("Timed") + " (" + timelapse["options"]["interval"] + " " + gettext("sec") + ")";
             } else {
                 return "-";
             }
@@ -336,11 +314,7 @@ $(function () {
             self.lastPrintTime(data.lastPrintTime);
 
             var result = [];
-            if (
-                data.filament &&
-                typeof data.filament === "object" &&
-                _.keys(data.filament).length > 0
-            ) {
+            if (data.filament && typeof data.filament === "object" && _.keys(data.filament).length > 0) {
                 var keys = _.keys(data.filament);
                 keys.sort();
                 _.each(keys, function (key) {
@@ -353,9 +327,7 @@ $(function () {
                         return;
 
                     result.push({
-                        name: ko.observable(
-                            gettext("Tool") + " " + key.substr("tool".length)
-                        ),
+                        name: ko.observable(gettext("Tool") + " " + key.substr("tool".length)),
                         data: ko.observable(data.filament[key])
                     });
                 });
@@ -427,9 +399,7 @@ $(function () {
         self.print = function () {
             if (self.isPaused()) {
                 showConfirmationDialog({
-                    message: gettext(
-                        "This will restart the print job from the beginning."
-                    ),
+                    message: gettext("This will restart the print job from the beginning."),
                     onproceed: function () {
                         OctoPrint.job.restart();
                     }
@@ -441,9 +411,7 @@ $(function () {
                         OctoPrint.job.start();
                     };
 
-                    callViewModels(self.allViewModels, "onBeforePrintStart", function (
-                        method
-                    ) {
+                    callViewModels(self.allViewModels, "onBeforePrintStart", function (method) {
                         prevented = prevented || method(callback) === false;
                     });
 
@@ -456,9 +424,7 @@ $(function () {
                     proceed();
                 } else {
                     showConfirmationDialog({
-                        message: gettext(
-                            "This will start a new print job. Please check that the print bed is clear."
-                        ),
+                        message: gettext("This will start a new print job. Please check that the print bed is clear."),
                         question: gettext("Do you want to start the print job now?"),
                         cancel: gettext("No"),
                         proceed: gettext("Yes"),

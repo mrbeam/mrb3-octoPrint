@@ -1,5 +1,4 @@
 #!/bin/env python
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 __author__ = "Gina Haeussge <osd@foosel.net>"
@@ -12,7 +11,8 @@ import sys
 import time
 import traceback
 
-from past.builtins import unicode
+# from past.builtins import unicode
+unicode = str
 
 # default close_fds settings
 if sys.platform == "win32" and sys.version_info < (3, 7):

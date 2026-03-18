@@ -175,11 +175,7 @@
     };
 
     OctoPrintClient.prototype.postJson = function (url, data, opts) {
-        return this.post(
-            url,
-            JSON.stringify(data, replaceUndefinedWithNull),
-            contentTypeJson(opts)
-        );
+        return this.post(url, JSON.stringify(data, replaceUndefinedWithNull), contentTypeJson(opts));
     };
 
     OctoPrintClient.prototype.put = function (url, data, opts) {
@@ -187,11 +183,7 @@
     };
 
     OctoPrintClient.prototype.putJson = function (url, data, opts) {
-        return this.put(
-            url,
-            JSON.stringify(data, replaceUndefinedWithNull),
-            contentTypeJson(opts)
-        );
+        return this.put(url, JSON.stringify(data, replaceUndefinedWithNull), contentTypeJson(opts));
     };
 
     OctoPrintClient.prototype.patch = function (url, data, opts) {
@@ -199,11 +191,7 @@
     };
 
     OctoPrintClient.prototype.patchJson = function (url, data, opts) {
-        return this.patch(
-            url,
-            JSON.stringify(data, replaceUndefinedWithNull),
-            contentTypeJson(opts)
-        );
+        return this.patch(url, JSON.stringify(data, replaceUndefinedWithNull), contentTypeJson(opts));
     };
 
     OctoPrintClient.prototype.delete = function (url, opts) {
@@ -255,9 +243,7 @@
             if (request.readyState == 4) {
                 deferred.notify({loaded: filesize, total: filesize});
 
-                var success =
-                    (request.status >= 200 && request.status < 300) ||
-                    request.status === 304;
+                var success = (request.status >= 200 && request.status < 300) || request.status === 304;
                 var error, json, statusText;
 
                 try {
@@ -325,18 +311,8 @@
         return this.get(OctoPrintClient.prototype.getSimpleApiUrl(plugin), opts);
     };
 
-    OctoPrintClient.prototype.simpleApiCommand = function (
-        plugin,
-        command,
-        payload,
-        opts
-    ) {
-        return this.issueCommand(
-            OctoPrintClient.prototype.getSimpleApiUrl(plugin),
-            command,
-            payload,
-            opts
-        );
+    OctoPrintClient.prototype.simpleApiCommand = function (plugin, command, payload, opts) {
+        return this.issueCommand(OctoPrintClient.prototype.getSimpleApiUrl(plugin), command, payload, opts);
     };
 
     OctoPrintClient.prototype.getBlueprintUrl = function (plugin) {
@@ -368,60 +344,26 @@
         return constructor;
     };
 
-    OctoPrintClient.InvalidArgumentError = OctoPrintClient.createCustomException(
-        "InvalidArgumentError"
-    );
+    OctoPrintClient.InvalidArgumentError = OctoPrintClient.createCustomException("InvalidArgumentError");
 
     OctoPrintClient.deprecated = function (deprecatedFct, newFct, fn) {
         return function () {
-            console.warn(
-                deprecatedFct +
-                    " is deprecated, please use the new " +
-                    newFct +
-                    " function instead"
-            );
+            console.warn(deprecatedFct + " is deprecated, please use the new " + newFct + " function instead");
             return fn.apply(this, arguments);
         };
     };
 
-    OctoPrintClient.deprecatedMethod = function (
-        object,
-        oldNamespace,
-        oldFct,
-        newNamespace,
-        newFct,
-        fn
-    ) {
-        object[oldFct] = OctoPrintClient.deprecated(
-            oldNamespace + "." + oldFct,
-            newNamespace + "." + newFct,
-            fn
-        );
+    OctoPrintClient.deprecatedMethod = function (object, oldNamespace, oldFct, newNamespace, newFct, fn) {
+        object[oldFct] = OctoPrintClient.deprecated(oldNamespace + "." + oldFct, newNamespace + "." + newFct, fn);
     };
 
-    OctoPrintClient.deprecatedVariable = function (
-        object,
-        oldNamespace,
-        oldVar,
-        newNamespace,
-        newVar,
-        getter,
-        setter
-    ) {
+    OctoPrintClient.deprecatedVariable = function (object, oldNamespace, oldVar, newNamespace, newVar, getter, setter) {
         Object.defineProperty(object, oldVar, {
             get: function () {
-                return OctoPrintClient.deprecated(
-                    oldNamespace + "." + oldVar,
-                    newNamespace + "." + newVar,
-                    getter
-                )();
+                return OctoPrintClient.deprecated(oldNamespace + "." + oldVar, newNamespace + "." + newVar, getter)();
             },
             set: function (val) {
-                OctoPrintClient.deprecated(
-                    oldNamespace + "." + oldVar,
-                    newNamespace + "." + newVar,
-                    setter
-                )(val);
+                OctoPrintClient.deprecated(oldNamespace + "." + oldVar, newNamespace + "." + newVar, setter)(val);
             }
         });
     };

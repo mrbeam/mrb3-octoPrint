@@ -49,10 +49,7 @@ $(function () {
             return self.enableFancyFunctionality() || self.forceFancyFunctionality();
         });
         self.terminalLogDuringPrinting = ko.pureComputed(function () {
-            return (
-                !self.disableTerminalLogDuringPrinting() ||
-                self.forceTerminalLogDuringPrinting()
-            );
+            return !self.disableTerminalLogDuringPrinting() || self.forceTerminalLogDuringPrinting();
         });
 
         self.displayedLines = ko.pureComputed(function () {
@@ -113,18 +110,13 @@ $(function () {
                     );
                 } else {
                     return _.sprintf(
-                        gettext(
-                            "showing %(displayed)d lines (%(filtered)d of %(total)d total lines filtered)"
-                        ),
+                        gettext("showing %(displayed)d lines (%(filtered)d of %(total)d total lines filtered)"),
                         {displayed: displayed, total: total, filtered: filtered}
                     );
                 }
             } else {
                 if (total > self.upperLimit()) {
-                    return _.sprintf(
-                        gettext("showing %(displayed)d lines (buffer full)"),
-                        {displayed: displayed}
-                    );
+                    return _.sprintf(gettext("showing %(displayed)d lines (buffer full)"), {displayed: displayed});
                 } else {
                     return _.sprintf(gettext("showing %(displayed)d lines"), {
                         displayed: displayed
@@ -169,9 +161,7 @@ $(function () {
             if (self._reenableFancyTimer) return;
             if (self.enableFancyFunctionality()) return;
             self._reenableFancyTimer = window.setTimeout(function () {
-                log.info(
-                    "Terminal: Client speed recovered, enabling fancy terminal functionality"
-                );
+                log.info("Terminal: Client speed recovered, enabling fancy terminal functionality");
                 self.enableFancyFunctionality(true);
             }, self.reenableTimeout);
         };
@@ -193,9 +183,7 @@ $(function () {
             if (self._reenableUnfancyTimer) return;
             if (!self.disableTerminalLogDuringPrinting()) return;
             self._reenableUnfancyTimer = window.setTimeout(function () {
-                log.info(
-                    "Terminal: Client speed recovered, enabling terminal output during printing"
-                );
+                log.info("Terminal: Client speed recovered, enabling terminal output during printing");
                 self.disableTerminalLogDuringPrinting(false);
             }, self.reenableTimeout);
         };
@@ -232,27 +220,21 @@ $(function () {
 
             if (!self.terminalLogDuringPrinting() && self.isPrinting()) {
                 var last = self.plainLogLines()[self.plainLogLines().length - 1];
-                var disabled =
-                    "--- client too slow, log output disabled while printing ---";
+                var disabled = "--- client too slow, log output disabled while printing ---";
                 if (last !== disabled) {
                     self.plainLogLines.push(disabled);
                 }
                 return;
             }
 
-            var newData =
-                data.length + length > self.upperLimit()
-                    ? data.slice(0, self.upperLimit() - length)
-                    : data;
+            var newData = data.length + length > self.upperLimit() ? data.slice(0, self.upperLimit() - length) : data;
             if (!newData) {
                 return;
             }
 
             if (!self.fancyFunctionality()) {
                 // lite version of the terminal - text output only
-                self.plainLogLines(
-                    self.plainLogLines().concat(newData).slice(-self.buffer())
-                );
+                self.plainLogLines(self.plainLogLines().concat(newData).slice(-self.buffer()));
                 self.updateOutput();
                 return;
             }
@@ -324,22 +306,15 @@ $(function () {
         };
 
         self.updateOutput = function () {
-            if (
-                self.tabActive &&
-                OctoPrint.coreui.browserTabVisible &&
-                self.autoscrollEnabled()
-            ) {
+            if (self.tabActive && OctoPrint.coreui.browserTabVisible && self.autoscrollEnabled()) {
                 self.scrollToEnd();
             }
         };
 
         self.terminalScrollEvent = _.throttle(function () {
-            var container = self.fancyFunctionality()
-                ? $("#terminal-output")
-                : $("#terminal-output-lowfi");
+            var container = self.fancyFunctionality() ? $("#terminal-output") : $("#terminal-output-lowfi");
             var pos = container.scrollTop();
-            var scrollingUp =
-                self.previousScroll !== undefined && pos < self.previousScroll;
+            var scrollingUp = self.previousScroll !== undefined && pos < self.previousScroll;
 
             if (self.autoscrollEnabled() && scrollingUp) {
                 var maxScroll = container[0].scrollHeight - container[0].offsetHeight;
@@ -371,18 +346,14 @@ $(function () {
         };
 
         self.selectAll = function () {
-            var container = self.fancyFunctionality()
-                ? $("#terminal-output")
-                : $("#terminal-output-lowfi");
+            var container = self.fancyFunctionality() ? $("#terminal-output") : $("#terminal-output-lowfi");
             if (container.length) {
                 container.selectText();
             }
         };
 
         self.scrollToEnd = function () {
-            var container = self.fancyFunctionality()
-                ? $("#terminal-output")
-                : $("#terminal-output-lowfi");
+            var container = self.fancyFunctionality() ? $("#terminal-output") : $("#terminal-output-lowfi");
             if (container.length) {
                 container.scrollTop(container[0].scrollHeight);
             }
@@ -424,16 +395,12 @@ $(function () {
                 var fullCode = commandMatch[1].toUpperCase(); // full code incl. sub code
                 var mainCode = commandMatch[2].toUpperCase(); // main code only without sub code
 
-                if (
-                    self.blacklist.indexOf(mainCode) < 0 &&
-                    self.blacklist.indexOf(fullCode) < 0
-                ) {
+                if (self.blacklist.indexOf(mainCode) < 0 && self.blacklist.indexOf(fullCode) < 0) {
                     // full or main code not on blacklist -> upper case the whole command
                     commandToSend = commandToSend.toUpperCase();
                 } else {
                     // full or main code on blacklist -> only upper case that and leave parameters as is
-                    commandToSend =
-                        fullCode + (commandMatch[4] !== undefined ? commandMatch[4] : "");
+                    commandToSend = fullCode + (commandMatch[4] !== undefined ? commandMatch[4] : "");
                 }
             }
 
@@ -455,23 +422,13 @@ $(function () {
             var keyCode = event.keyCode;
 
             if (keyCode === 38 || keyCode === 40) {
-                if (
-                    keyCode === 38 &&
-                    self.cmdHistory.length > 0 &&
-                    self.cmdHistoryIdx > 0
-                ) {
+                if (keyCode === 38 && self.cmdHistory.length > 0 && self.cmdHistoryIdx > 0) {
                     self.cmdHistoryIdx--;
-                } else if (
-                    keyCode === 40 &&
-                    self.cmdHistoryIdx < self.cmdHistory.length - 1
-                ) {
+                } else if (keyCode === 40 && self.cmdHistoryIdx < self.cmdHistory.length - 1) {
                     self.cmdHistoryIdx++;
                 }
 
-                if (
-                    self.cmdHistoryIdx >= 0 &&
-                    self.cmdHistoryIdx < self.cmdHistory.length
-                ) {
+                if (self.cmdHistoryIdx >= 0 && self.cmdHistoryIdx < self.cmdHistory.length) {
                     self.command(self.cmdHistory[self.cmdHistoryIdx]);
                 }
 
@@ -506,10 +463,7 @@ $(function () {
         self.onEventCommandSuppressed = function (payload) {
             var setting = self.settings.settings.serial.notifySuppressedCommands();
 
-            if (
-                setting === "never" ||
-                (setting === "warn" && payload.severity === "info")
-            ) {
+            if (setting === "never" || (setting === "warn" && payload.severity === "info")) {
                 return;
             }
 
@@ -522,10 +476,7 @@ $(function () {
 
             var text =
                 "<p>" +
-                gettext(
-                    "The command <code>%(command)s</code> was not sent " +
-                        "to the printer:"
-                ) +
+                gettext("The command <code>%(command)s</code> was not sent " + "to the printer:") +
                 "</p><p><pre>%(message)s</pre></p>";
 
             new PNotify({
@@ -540,10 +491,7 @@ $(function () {
             new PNotify({
                 title: gettext("Invalid tool reported"),
                 text: _.sprintf(
-                    gettext(
-                        "Your printer reported tool T%(tool)d as invalid, " +
-                            "reverting back to T%(fallback)d"
-                    ),
+                    gettext("Your printer reported tool T%(tool)d as invalid, " + "reverting back to T%(fallback)d"),
                     payload
                 ),
                 type: "error",

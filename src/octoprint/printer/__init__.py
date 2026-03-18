@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This module defines the interface for communicating with a connected printer.
 

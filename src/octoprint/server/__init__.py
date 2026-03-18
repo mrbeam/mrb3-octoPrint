@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 __author__ = "Gina Häußge <osd@foosel.net>"
@@ -39,7 +38,6 @@ from flask_login import (  # noqa: F401
     session_protected,
     user_logged_out,
 )
-from past.builtins import basestring, unicode
 from watchdog.observers import Observer
 from watchdog.observers.polling import PollingObserver
 from werkzeug.exceptions import HTTPException
@@ -640,8 +638,7 @@ class Server(object):
 
         ## Tornado initialization starts here
 
-        ioloop = IOLoop()
-        ioloop.install()
+        ioloop = IOLoop().current()
 
         enable_cors = settings().getBoolean(["api", "allowCrossOrigin"])
 
@@ -951,7 +948,7 @@ class Server(object):
                     for entry in result:
                         if not isinstance(entry, tuple) or not len(entry) == 3:
                             continue
-                        if not isinstance(entry[0], basestring):
+                        if not isinstance(entry[0], str):
                             continue
                         if not isinstance(entry[2], dict):
                             continue
@@ -1343,19 +1340,19 @@ class Server(object):
         from octoprint.server.util.flask import (
             OctoPrintFlaskRequest,
             OctoPrintFlaskResponse,
-            OctoPrintJsonEncoder,
+            OctoPrintJsonProvider,
             OctoPrintSessionInterface,
             ReverseProxiedEnvironment,
         )
 
         app.config["TEMPLATES_AUTO_RELOAD"] = True
-        app.config["JSONIFY_PRETTYPRINT_REGULAR"] = False
+        app.json.compact = True
 
         # we must not set this before TEMPLATES_AUTO_RELOAD is set to True or that won't take
         app.debug = self._debug
 
         # setup octoprint's flask json serialization/deserialization
-        app.json_encoder = OctoPrintJsonEncoder
+        app.json = OctoPrintJsonProvider(app)
 
         s = settings()
 
@@ -1391,6 +1388,11 @@ class Server(object):
 
         @app.before_request
         def before_request():
+            # WORKAROUND FOR WERKZEUG 3.x 'int object has no strip' error
+            from flask import request
+            if "CONTENT_LENGTH" in request.environ:
+                request.environ["CONTENT_LENGTH"] = str(request.environ["CONTENT_LENGTH"])
+
             g.locale = self._get_locale()
             if self._debug and "perfprofile" in request.args:
                 try:
@@ -1761,9 +1763,39 @@ class Server(object):
         # make sure all before/after_request hook results are attached as well
         self._add_plugin_request_handlers_to_blueprints(*blueprints.values())
 
+
+        # self._logger.debug(
+        #     "==    Already registered Flask blueprints before plugin registration: %s",
+        #     sorted(app.blueprints.keys()),
+        # )
+        #
+        # for url_prefix, blueprint in blueprints.items():
+        #     self._logger.debug(
+        #         ">>   To register blueprint %r with url prefix %r",
+        #         getattr(blueprint, "name", "<unnamed>"),
+        #         url_prefix,
+        #     )
+
         # register everything with the system
         for url_prefix, blueprint in blueprints.items():
-            app.register_blueprint(blueprint, url_prefix=url_prefix)
+            # THE CRITICAL FIX FOR FLASK 2.3+
+            # 1. Check if the name is already in the app
+            # 2. Reset the internal '_got_registered_once' flag if it exists (for Intermediary Server compatibility)
+            if blueprint.name not in app.blueprints:
+                try:
+                    app.register_blueprint(blueprint, url_prefix=url_prefix)
+                except ValueError:
+                    # Fallback for some Flask versions that track registration on the blueprint object itself
+                    if hasattr(blueprint, "_got_registered_once"):
+                        blueprint._got_registered_once = False
+                    app.register_blueprint(blueprint, url_prefix=url_prefix)
+            else:
+                self._logger.debug(f"Skipping registration of {blueprint.name}, already registered.")
+
+        # register everything with the system
+        # for url_prefix, blueprint in blueprints.items():
+        #     self._logger.warning(f"#####  {blueprint.name}")
+        #     app.register_blueprint(blueprint, url_prefix=url_prefix)
 
         @app.errorhandler(HTTPException)
         def _handle_api_error(ex):
@@ -1844,20 +1876,28 @@ class Server(object):
         return blueprint, url_prefix
 
     def _prepare_asset_plugin(self, plugin):
-        name = plugin._identifier
+        safe_name = plugin._identifier.replace(".", "_")
+        blueprint_name = "plugin_" + safe_name + "_assets"
+        url_prefix = "/plugin/{name}".format(name=plugin._identifier)
 
-        url_prefix = "/plugin/{name}".format(name=name)
+        # FORCE ABSOLUTE PATH
+        import os
+        asset_folder = plugin.get_asset_folder()
+        if not os.path.isabs(asset_folder):
+            asset_folder = os.path.abspath(asset_folder)
+
         blueprint = Blueprint(
-            "plugin." + name, name, static_folder=plugin.get_asset_folder()
+            blueprint_name,
+            plugin.__module__,
+            static_folder=asset_folder, # Use the absolute path
+            static_url_path="/static"
         )
-        app.register_blueprint(blueprint, url_prefix=url_prefix)
 
-        if self._logger:
-            self._logger.debug(
-                "Registered assets of plugin {name} under URL prefix {url_prefix}".format(
-                    name=name, url_prefix=url_prefix
-                )
-            )
+        # This tag is REQUIRED for the flask.py fix above
+        blueprint.octoprint_plugin_identifier = plugin._identifier
+
+        if blueprint.name not in app.blueprints:
+            app.register_blueprint(blueprint, url_prefix=url_prefix)
 
         return blueprint, url_prefix
 
@@ -2358,7 +2398,7 @@ class Server(object):
                         if content_type:
                             self.send_header("Content-Type", content_type)
                         self.end_headers()
-                        if isinstance(data, unicode):
+                        if isinstance(data, str):
                             data = data.encode("utf-8")
                         self.wfile.write(data)
                         break
@@ -2698,7 +2738,7 @@ class LifecycleManager(object):
             lifecycle_callback(name, plugin)
 
     def add_callback(self, events, callback):
-        if isinstance(events, basestring):
+        if isinstance(events, str):
             events = [events]
 
         for event in events:
@@ -2710,7 +2750,7 @@ class LifecycleManager(object):
                 if callback in self._plugin_lifecycle_callbacks[event]:
                     self._plugin_lifecycle_callbacks[event].remove(callback)
         else:
-            if isinstance(events, basestring):
+            if isinstance(events, str):
                 events = [events]
 
             for event in events:

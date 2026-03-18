@@ -41,14 +41,12 @@ $(function () {
 
         self.diskusageWarning = ko.pureComputed(function () {
             return (
-                self.freeSpace() !== undefined &&
-                self.freeSpace() < self.settingsViewModel.server_diskspace_warning()
+                self.freeSpace() !== undefined && self.freeSpace() < self.settingsViewModel.server_diskspace_warning()
             );
         });
         self.diskusageCritical = ko.pureComputed(function () {
             return (
-                self.freeSpace() !== undefined &&
-                self.freeSpace() < self.settingsViewModel.server_diskspace_critical()
+                self.freeSpace() !== undefined && self.freeSpace() < self.settingsViewModel.server_diskspace_critical()
             );
         });
         self.diskusageString = ko.pureComputed(function () {
@@ -151,11 +149,7 @@ $(function () {
         var listHelperFilters = {
             printed: function (data) {
                 return (
-                    !(
-                        data["prints"] &&
-                        data["prints"]["success"] &&
-                        data["prints"]["success"] > 0
-                    ) ||
+                    !(data["prints"] && data["prints"]["success"] && data["prints"]["success"] > 0) ||
                     (data["type"] && data["type"] === "folder")
                 );
             },
@@ -171,10 +165,7 @@ $(function () {
         if (SUPPORTED_FILETYPES.length > 1) {
             _.each(SUPPORTED_FILETYPES, function (filetype) {
                 listHelperFilters[filetype] = function (data) {
-                    return (
-                        data["type"] &&
-                        (data["type"] === filetype || data["type"] === "folder")
-                    );
+                    return data["type"] && (data["type"] === filetype || data["type"] === "folder");
                 };
             });
             listHelperExclusiveFilters.push(SUPPORTED_FILETYPES);
@@ -202,14 +193,8 @@ $(function () {
                 },
                 last_printed: function (a, b) {
                     // sorts descending
-                    var valA =
-                        a.prints && a.prints.last && a.prints.last.date
-                            ? a.prints.last.date
-                            : "";
-                    var valB =
-                        b.prints && b.prints.last && b.prints.last.date
-                            ? b.prints.last.date
-                            : "";
+                    var valA = a.prints && a.prints.last && a.prints.last.date ? a.prints.last.date : "";
+                    var valB = b.prints && b.prints.last && b.prints.last.date ? b.prints.last.date : "";
 
                     if (valA > valB) {
                         return -1;
@@ -493,13 +478,10 @@ $(function () {
 
                     // highlight uploaded element
                     var element = $(entryElement);
-                    element.on(
-                        "webkitAnimationEnd oanimationend msAnimationEnd animationend",
-                        function (e) {
-                            // remove highlight class again
-                            element.removeClass("highlight");
-                        }
-                    );
+                    element.on("webkitAnimationEnd oanimationend msAnimationEnd animationend", function (e) {
+                        // remove highlight class again
+                        element.removeClass("highlight");
+                    });
                     element.addClass("highlight");
                 }
             }
@@ -517,9 +499,7 @@ $(function () {
 
         self.changeFolder = function (data) {
             if (data.children === undefined) {
-                log.error(
-                    "Can't switch to folder '" + data.path + "', no children available"
-                );
+                log.error("Can't switch to folder '" + data.path + "', no children available");
                 return;
             }
 
@@ -547,8 +527,7 @@ $(function () {
         };
 
         self.showAddFolderDialog = function () {
-            if (!self.loginState.hasPermission(self.access.permissions.FILES_UPLOAD))
-                return;
+            if (!self.loginState.hasPermission(self.access.permissions.FILES_UPLOAD)) return;
 
             if (self.addFolderDialog) {
                 self.addFolderName("");
@@ -557,8 +536,7 @@ $(function () {
         };
 
         self.addFolder = function () {
-            if (!self.loginState.hasPermission(self.access.permissions.FILES_UPLOAD))
-                return;
+            if (!self.loginState.hasPermission(self.access.permissions.FILES_UPLOAD)) return;
 
             var name = self.addFolderName();
 
@@ -593,8 +571,7 @@ $(function () {
         };
 
         self.removeFolder = function (folder, event) {
-            if (!self.loginState.hasPermission(self.access.permissions.FILES_DELETE))
-                return;
+            if (!self.loginState.hasPermission(self.access.permissions.FILES_DELETE)) return;
 
             if (!folder) {
                 return;
@@ -624,8 +601,7 @@ $(function () {
         };
 
         self.loadFile = function (data, printAfterLoad) {
-            if (!self.loginState.hasPermission(self.access.permissions.FILES_SELECT))
-                return;
+            if (!self.loginState.hasPermission(self.access.permissions.FILES_SELECT)) return;
 
             if (!data) {
                 return;
@@ -638,9 +614,7 @@ $(function () {
                 };
 
                 if (p) {
-                    callViewModels(self.allViewModels, "onBeforePrintStart", function (
-                        method
-                    ) {
+                    callViewModels(self.allViewModels, "onBeforePrintStart", function (method) {
                         prevented = prevented || method(callback) === false;
                     });
                 }
@@ -650,11 +624,7 @@ $(function () {
                 }
             };
 
-            if (
-                printAfterLoad &&
-                self.listHelper.isSelected(data) &&
-                self.enablePrint(data)
-            ) {
+            if (printAfterLoad && self.listHelper.isSelected(data) && self.enablePrint(data)) {
                 // file was already selected, just start the print job
                 self.printerState.print();
             } else {
@@ -664,9 +634,7 @@ $(function () {
 
                 if (print && self.settingsViewModel.feature_printStartConfirmation()) {
                     showConfirmationDialog({
-                        message: gettext(
-                            "This will start a new print job. Please check that the print bed is clear."
-                        ),
+                        message: gettext("This will start a new print job. Please check that the print bed is clear."),
                         question: gettext("Do you want to start the print job now?"),
                         cancel: gettext("No"),
                         proceed: gettext("Yes"),
@@ -721,8 +689,7 @@ $(function () {
         };
 
         self.removeFile = function (file, event) {
-            if (!self.loginState.hasPermission(self.access.permissions.FILES_DELETE))
-                return;
+            if (!self.loginState.hasPermission(self.access.permissions.FILES_DELETE)) return;
 
             if (!file) {
                 return;
@@ -808,14 +775,10 @@ $(function () {
                     var icon = $("i.fa-trash-alt", element);
                     if (icon.length) {
                         activateSpinner = function () {
-                            icon.removeClass("fa-trash-alt").addClass(
-                                "fa-spinner fa-spin"
-                            );
+                            icon.removeClass("fa-trash-alt").addClass("fa-spinner fa-spin");
                         };
                         finishSpinner = function () {
-                            icon.removeClass("fa-spinner fa-spin").addClass(
-                                "fa-trash-alt"
-                            );
+                            icon.removeClass("fa-spinner fa-spin").addClass("fa-trash-alt");
                         };
                     }
                 }
@@ -854,11 +817,7 @@ $(function () {
         };
 
         self.lastTimePrinted = function (data) {
-            if (
-                data["prints"] &&
-                data["prints"]["last"] &&
-                data["prints"]["last"]["date"]
-            ) {
+            if (data["prints"] && data["prints"]["last"] && data["prints"]["last"]["date"]) {
                 return data["prints"]["last"]["date"];
             } else {
                 return "-";
@@ -901,15 +860,9 @@ $(function () {
                     return _.startsWith(name, data.origin + ":" + data.path + "/");
                 });
             } else {
-                busy = _.contains(
-                    self.printerState.busyFiles(),
-                    data.origin + ":" + data.path
-                );
+                busy = _.contains(self.printerState.busyFiles(), data.origin + ":" + data.path);
             }
-            return (
-                self.loginState.hasPermission(self.access.permissions.FILES_DELETE) &&
-                !busy
-            );
+            return self.loginState.hasPermission(self.access.permissions.FILES_DELETE) && !busy;
         };
 
         self.enableMove = function (data) {
@@ -921,9 +874,7 @@ $(function () {
             ); // && some way to figure out if there are subfolders;
         };
         self.enableSelect = function (data) {
-            return (
-                self.isLoadAndPrintActionPossible() && !self.listHelper.isSelected(data)
-            );
+            return self.isLoadAndPrintActionPossible() && !self.listHelper.isSelected(data);
         };
 
         self.enablePrint = function (data) {
@@ -956,9 +907,7 @@ $(function () {
 
             var additionalInfo = $(".additionalInfo", entryElement);
             additionalInfo.slideToggle("fast", function () {
-                $(".toggleAdditionalData i", entryElement).toggleClass(
-                    "fa-chevron-down fa-chevron-up"
-                );
+                $(".toggleAdditionalData i", entryElement).toggleClass("fa-chevron-down fa-chevron-up");
             });
         };
 
@@ -979,33 +928,20 @@ $(function () {
                         output +=
                             gettext("Model size") +
                             ": " +
-                            _.sprintf(
-                                "%(width).2fmm &times; %(depth).2fmm &times; %(height).2fmm",
-                                dimensions
-                            );
+                            _.sprintf("%(width).2fmm &times; %(depth).2fmm &times; %(height).2fmm", dimensions);
                         output += "<br>";
                     }
-                    if (
-                        data["gcodeAnalysis"]["filament"] &&
-                        typeof data["gcodeAnalysis"]["filament"] === "object"
-                    ) {
+                    if (data["gcodeAnalysis"]["filament"] && typeof data["gcodeAnalysis"]["filament"] === "object") {
                         var filament = data["gcodeAnalysis"]["filament"];
                         if (_.keys(filament).length === 1) {
                             output +=
                                 gettext("Filament") +
                                 ": " +
-                                formatFilament(
-                                    data["gcodeAnalysis"]["filament"]["tool" + 0]
-                                ) +
+                                formatFilament(data["gcodeAnalysis"]["filament"]["tool" + 0]) +
                                 "<br>";
                         } else if (_.keys(filament).length > 1) {
                             _.each(filament, function (f, k) {
-                                if (
-                                    !_.startsWith(k, "tool") ||
-                                    !f ||
-                                    !f.hasOwnProperty("length") ||
-                                    f["length"] <= 0
-                                )
+                                if (!_.startsWith(k, "tool") || !f || !f.hasOwnProperty("length") || f["length"] <= 0)
                                     return;
                                 output +=
                                     gettext("Filament") +
@@ -1023,26 +959,15 @@ $(function () {
                         gettext("Estimated print time") +
                         ": " +
                         (self.settingsViewModel.appearance_fuzzyTimes()
-                            ? formatFuzzyPrintTime(
-                                  data["gcodeAnalysis"]["estimatedPrintTime"]
-                              )
-                            : formatDuration(
-                                  data["gcodeAnalysis"]["estimatedPrintTime"]
-                              )) +
+                            ? formatFuzzyPrintTime(data["gcodeAnalysis"]["estimatedPrintTime"])
+                            : formatDuration(data["gcodeAnalysis"]["estimatedPrintTime"])) +
                         "<br>";
                 }
             }
             if (data["prints"] && data["prints"]["last"]) {
-                output +=
-                    gettext("Last printed") +
-                    ": " +
-                    formatTimeAgo(data["prints"]["last"]["date"]) +
-                    "<br>";
+                output += gettext("Last printed") + ": " + formatTimeAgo(data["prints"]["last"]["date"]) + "<br>";
                 if (data["prints"]["last"]["printTime"]) {
-                    output +=
-                        gettext("Last print time") +
-                        ": " +
-                        formatDuration(data["prints"]["last"]["printTime"]);
+                    output += gettext("Last print time") + ": " + formatDuration(data["prints"]["last"]["printTime"]);
                 }
             }
             return output;
@@ -1119,22 +1044,13 @@ $(function () {
             };
 
             // find exceeded dimensions
-            if (
-                printingArea["minX"] < boundaries["minX"] ||
-                printingArea["maxX"] > boundaries["maxX"]
-            ) {
+            if (printingArea["minX"] < boundaries["minX"] || printingArea["maxX"] > boundaries["maxX"]) {
                 info += gettext("Object exceeds print volume in width.<br>");
             }
-            if (
-                printingArea["minY"] < boundaries["minY"] ||
-                printingArea["maxY"] > boundaries["maxY"]
-            ) {
+            if (printingArea["minY"] < boundaries["minY"] || printingArea["maxY"] > boundaries["maxY"]) {
                 info += gettext("Object exceeds print volume in depth.<br>");
             }
-            if (
-                printingArea["minZ"] < boundaries["minZ"] ||
-                printingArea["maxZ"] > boundaries["maxZ"]
-            ) {
+            if (printingArea["minZ"] < boundaries["minZ"] || printingArea["maxZ"] > boundaries["maxZ"]) {
                 info += gettext("Object exceeds print volume in height.<br>");
             }
 
@@ -1188,8 +1104,7 @@ $(function () {
                     }
 
                     var success =
-                        (entry["display"] &&
-                            entry["display"].toLocaleLowerCase().indexOf(query) > -1) ||
+                        (entry["display"] && entry["display"].toLocaleLowerCase().indexOf(query) > -1) ||
                         entry["name"].toLocaleLowerCase().indexOf(query) > -1;
                     if (!success && entry["type"] === "folder" && entry["children"]) {
                         return _.any(entry["children"], recursiveSearch);
@@ -1310,14 +1225,8 @@ $(function () {
             self.dropOverlay.on("drop", self._forceEndDragNDrop);
 
             function evaluateDropzones() {
-                var enableLocal = self.loginState.hasPermission(
-                    self.access.permissions.FILES_UPLOAD
-                );
-                var enableSd =
-                    enableLocal &&
-                    CONFIG_SD_SUPPORT &&
-                    self.printerState.isSdReady() &&
-                    !self.isPrinting();
+                var enableLocal = self.loginState.hasPermission(self.access.permissions.FILES_UPLOAD);
+                var enableSd = enableLocal && CONFIG_SD_SUPPORT && self.printerState.isSdReady() && !self.isPrinting();
 
                 self._setDropzone("local", enableLocal);
                 self._setDropzone("sdcard", enableSd);
@@ -1345,9 +1254,7 @@ $(function () {
             self.uploadProgressBar.css("width", "100%");
             if (payload.progressAvailable) {
                 self.uploadProgressPercentage(0);
-                self.uploadProgressText(
-                    _.sprintf(gettext("Slicing ... (%(percentage)d%%)"), {percentage: 0})
-                );
+                self.uploadProgressText(_.sprintf(gettext("Slicing ... (%(percentage)d%%)"), {percentage: 0}));
             } else {
                 self.uploadProgressText(gettext("Slicing ..."));
             }
@@ -1377,14 +1284,11 @@ $(function () {
 
             new PNotify({
                 title: gettext("Slicing done"),
-                text: _.sprintf(
-                    gettext("Sliced %(stl)s to %(gcode)s, took %(time).2f seconds"),
-                    {
-                        stl: _.escape(payload.stl),
-                        gcode: _.escape(payload.gcode),
-                        time: payload.time
-                    }
-                ),
+                text: _.sprintf(gettext("Sliced %(stl)s to %(gcode)s, took %(time).2f seconds"), {
+                    stl: _.escape(payload.stl),
+                    gcode: _.escape(payload.gcode),
+                    time: payload.time
+                }),
                 type: "success"
             });
 
@@ -1397,14 +1301,11 @@ $(function () {
             self.uploadProgressText("");
             self.uploadProgressPercentage(0);
 
-            var html = _.sprintf(
-                gettext("Could not slice %(stl)s to %(gcode)s: %(reason)s"),
-                {
-                    stl: _.escape(payload.stl),
-                    gcode: _.escape(payload.gcode),
-                    reason: _.escape(payload.reason)
-                }
-            );
+            var html = _.sprintf(gettext("Could not slice %(stl)s to %(gcode)s: %(reason)s"), {
+                stl: _.escape(payload.stl),
+                gcode: _.escape(payload.gcode),
+                reason: _.escape(payload.reason)
+            });
             new PNotify({
                 title: gettext("Slicing failed"),
                 text: html,
@@ -1436,16 +1337,11 @@ $(function () {
 
             new PNotify({
                 title: gettext("Streaming done"),
-                text: _.sprintf(
-                    gettext(
-                        "Streamed %(local)s to %(remote)s on SD, took %(time).2f seconds"
-                    ),
-                    {
-                        local: _.escape(payload.local),
-                        remote: _.escape(payload.remote),
-                        time: payload.time
-                    }
-                ),
+                text: _.sprintf(gettext("Streamed %(local)s to %(remote)s on SD, took %(time).2f seconds"), {
+                    local: _.escape(payload.local),
+                    remote: _.escape(payload.remote),
+                    time: payload.time
+                }),
                 type: "success"
             });
 
@@ -1460,10 +1356,10 @@ $(function () {
 
             new PNotify({
                 title: gettext("Streaming failed"),
-                text: _.sprintf(
-                    gettext("Did not finish streaming %(local)s to %(remote)s on SD"),
-                    {local: _.escape(payload.local), remote: _.escape(payload.remote)}
-                ),
+                text: _.sprintf(gettext("Did not finish streaming %(local)s to %(remote)s on SD"), {
+                    local: _.escape(payload.local),
+                    remote: _.escape(payload.remote)
+                }),
                 type: "error"
             });
 
@@ -1534,73 +1430,52 @@ $(function () {
             }
 
             if (self.settingsViewModel.feature_uploadOverwriteConfirmation()) {
-                OctoPrint.files
-                    .exists("local", path, file.name)
-                    .done(function (response) {
-                        if (response.exists) {
-                            $("h3", self.uploadExistsDialog).text(
-                                _.sprintf(gettext("File already exists: %(name)s"), {
-                                    name: file.name
-                                })
-                            );
-                            $("input", self.uploadExistsDialog)
-                                .val("")
-                                .prop("placeholder", response.suggestion);
-                            $("a.upload-rename", self.uploadExistsDialog)
-                                .prop("disabled", false)
-                                .off("click")
-                                .on("click", function () {
-                                    var newName = $(
-                                        "input",
-                                        self.uploadExistsDialog
-                                    ).val();
-                                    if (newName === "") newName = response.suggestion;
+                OctoPrint.files.exists("local", path, file.name).done(function (response) {
+                    if (response.exists) {
+                        $("h3", self.uploadExistsDialog).text(
+                            _.sprintf(gettext("File already exists: %(name)s"), {
+                                name: file.name
+                            })
+                        );
+                        $("input", self.uploadExistsDialog).val("").prop("placeholder", response.suggestion);
+                        $("a.upload-rename", self.uploadExistsDialog)
+                            .prop("disabled", false)
+                            .off("click")
+                            .on("click", function () {
+                                var newName = $("input", self.uploadExistsDialog).val();
+                                if (newName === "") newName = response.suggestion;
 
-                                    OctoPrint.files
-                                        .exists("local", path, newName)
-                                        .done(function (r) {
-                                            if (r.exists) {
-                                                $(
-                                                    ".control-group",
-                                                    self.uploadExistsDialog
-                                                ).addClass("error");
-                                                $(
-                                                    ".help-block",
-                                                    self.uploadExistsDialog
-                                                ).show();
-                                            } else {
-                                                $(
-                                                    ".control-group",
-                                                    self.uploadExistsDialog
-                                                ).removeClass("error");
-                                                $(
-                                                    ".help-block",
-                                                    self.uploadExistsDialog
-                                                ).hide();
+                                OctoPrint.files.exists("local", path, newName).done(function (r) {
+                                    if (r.exists) {
+                                        $(".control-group", self.uploadExistsDialog).addClass("error");
+                                        $(".help-block", self.uploadExistsDialog).show();
+                                    } else {
+                                        $(".control-group", self.uploadExistsDialog).removeClass("error");
+                                        $(".help-block", self.uploadExistsDialog).hide();
 
-                                                self.uploadExistsDialog.modal("hide");
+                                        self.uploadExistsDialog.modal("hide");
 
-                                                formData.filename = newName;
-                                                formData.noOverwrite = true;
-                                                data.formData = formData;
+                                        formData.filename = newName;
+                                        formData.noOverwrite = true;
+                                        data.formData = formData;
 
-                                                data.submit();
-                                            }
-                                        });
+                                        data.submit();
+                                    }
                                 });
-                            $("a.upload-overwrite", self.uploadExistsDialog)
-                                .off("click")
-                                .on("click", function () {
-                                    self.uploadExistsDialog.modal("hide");
-                                    data.formData = formData;
-                                    data.submit();
-                                });
-                            self.uploadExistsDialog.modal("show");
-                        } else {
-                            data.formData = formData;
-                            data.submit();
-                        }
-                    });
+                            });
+                        $("a.upload-overwrite", self.uploadExistsDialog)
+                            .off("click")
+                            .on("click", function () {
+                                self.uploadExistsDialog.modal("hide");
+                                data.formData = formData;
+                                data.submit();
+                            });
+                        self.uploadExistsDialog.modal("show");
+                    } else {
+                        data.formData = formData;
+                        data.submit();
+                    }
+                });
             } else {
                 data.formData = formData;
                 data.submit();
@@ -1647,9 +1522,7 @@ $(function () {
                 ) +
                 "</p>";
             if (data.jqXHR.responseText) {
-                error += pnotifyAdditionalInfo(
-                    "<pre>" + _.escape(data.jqXHR.responseText) + "</pre>"
-                );
+                error += pnotifyAdditionalInfo("<pre>" + _.escape(data.jqXHR.responseText) + "</pre>");
             }
             new PNotify({
                 title: "Upload failed",
@@ -1668,11 +1541,7 @@ $(function () {
             var progress = parseInt((data.loaded / data.total) * 100, 10);
             var uploaded = progress >= 100;
 
-            self._setProgressBar(
-                progress,
-                uploaded ? gettext("Saving ...") : gettext("Uploading ..."),
-                uploaded
-            );
+            self._setProgressBar(progress, uploaded ? gettext("Saving ...") : gettext("Uploading ..."), uploaded);
         };
 
         self._dragNDropTarget = null;
@@ -1721,24 +1590,18 @@ $(function () {
             } else if (found) {
                 self.dropZoneBackground.addClass("hover");
             } else {
-                if (self.dropZoneLocalBackground)
-                    self.dropZoneLocalBackground.removeClass("hover");
-                if (self.dropZoneSdBackground)
-                    self.dropZoneSdBackground.removeClass("hover");
+                if (self.dropZoneLocalBackground) self.dropZoneLocalBackground.removeClass("hover");
+                if (self.dropZoneSdBackground) self.dropZoneSdBackground.removeClass("hover");
                 if (self.dropZoneBackground) self.dropZoneBackground.removeClass("hover");
             }
             self._dragNDropTarget = e.target;
             self._dragNDropLastOver = Date.now();
         };
         self.onEventSettingsUpdated = function () {
-            self.showInternalFilename(
-                self.settingsViewModel.settings.appearance.showInternalFilename()
-            );
+            self.showInternalFilename(self.settingsViewModel.settings.appearance.showInternalFilename());
         };
         self.onBeforeBinding = function () {
-            self.showInternalFilename(
-                self.settingsViewModel.settings.appearance.showInternalFilename()
-            );
+            self.showInternalFilename(self.settingsViewModel.settings.appearance.showInternalFilename());
         };
         self.onAllBound = function (allViewModels) {
             self.allViewModels = allViewModels;
@@ -1757,11 +1620,6 @@ $(function () {
             "printerProfilesViewModel",
             "accessViewModel"
         ],
-        elements: [
-            "#files_wrapper",
-            "#add_folder_dialog",
-            "#move_file_or_folder_dialog",
-            "#upload_exists_dialog"
-        ]
+        elements: ["#files_wrapper", "#add_folder_dialog", "#move_file_or_folder_dialog", "#upload_exists_dialog"]
     });
 });

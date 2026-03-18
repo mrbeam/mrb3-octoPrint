@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 __author__ = "Gina Häußge <osd@foosel.net>"
@@ -617,7 +616,7 @@ class LocalStorageTest(unittest.TestCase):
 
         self.assertEqual("folder", file_list[content_folder]["type"])
         self.assertEqual(0, len(file_list[content_folder]["children"]))
-        self.assertNotEquals(0, file_list[content_folder]["size"])
+        self.assertNotEqual(0, file_list[content_folder]["size"])
 
         self.assertEqual("folder", file_list["empty"]["type"])
         self.assertEqual(0, len(file_list["empty"]["children"]))

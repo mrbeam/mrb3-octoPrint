@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import unittest
@@ -138,9 +137,13 @@ class BlueprintPluginTest(unittest.TestCase):
 
         self.assertEqual(result, blueprint)
 
+        # UPDATE: Expect the new Flask-safe naming convention
         MockBlueprint.assert_called_once_with(
-            "plugin.myplugin", "myplugin", **expected_kwargs
+            "plugin_myplugin_logic",  # New Name (Underscores + suffix)
+            MyPlugin.__module__,      # New Import Name (Module path)
+            **expected_kwargs
         )
+
         blueprint.add_url_rule.assert_called_once_with(
             "/some/path", "route_method", view_func=plugin.route_method, methods=["GET"]
         )

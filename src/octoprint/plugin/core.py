@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 In this module resides the core data structures and logic of the plugin system.
 
@@ -31,10 +30,10 @@ import logging
 import os
 import sys
 from collections import OrderedDict, defaultdict, namedtuple
+from importlib.metadata import entry_points
 
-import pkg_resources
 import pkginfo
-from past.builtins import unicode
+from packaging.requirements import Requirement
 
 from octoprint.util import sv, time_this, to_unicode
 from octoprint.util.version import get_python_version_string, is_python_compatible
@@ -485,7 +484,7 @@ class PluginInfo(object):
         else:
             ret = ""
 
-        ret += unicode(self)
+        ret += str(self)
 
         if show_bundled:
             ret += (
@@ -853,9 +852,7 @@ class PluginManager(object):
             if isinstance(entry, (tuple, list)):
                 key, version = entry
                 try:
-                    processed_blacklist.append(
-                        (key, pkg_resources.Requirement.parse(key + version))
-                    )
+                    processed_blacklist.append((key, Requirement(key + version)))
                 except Exception:
                     self.logger.warning(
                         "Invalid version requirement {} for blacklist "
@@ -1076,16 +1073,11 @@ class PluginManager(object):
         added = OrderedDict()
         found = []
 
-        # let's make sure we have a current working set ...
-        working_set = pkg_resources.WorkingSet()
-
-        # ... including the user's site packages
+        # make sure user site packages are on sys.path so importlib metadata can see them
         import site
         import sys
 
         if site.ENABLE_USER_SITE:
-            if site.USER_SITE not in working_set.entries:
-                working_set.add_entry(site.USER_SITE)
             if site.USER_SITE not in sys.path:
                 site.addsitedir(site.USER_SITE)
 
@@ -1105,12 +1097,14 @@ class PluginManager(object):
                     )
 
         for group in groups:
-            for entry_point in wrapped(
-                working_set.iter_entry_points(group=group, name=None)
-            ):
+            for entry_point in wrapped(entry_points(group=group)):
                 try:
                     key = entry_point.name
-                    module_name = entry_point.module_name
+                    module_name = (
+                        entry_point.module
+                        if hasattr(entry_point, "module")
+                        else entry_point.module_name
+                    )
                     version = entry_point.dist.version
 
                     found.append(key)
@@ -1131,7 +1125,7 @@ class PluginManager(object):
                         "version": version,
                         "bundled": bundled,
                     }
-                    package_name = entry_point.dist.project_name
+                    package_name = entry_point.dist.name
                     try:
                         entry_point_metadata = EntryPointMetadata(entry_point)
                     except Exception:
@@ -1337,7 +1331,9 @@ class PluginManager(object):
         def matches_plugin(entry):
             if isinstance(entry, (tuple, list)) and len(entry) == 2:
                 entry_key, entry_version = entry
-                return entry_key == key and version in entry_version
+                return entry_key == key and entry_version.specifier.contains(
+                    str(version), prereleases=True
+                )
             return False
 
         return any(map(matches_plugin, self.plugin_blacklist))
@@ -2047,7 +2043,7 @@ class PluginManager(object):
                         show_enabled=show_enabled,
                         enabled_strs=enabled_str,
                     ),
-                    sorted(self.plugins.values(), key=lambda x: unicode(x).lower()),
+                    sorted(self.plugins.values(), key=lambda x: str(x).lower()),
                 )
             )
             legend = "Prefix legend: {1} = disabled, {2} = blacklisted, {3} = incompatible".format(
@@ -2347,7 +2343,7 @@ class EntryPointMetadata(pkginfo.Distribution):
         if self.entry_point and self.entry_point.dist:
             for metadata_file in metadata_files:
                 try:
-                    return self.entry_point.dist.get_metadata(metadata_file)
+                    return self.entry_point.dist.read_text(metadata_file)
                 except (IOError, OSError):  # noqa: B014
                     # file not found, metadata file might be missing, ignore
                     # IOError: file not found in Py2
