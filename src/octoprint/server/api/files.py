@@ -45,6 +45,8 @@ except ImportError:
 
 _file_cache = {}
 _file_cache_mutex = threading.RLock()
+_file_cache_listener_registered = False
+_file_cache_listener_mutex = threading.RLock()
 
 _DATA_FORMAT_VERSION = "v2"
 
@@ -52,6 +54,24 @@ _DATA_FORMAT_VERSION = "v2"
 def _clear_file_cache():
     with _file_cache_mutex:
         _file_cache.clear()
+
+
+def _on_file_list_changed(*args, **kwargs):
+    _clear_file_cache()
+
+
+def _ensure_file_cache_listener():
+    global _file_cache_listener_registered
+
+    if _file_cache_listener_registered:
+        return
+
+    with _file_cache_listener_mutex:
+        if _file_cache_listener_registered:
+            return
+
+        eventManager.subscribe(Events.UPDATED_FILES, _on_file_list_changed)
+        _file_cache_listener_registered = True
 
 
 def _create_lastmodified(path, recursive):
@@ -305,6 +325,8 @@ def _getFileDetails(origin, path, recursive=True):
 def _getFileList(
     origin, path=None, filter=None, recursive=False, level=0, allow_from_cache=True
 ):
+    _ensure_file_cache_listener()
+
     if origin == FileDestinations.SDCARD:
         sdFileList = printer.get_sd_files(refresh=not allow_from_cache)
 
@@ -347,12 +369,14 @@ def _getFileList(
         with _file_cache_mutex:
             cache_key = "{}:{}:{}:{}".format(origin, path, recursive, filter)
             files, lastmodified = _file_cache.get(cache_key, ([], None))
+            current_lastmodified = fileManager.last_modified(
+                origin, path=path, recursive=True
+            )
             # recursive needs to be True for lastmodified queries so we get lastmodified of whole subtree - #3422
             if (
                 not allow_from_cache
                 or lastmodified is None
-                or lastmodified
-                < fileManager.last_modified(origin, path=path, recursive=True)
+                or lastmodified != current_lastmodified
             ):
                 files = list(
                     fileManager.list_files(
@@ -364,9 +388,7 @@ def _getFileList(
                         force_refresh=not allow_from_cache,
                     )[origin].values()
                 )
-                lastmodified = fileManager.last_modified(
-                    origin, path=path, recursive=True
-                )
+                lastmodified = current_lastmodified
                 _file_cache[cache_key] = (files, lastmodified)
 
         def analyse_recursively(files, path=None):
