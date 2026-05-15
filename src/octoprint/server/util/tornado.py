@@ -6,6 +6,7 @@ __copyright__ = "Copyright (C) 2014 The OctoPrint Project - Released under terms
 
 import logging
 import mimetypes
+import unicodedata
 import os
 import re
 import sys
@@ -393,12 +394,12 @@ class UploadStorageFallbackHandler(RequestlessExceptionLoggingMixin, CorsSupport
             try:
                 header = tornado.httputil.HTTPHeaders.parse(header.decode("iso-8859-1"))
             except Exception:
-                # looks like we couldn't decode something here neither as UTF-8 nor ISO-8859-1
-                self._logger.warning(
-                    "Could not decode multipart headers in request, should be either UTF-8 or ISO-8859-1"
-                )
-                self.send_error(400)
-                return
+                header = self._parse_multipart_header_fallback(header)
+        except Exception:
+            # Be permissive here: real world clients sometimes send non-standard
+            # bytes in multipart headers (especially around filename). Fallback to
+            # a best effort parser instead of failing the whole upload.
+            header = self._parse_multipart_header_fallback(header)
 
         disp_header = header.get("Content-Disposition", "")
         disposition, disp_params = _parse_header(disp_header, strip_quotes=False)
@@ -428,12 +429,26 @@ class UploadStorageFallbackHandler(RequestlessExceptionLoggingMixin, CorsSupport
         else:
             # no filename* header, just strip quotes from filename header then and be done
             filename = _strip_value_quotes(disp_params.get("filename", None))
+            filename = _repair_mojibake_filename(filename)
 
         self._current_part = self._on_part_start(
             _strip_value_quotes(disp_params["name"]),
             header.get("Content-Type", None),
             filename=filename,
         )
+
+    @staticmethod
+    def _parse_multipart_header_fallback(header_bytes):
+        header = tornado.httputil.HTTPHeaders()
+        for line in header_bytes.split(b"\r\n"):
+            if not line or b":" not in line:
+                continue
+            key, value = line.split(b":", 1)
+            header.add(
+                key.decode("ascii", "ignore").strip(),
+                value.decode("iso-8859-1", "replace").strip(),
+            )
+        return header
 
     def _on_part_start(self, name, content_type, filename=None):
         """
@@ -630,7 +645,10 @@ def _extended_header_value(value):
     if not value:
         return value
 
-    if value.lower().startswith("iso-8859-1'") or value.lower().startswith("utf-8'"):
+    value = _strip_value_quotes(value)
+    lower_value = value.lower()
+
+    if lower_value.startswith("iso-8859-1'") or lower_value.startswith("utf-8'"):
         # RFC 5987 section 3.2
         try:
             from urllib import unquote
@@ -638,14 +656,33 @@ def _extended_header_value(value):
             from urllib.parse import unquote
         encoding, _, value = value.split("'", 2)
         if PY3:
-            return unquote(value, encoding=encoding)
+            return unquote(value, encoding=encoding, errors="replace")
         else:
             return unquote(octoprint.util.to_bytes(value, encoding="iso-8859-1")).decode(
                 encoding
             )
     else:
         # no encoding provided, strip potentially present quotes and call it a day
-        return octoprint.util.to_unicode(_strip_value_quotes(value), encoding="utf-8")
+        return octoprint.util.to_unicode(value, encoding="utf-8", errors="replace")
+
+
+def _repair_mojibake_filename(value):
+    """
+    Try to repair common mojibake that can happen when UTF-8 bytes are interpreted
+    as ISO-8859-1/Latin-1 text in multipart headers.
+    """
+    if not value:
+        return value
+
+    repaired = value
+    try:
+        candidate = octoprint.util.to_bytes(value, encoding="iso-8859-1").decode("utf-8")
+        if "\ufffd" not in candidate:
+            repaired = candidate
+    except Exception:
+        pass
+
+    return unicodedata.normalize("NFC", repaired)
 
 
 class WsgiInputContainer(object):
