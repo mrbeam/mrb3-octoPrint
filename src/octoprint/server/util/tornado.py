@@ -6,6 +6,7 @@ __copyright__ = "Copyright (C) 2014 The OctoPrint Project - Released under terms
 
 import logging
 import mimetypes
+import unicodedata
 import os
 import re
 import sys
@@ -428,6 +429,7 @@ class UploadStorageFallbackHandler(RequestlessExceptionLoggingMixin, CorsSupport
         else:
             # no filename* header, just strip quotes from filename header then and be done
             filename = _strip_value_quotes(disp_params.get("filename", None))
+            filename = _repair_mojibake_filename(filename)
 
         self._current_part = self._on_part_start(
             _strip_value_quotes(disp_params["name"]),
@@ -662,6 +664,25 @@ def _extended_header_value(value):
     else:
         # no encoding provided, strip potentially present quotes and call it a day
         return octoprint.util.to_unicode(value, encoding="utf-8", errors="replace")
+
+
+def _repair_mojibake_filename(value):
+    """
+    Try to repair common mojibake that can happen when UTF-8 bytes are interpreted
+    as ISO-8859-1/Latin-1 text in multipart headers.
+    """
+    if not value:
+        return value
+
+    repaired = value
+    try:
+        candidate = octoprint.util.to_bytes(value, encoding="iso-8859-1").decode("utf-8")
+        if "\ufffd" not in candidate:
+            repaired = candidate
+    except Exception:
+        pass
+
+    return unicodedata.normalize("NFC", repaired)
 
 
 class WsgiInputContainer(object):
