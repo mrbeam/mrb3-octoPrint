@@ -502,6 +502,10 @@ class LocalFileStorage(StorageInterface):
         self._old_metadata = None
         self._initialize_metadata()
 
+    def _invalidate_filelist_cache(self):
+        with self._filelist_cache_mutex:
+            self._filelist_cache.clear()
+
     def _initialize_metadata(self):
         self._logger.info(
             "Initializing the file metadata for {}...".format(self.basefolder)
@@ -690,6 +694,7 @@ class LocalFileStorage(StorageInterface):
             metadata["display"] = display_name
             self._update_metadata_entry(path, name, metadata)
 
+        self._invalidate_filelist_cache()
         return self.path_in_storage((path, name))
 
     def remove_folder(self, path, recursive=True):
@@ -717,6 +722,7 @@ class LocalFileStorage(StorageInterface):
         shutil.rmtree(folder_path)
 
         self._remove_metadata_entry(path, name)
+        self._invalidate_filelist_cache()
 
     def _get_source_destination_data(self, source, destination, must_not_equal=False):
         """Prepares data dicts about source and destination for copy/move."""
@@ -828,6 +834,7 @@ class LocalFileStorage(StorageInterface):
 
         self._set_display_metadata(destination_data, source_data=source_data)
 
+        self._invalidate_filelist_cache()
         return self.path_in_storage(destination_data["fullpath"])
 
     def move_folder(self, source, destination):
@@ -858,6 +865,7 @@ class LocalFileStorage(StorageInterface):
         self._remove_metadata_entry(source_data["path"], source_data["name"])
         self._delete_metadata(source_data["fullpath"])
 
+        self._invalidate_filelist_cache()
         return self.path_in_storage(destination_data["fullpath"])
 
     def add_file(
@@ -940,6 +948,7 @@ class LocalFileStorage(StorageInterface):
         # touch the file to set last access and modification time to now
         os.utime(file_path, None)
 
+        self._invalidate_filelist_cache()
         return self.path_in_storage((path, name))
 
     def remove_file(self, path):
@@ -962,6 +971,7 @@ class LocalFileStorage(StorageInterface):
             )
 
         self._remove_metadata_entry(path, name)
+        self._invalidate_filelist_cache()
 
     def copy_file(self, source, destination):
         source_data, destination_data = self._get_source_destination_data(
@@ -990,6 +1000,7 @@ class LocalFileStorage(StorageInterface):
         )
         self._set_display_metadata(destination_data, source_data=source_data)
 
+        self._invalidate_filelist_cache()
         return self.path_in_storage(destination_data["fullpath"])
 
     def move_file(self, source, destination, allow_overwrite=False):
@@ -1025,6 +1036,7 @@ class LocalFileStorage(StorageInterface):
         )
         self._set_display_metadata(destination_data, source_data=source_data)
 
+        self._invalidate_filelist_cache()
         return self.path_in_storage(destination_data["fullpath"])
 
     def has_analysis(self, path):
@@ -1529,7 +1541,7 @@ class LocalFileStorage(StorageInterface):
             with self._filelist_cache_mutex:
                 cache = self._filelist_cache.get(path)
                 lm = self.last_modified(path, recursive=True)
-                if not force_refresh and cache and cache[0] >= lm:
+                if not force_refresh and cache and cache[0] == lm:
                     return enrich_folders(cache[1])
 
                 metadata = self._get_metadata(path)
