@@ -443,6 +443,11 @@ class PrinterStateConnection(
             "plugin", payload={"plugin": plugin, "data": data}, permissions=permissions
         )
 
+    def on_printer_add_logs(self, lines):
+        """Accept a terminal batch under one lock, before the current update."""
+        with self._logBacklogMutex:
+            self._logBacklog.extend(lines)
+
     def on_printer_add_log(self, data):
         with self._logBacklogMutex:
             self._logBacklog.append(data)
