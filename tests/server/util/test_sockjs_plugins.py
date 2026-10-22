@@ -52,10 +52,16 @@ def test_non_object_frames_do_not_reach_hooks(payload):
     hook.assert_not_called()
 
 
-@pytest.mark.parametrize("same_origin, grant, expected", [
-    (True, False, True), (False, True, True), (False, False, False),
-    (False, None, False), (False, "yes", False),
-])
+@pytest.mark.parametrize(
+    "same_origin, grant, expected",
+    [
+        (True, False, True),
+        (False, True, True),
+        (False, False, False),
+        (False, None, False),
+        (False, "yes", False),
+    ],
+)
 def test_origin_hook_requires_explicit_grant(same_origin, grant, expected):
     handler = object.__new__(SockJSWebSocketHandler)
     handler.request = Mock()
@@ -63,9 +69,9 @@ def test_origin_hook_requires_explicit_grant(same_origin, grant, expected):
     hook = Mock(return_value=grant)
     manager = Mock()
     manager.get_hooks.return_value = {"test": hook}
-    with patch.object(WebSocketHandler, "check_origin", return_value=same_origin), patch(
-        "octoprint.plugin.plugin_manager", return_value=manager
-    ):
+    with patch.object(
+        WebSocketHandler, "check_origin", return_value=same_origin
+    ), patch("octoprint.plugin.plugin_manager", return_value=manager):
         assert handler.check_origin("https://dev.mr-beam.io") is expected
     if same_origin:
         hook.assert_not_called()
