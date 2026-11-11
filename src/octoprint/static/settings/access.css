@@ -1,0 +1,63 @@
+/* Access Control table rules from OctoPrint's original settings stylesheet. */
+#settings-users table {
+  table-layout: fixed;
+}
+#settings-users th,
+#settings-users td {
+  overflow: hidden;
+}
+#settings-users .settings_users_name {
+  text-overflow: ellipsis;
+  text-align: left;
+  width: 100px;
+}
+#settings-users .settings_users_active {
+  text-align: center;
+  width: 55px;
+}
+#settings-users .settings_groups_default {
+  text-align: center;
+  width: 20px;
+}
+#settings-users .settings_groups_name {
+  width: 180px;
+}
+#settings-users .settings_users_details_table,
+#settings-users .settings_groups_details_table {
+  font-size: 0.8em;
+  margin-bottom: 0;
+}
+#settings-users .settings_users_details_key,
+#settings-users .settings_groups_details_key {
+  width: 100px;
+}
+#settings-users .settings_users_details_table th,
+#settings-users .settings_users_details_table td,
+#settings-users .settings_groups_details_table th,
+#settings-users .settings_groups_details_table td {
+  border: 0;
+  padding: 0;
+}
+#settings-users .settings_users_actions,
+#settings-users .settings_groups_actions {
+  width: 60px;
+  text-align: center;
+  white-space: nowrap;
+}
+#settings-users .settings_users_actions a,
+#settings-users .settings_groups_actions a {
+  text-decoration: none;
+  color: #000;
+}
+#settings-users .settings_users_actions a.disabled,
+#settings-users .settings_groups_actions a.disabled {
+  color: #ccc;
+  cursor: default;
+}
+
+/* Keep floated Add buttons' shadows inside the Access Control clipping area. */
+#settings_accesscontrol_users > button,
+#settings_accesscontrol_groups > button {
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
