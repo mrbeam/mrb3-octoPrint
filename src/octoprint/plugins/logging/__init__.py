@@ -289,6 +289,9 @@ __plugin_disabling_discouraged__ = gettext(
 __plugin_license__ = "AGPLv3"
 __plugin_pythoncompat__ = ">=2.7,<4"
 __plugin_implementation__ = LoggingPlugin()
+from .settings_provider import settings_sections
+
 __plugin_hooks__ = {
-    "octoprint.access.permissions": __plugin_implementation__.get_additional_permissions
+    "mrbeam.settings.providers": settings_sections,
+    "octoprint.access.permissions": __plugin_implementation__.get_additional_permissions,
 }

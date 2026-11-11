@@ -1,6 +1,7 @@
 $(function () {
     function LoggingViewModel(parameters) {
         var self = this;
+        self.levelSubscriptions = [];
 
         self.loginState = parameters[0];
         self.access = parameters[1];
@@ -80,14 +81,21 @@ $(function () {
         self.fromSetupResponse = function (response) {
             if (!response) return;
 
+            self.levelSubscriptions.forEach(function (sub) {
+                sub.dispose();
+            });
+            self.levelSubscriptions = [];
+
             // levels
             var levels = [];
             var configuredLoggers = [];
             _.each(response.levels, function (level, logger) {
                 var item = {component: logger, level: ko.observable(level)};
-                item.level.subscribe(function () {
-                    self.configuredLoggersHasChanged();
-                });
+                self.levelSubscriptions.push(
+                    item.level.subscribe(function () {
+                        self.configuredLoggersHasChanged();
+                    })
+                );
                 levels.push(item);
                 configuredLoggers.push(logger);
             });
@@ -344,6 +352,9 @@ $(function () {
         };
     }
 
+    OCTOPRINT_VIEWMODELS = OCTOPRINT_VIEWMODELS.filter(function (entry) {
+        return (entry.construct || entry[0]).name !== "LoggingViewModel";
+    });
     OCTOPRINT_VIEWMODELS.push({
         construct: LoggingViewModel,
         additionalNames: ["logsViewModel"],

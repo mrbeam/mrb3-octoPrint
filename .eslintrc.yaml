@@ -1,5 +1,13 @@
 overrides:
   - files:
+      - "src/octoprint/static/settings/**"
+    env:
+      browser: true
+      es6: true
+    parserOptions:
+      ecmaVersion: 2020
+      sourceType: module
+  - files:
       - "src/octoprint/static/js/app/**"
     env:
       browser: true
