@@ -1,6 +1,8 @@
 const { defineConfig } = require("cypress");
 
 module.exports = defineConfig({
+  // Test the served scripts without Cypress rewriting their global detection.
+  modifyObstructiveCode: false,
   e2e: {
     baseUrl: "http://127.0.0.1:5000",
     specPattern: "integration/**/*.js", // Replaces integrationFolder
