@@ -192,9 +192,13 @@
 			}
 		},
 
-		removeBackdrop: function (modal) {
-			if (modal.$backdrop) modal.$backdrop.remove();
-			modal.$backdrop = null;
+		// Mr Beam: cleanup is repeatable and can target an older backdrop
+		// without clearing the backdrop of a reopened dialog.
+		removeBackdrop: function (modal, backdrop) {
+			backdrop = backdrop || modal.$backdrop;
+			if (!backdrop) return;
+			backdrop.remove();
+			if (modal.$backdrop === backdrop) modal.$backdrop = null;
 		},
 
 		createBackdrop: function (animate, tmpl) {
