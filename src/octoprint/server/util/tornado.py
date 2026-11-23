@@ -268,7 +268,7 @@ class UploadStorageFallbackHandler(RequestlessExceptionLoggingMixin, CorsSupport
         """
         Prepares the processing of the request. If it's a request that may contain a request body (as defined in
         :attr:`UploadStorageFallbackHandler.BODY_METHODS`) prepares the multipart parsing if content type fits. If it's a
-        body-less request, just calls the ``fallback`` with an empty body and finishes the request.
+        body-less request, leaves forwarding to the HTTP method handler after Tornado finishes reading it.
         """
         if self.request.method in UploadStorageFallbackHandler.BODY_METHODS:
             self._bytes_left = self.request.headers.get("Content-Length", 0)
@@ -303,9 +303,6 @@ class UploadStorageFallbackHandler(RequestlessExceptionLoggingMixin, CorsSupport
                     raise tornado.web.HTTPError(
                         400, log_message="No multipart boundary supplied"
                     )
-        else:
-            self._fallback(self.request, b"")
-            self._finished = True
 
     def data_received(self, chunk):
         """
@@ -578,6 +575,13 @@ class UploadStorageFallbackHandler(RequestlessExceptionLoggingMixin, CorsSupport
         Takes care of defining the new request body if necessary and forwarding
         the current request and changed body to the ``fallback``.
         """
+
+        if self.request.method not in self.BODY_METHODS:
+            # Respond only after Tornado has finished reading the request. Doing
+            # this in prepare() closes a connection that clients may still reuse.
+            self._fallback(self.request, b"")
+            self._finished = True
+            return
 
         # determine which body to supply
         body = b""

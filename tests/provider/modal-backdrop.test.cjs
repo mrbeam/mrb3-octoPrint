@@ -1,0 +1,31 @@
+const {test} = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const source = fs.readFileSync(path.resolve(__dirname, '../../src/octoprint/static/js/lib/bootstrap/bootstrap-modalmanager.js'), 'utf8');
+const method = source.match(/removeBackdrop: function \(modal, backdrop\) \{([\s\S]*?)\n\t\t\},/);
+assert.ok(method, 'Backdrop cleanup helper exists');
+const remove = vm.runInNewContext('(function(modal, backdrop) {' + method[1] + '})');
+test('cleanup tolerates an absent or already removed backdrop', () => {
+ const modal = {$backdrop: null};
+ assert.doesNotThrow(() => remove(modal));
+ let removals = 0;
+ modal.$backdrop = {remove() { removals++; }};
+ remove(modal); remove(modal);
+ assert.equal(removals, 1);
+ assert.equal(modal.$backdrop, null);
+});
+test('cleanup of an older backdrop leaves the reopened dialog intact', () => {
+ let oldRemoved = false, newRemoved = false;
+ const older = {remove() { oldRemoved = true; }};
+ const newer = {remove() { newRemoved = true; }};
+ const modal = {$backdrop: newer};
+ remove(modal, older);
+ assert.equal(oldRemoved, true);
+ assert.equal(newRemoved, false);
+ assert.equal(modal.$backdrop, newer);
+ remove(modal);
+ assert.equal(newRemoved, true);
+ assert.equal(modal.$backdrop, null);
+});
