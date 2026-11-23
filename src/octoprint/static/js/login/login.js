@@ -1,3 +1,40 @@
+// The sign-in page is independent of the main application. Remove its HTML
+// autofocus before the browser processes it on touch devices.
+if (navigator.maxTouchPoints > 0 || window.matchMedia?.("(any-pointer: coarse)").matches) {
+    const removeTypingAutofocus = (root) => {
+        if (root.nodeType !== 1) return;
+        const fields = root.matches("input[autofocus], textarea[autofocus]") ? [root] : [];
+        fields.push(...root.querySelectorAll("input[autofocus], textarea[autofocus]"));
+        for (const field of fields) {
+            const disabled = field.disabled;
+            let tapped = false;
+            const allowTap = () => {
+                tapped = true;
+                field.disabled = disabled;
+            };
+            // Removing the attribute does not cancel an already queued native
+            // autofocus request. Keep it non-editable until that request flushes.
+            field.disabled = true;
+            field.removeAttribute("autofocus");
+            field.addEventListener("pointerdown", allowTap, { once: true });
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                if (!tapped && document.activeElement === field) field.blur();
+                field.disabled = disabled;
+                field.removeEventListener("pointerdown", allowTap);
+            }));
+        }
+    };
+    removeTypingAutofocus(document.documentElement);
+    new MutationObserver((records) => {
+        for (const record of records) {
+            if (record.type === "attributes") removeTypingAutofocus(record.target);
+            else for (const node of record.addedNodes) removeTypingAutofocus(node);
+        }
+    }).observe(document.documentElement, {
+        childList: true, subtree: true, attributes: true, attributeFilter: ["autofocus"]
+    });
+}
+
 /*
  * Will get included into the login dialog, NOT into the regular OctoPrint
  * web application.
